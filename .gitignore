@@ -1,0 +1,8 @@
+*~
+*.sw[o-p]
+.DS_Store
+xcuserdata
+Podfile.lock
+Pods/
+eDistantObject.xcworkspace/
+eDistantObject.xcodeproj/project.xcworkspace/
