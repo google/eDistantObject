@@ -15,7 +15,7 @@ a different process.
 
 You can find the guideline to setup eDO and try it with your code
 in [Setup Guide](docs/setup.md), and more about how eDO actually
-works in [Details Doc](docs/details.md).
+works in [Details Doc](docs/detail.md).
 
 ## How to use
 
@@ -54,7 +54,7 @@ which implicitly invalidates the service hosting the root object.
 }
 ```
 
-### 2.  [Shared Header](docs/terminology.md#customuser-code)
+### 2.  [Shared Header](docs/terminology.md#shared-header)
 
 So that both the client and the host are aware of the methods available in the `FooClass`
 class, the header `FooClass.h` needs to be exposed in both the host as well as the client
