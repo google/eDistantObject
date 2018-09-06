@@ -16,20 +16,12 @@
 
 import Foundation
 
-@objc
-public class EDOTestSwiftClass : NSObject, EDOTestSwiftProtocol {
+extension EDOTestClassDummy : EDOTestSwiftProtocol{
   public func returnString() -> NSString {
     return "Swift String"
   }
 
   public func returnWithBlock(block: (NSString) -> EDOTestSwiftProtocol) -> NSString {
     return block("Block").returnString().appending("Block") as NSString
-  }
-
-}
-
-extension EDOTestClassDummy : EDOTestDummyExtension{
-  open func returnProtocol() -> EDOTestSwiftProtocol {
-    return EDOTestSwiftClass()
   }
 }
