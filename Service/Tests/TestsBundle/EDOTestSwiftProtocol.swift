@@ -22,8 +22,3 @@ public protocol EDOTestSwiftProtocol {
   func returnString() -> NSString
   func returnWithBlock(block: (NSString) -> EDOTestSwiftProtocol) -> NSString
 }
-
-@objc
-public protocol EDOTestDummyExtension {
-  func returnProtocol() -> EDOTestSwiftProtocol
-}

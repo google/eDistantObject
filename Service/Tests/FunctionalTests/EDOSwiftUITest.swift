@@ -33,13 +33,12 @@ class EDOSwiftUITest: XCTestCase {
     let service = EDOHostService(port:2234, rootObject:self, queue:DispatchQueue.main)
 
     let dummyClass = EDOTestClassDummy(value:20)
-    let testDummy = unsafeBitCast(dummyClass, to: EDOTestDummyExtension.self)
-    let swiftClass = testDummy.returnProtocol()
-    XCTAssertEqual(swiftClass.returnString(), "Swift String")
+    let testDummy = unsafeBitCast(dummyClass, to: EDOTestSwiftProtocol.self)
+    XCTAssertEqual(testDummy.returnString(), "Swift String")
 
-    XCTAssertEqual(swiftClass.returnWithBlock { (str : NSString) in
+    XCTAssertEqual(testDummy.returnWithBlock { (str : NSString) in
       XCTAssertEqual(str, "Block")
-      return swiftClass
+      return testDummy
     }, "Swift StringBlock")
 
     service.invalidate()
