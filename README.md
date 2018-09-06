@@ -88,7 +88,7 @@ to the host.
 }
 ```
 
-For more information please look at [Where to write code](docs/setup.md#Where to write code).
+For more information please look at [Where to write code](docs/setup.md#where-to-write-code).
 
 ## Swift Support
 
