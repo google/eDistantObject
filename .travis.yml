@@ -12,3 +12,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+language: objective-c
+osx_image: xcode9
+before_script:
+  - pod repo update
+  - pod install --repo-update
+script:
+  - xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 6,OS=11.0" test
+  - xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 5,OS=10.3.1" test
+branches:
+  only:
+    - master
