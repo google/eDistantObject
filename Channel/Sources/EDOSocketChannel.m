@@ -237,8 +237,8 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
       self.remainingDataSize = payloadSize;
       dispatch_io_read(channel, 0, payloadSize, self.eventQueue, dataHandler);
     } else {
-      // Close the channel on errors.
-      if (error != 0) {
+      // Close the channel on errors and closed sockets.
+      if (error != 0 || payloadSize == 0) {
         [self invalidate];
       }
 
