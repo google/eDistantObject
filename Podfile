@@ -15,19 +15,19 @@
 platform :ios, '9.0'
 
 target 'TestsHost' do
-  pod 'OCMock', '< 3.4.2'
+  pod 'OCMock', '3.4.1'
 end
 
 target 'TestsBundle' do
-  pod 'OCMock', '< 3.4.2'
+  pod 'OCMock', '3.4.1'
 end
 
 target 'ServiceTests' do
-  pod 'OCMock', '< 3.4.2'
+  pod 'OCMock', '3.4.1'
 end
 
 target 'ServicePerfTests' do
-  pod 'OCMock', '< 3.4.2'
+  pod 'OCMock', '3.4.1'
 end
 
 post_install do |installer_representation|
