@@ -15,7 +15,8 @@
 language: objective-c
 sudo: false
 osx_image: xcode9
-install: pod install --repo-update
+install:
+  - pod install --repo-update
 script:
   - xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 6,OS=11.0" test
   - xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 5,OS=10.3.1" test
