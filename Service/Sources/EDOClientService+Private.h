@@ -36,8 +36,8 @@ NS_ASSUME_NONNULL_BEGIN
 /** Get the reference of a distant object of the given @c remoteAddress. */
 + (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress;
 
-/** Add the reference of the given distant object */
-+ (void)addDistantObjectReference:(EDOObject *)object;
+/** Add reference of given distant object. It could be an EDOObject or dummy block object. */
++ (void)addDistantObjectReference:(id)object;
 
 /** Remove the reference of a distant object of the given @c remoteAddress. */
 + (void)removeDistantObjectReference:(EDOPointerType)remoteAddress;

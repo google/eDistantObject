@@ -31,11 +31,11 @@ NS_ASSUME_NONNULL_BEGIN
 /** The object response for the object request. */
 @interface EDOObjectResponse : EDOServiceResponse
 /**
- *  The requested distant object.
+ *  The requested distant object. This could be either an EDOObject or a block object.
  *
  *  @note It is possible the distant object is nil, for example, the underlying object is gone.
  */
-@property(readonly, nullable) EDOObject *object;
+@property(readonly, nullable) id object;
 
 + (EDOServiceResponse *)responseWithObject:(EDOObject *_Nullable)object
                                 forRequest:(EDOServiceRequest *)request;

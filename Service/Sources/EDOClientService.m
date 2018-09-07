@@ -75,11 +75,9 @@
   return result;
 }
 
-+ (void)addDistantObjectReference:(EDOObject *)object {
-  EDOObject *edoObject = object;
-  if ([EDOBlockObject isBlock:object]) {
-    edoObject = [EDOBlockObject EDOBlockObjectFromBlock:object];
-  }
++ (void)addDistantObjectReference:(id)object {
+  EDOObject *edoObject =
+      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
   dispatch_sync(self.edoSyncQueue, ^{
     [self.localDistantObjects setObject:object forKey:edoKey];
@@ -170,10 +168,8 @@
 }
 
 + (id)cachedEDOFromObjectUpdateIfNeeded:(id)object {
-  EDOObject *edoObject = object;
-  if ([EDOBlockObject isBlock:object]) {
-    edoObject = [EDOBlockObject EDOBlockObjectFromBlock:object];
-  }
+  EDOObject *edoObject =
+      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
     id localObject = [self distantObjectReferenceForRemoteAddress:edoObject.remoteAddress];

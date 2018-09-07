@@ -140,8 +140,8 @@
 }
 
 /*
- Test that makes sure local block is resolved to its address, when it is decoded from the session
- which is different from the session it is encoded.
+ Test that makes sure local block is resolved to its address, when it is decoded from the service
+ which is different from the service it is encoded.
  */
 - (void)testBlockResolveToLocalAddress {
   [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
