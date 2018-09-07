@@ -16,7 +16,7 @@
 
 #import "Service/Sources/EDOObjectAliveMessage.h"
 
-#import "third_party/objective_c/eDistantObject/Service/Sources/EDOBlockObject.h"
+#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOHostService+Private.h"
 
 static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
