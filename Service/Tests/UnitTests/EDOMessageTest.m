@@ -50,9 +50,10 @@
                                                   [EDOObjectRequest request], service);
                                           XCTAssertEqualObjects([response class],
                                                                 [EDOObjectResponse class]);
-                                          XCTAssertEqual(response.object.remoteAddress,
+                                          EDOObject *object = response.object;
+                                          XCTAssertEqual(object.remoteAddress,
                                                          (EDOPointerType)dummyLocal);
-                                          XCTAssertEqual(response.object.remoteClass,
+                                          XCTAssertEqual(object.remoteClass,
                                                          (EDOPointerType)[dummyLocal class]);
                                           [blockExecuted fulfill];
                                         }];
@@ -74,9 +75,10 @@
                                                     request, service);
                                             XCTAssertEqualObjects([response class],
                                                                   [EDOClassResponse class]);
-                                            XCTAssertTrue(response.object.remoteAddress ==
+                                            EDOObject *object = response.object;
+                                            XCTAssertTrue(object.remoteAddress ==
                                                           (EDOPointerType)[dummyLocal class]);
-                                            XCTAssertTrue(response.object.remoteClass ==
+                                            XCTAssertTrue(object.remoteClass ==
                                                           (EDOPointerType)dummyMeta);
                                           }
 

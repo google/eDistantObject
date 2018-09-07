@@ -108,7 +108,6 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     dispatch_queue_set_specific(executionQueue, gServiceKey, NULL, NULL);
   }
   NSLog(@"The EDOHostService (%p) is invalidated (%d)", self, _port.port);
-  // TODO(haowoo): Release the distant objects.
 }
 
 #pragma mark - Private
@@ -149,10 +148,10 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     EDOObjectAliveResponse *response =
         (EDOObjectAliveResponse *)[EDOClientService sendRequest:request
                                                            port:object.servicePort.port];
-                                                           EDOObject *reponseObject = response.object;
-    if ([EDOBlockObject isBlock:reponseObject]) {
-      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:reponseObject];
-    }
+
+    EDOObject *reponseObject = [EDOBlockObject isBlock:response.object]
+                                   ? [EDOBlockObject EDOBlockObjectFromBlock:response.object]
+                                   : response.object;
     return (__bridge id)(void *)reponseObject.remoteAddress;
   } @catch (NSException *e) {
     // In case of the service is dead or error, ignore the exception and reset to nil.
@@ -176,10 +175,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 }
 
 - (id)unwrappedObjectFromObject:(id)object {
-  EDOObject *edoObject = object;
-  if ([EDOBlockObject isBlock:object]) {
-    edoObject = [EDOBlockObject EDOBlockObjectFromBlock:object];
-  }
+  EDOObject *edoObject =
+      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
     if ([self.port match:edoObject.servicePort]) {
