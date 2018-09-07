@@ -139,6 +139,39 @@
   [service invalidate];
 }
 
+/*
+ Test that makes sure local block is resolved to its address, when it is decoded from the session
+ which is different from the session it is encoded.
+ */
+- (void)testBlockResolveToLocalAddress {
+  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  EDOHostService *service = [EDOHostService serviceWithPort:2234
+                                                 rootObject:self
+                                                      queue:dispatch_get_main_queue()];
+  dispatch_queue_t backgroundQueue =
+      dispatch_queue_create("com.google.edo.testbackground", DISPATCH_QUEUE_SERIAL);
+  EDOHostService *backgroundService = [EDOHostService serviceWithPort:2235
+                                                           rootObject:self
+                                                                queue:backgroundQueue];
+
+  void (^localBlock)(void) = ^{
+    [self class];  // To make this a non global block.
+  };
+
+  // Sending block to remote process through background eDO host.
+  dispatch_sync(backgroundQueue, ^{
+    remoteDummy.block = localBlock;
+  });
+
+  // Resolve the block from main thread eDO host.
+  id returnedBlock = remoteDummy.block;
+  XCTAssertEqual((id)localBlock, returnedBlock);
+
+  [service invalidate];
+  [backgroundService invalidate];
+}
+
 - (void)testBlockByValueAndOutArgument {
   [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
   EDOHostService *service = [EDOHostService serviceWithPort:2234
