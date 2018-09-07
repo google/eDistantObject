@@ -149,7 +149,11 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     EDOObjectAliveResponse *response =
         (EDOObjectAliveResponse *)[EDOClientService sendRequest:request
                                                            port:object.servicePort.port];
-    return (__bridge id)(void *)response.object.remoteAddress;
+                                                           EDOObject *reponseObject = response.object;
+    if ([EDOBlockObject isBlock:reponseObject]) {
+      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:reponseObject];
+    }
+    return (__bridge id)(void *)reponseObject.remoteAddress;
   } @catch (NSException *e) {
     // In case of the service is dead or error, ignore the exception and reset to nil.
     // TODO(haowoo): Convert the exception to NSError.

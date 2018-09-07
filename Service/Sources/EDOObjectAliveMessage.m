@@ -16,6 +16,7 @@
 
 #import "Service/Sources/EDOObjectAliveMessage.h"
 
+#import "third_party/objective_c/eDistantObject/Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOHostService+Private.h"
 
 static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
@@ -56,6 +57,9 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOObjectAliveRequest *retainRequest = (EDOObjectAliveRequest *)request;
     EDOObject *object = retainRequest.object;
+    if ([EDOBlockObject isBlock:object]) {
+      object = [EDOBlockObject EDOBlockObjectFromBlock:object];
+    }
     object = [service isObjectAlive:object] ? object : nil;
     return [EDOObjectAliveResponse responseWithObject:object forRequest:request];
   };
