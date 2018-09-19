@@ -22,7 +22,7 @@ public class EDOTestSwiftClass : NSObject, EDOTestSwiftProtocol {
     return "Swift String"
   }
 
-  public func returnWithBlock(block: (NSString) -> EDOTestSwiftProtocol) -> NSString {
+  public func returnWithBlock(block: @escaping (NSString) -> EDOTestSwiftProtocol) -> NSString {
     return block("Block").returnString().appending("Block") as NSString
   }
 

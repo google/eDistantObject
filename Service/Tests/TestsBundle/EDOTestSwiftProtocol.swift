@@ -20,7 +20,7 @@ import Foundation
 @objc
 public protocol EDOTestSwiftProtocol {
   func returnString() -> NSString
-  func returnWithBlock(block: (NSString) -> EDOTestSwiftProtocol) -> NSString
+  func returnWithBlock(block: @escaping (NSString) -> EDOTestSwiftProtocol) -> NSString
 }
 
 @objc
