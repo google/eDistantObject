@@ -77,4 +77,9 @@ remote.remoteFoo()
 ```
 
 Here the `unsafeCast` lets the compiler know the `AlreadyStubbedClass` has the
-extension.
+extension. Working example is shown
+[here](../Service/Tests/FunctionalTests/EDOSwiftUITest.swift).
+
+### The block closure
+
+The block is also supported but it may confuse the compiler and the runtime as the calling convention can be different. Adding @escaping to let both the runtime and the compiler to know how to handle the block scope. [For example](../Service/Tests/TestsBundle/EDOTestSwiftProtocol.swift).
