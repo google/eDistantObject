@@ -137,7 +137,6 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
       edo_RunHandlerWithErrorInQueueWithBlock(connectError, queue, block);
     } else {
       // Prevent SIGPIPE, suggested by Apple.
-      // NOLINTNEXTLINE
       // https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/NetworkingOverview/CommonPitfalls/CommonPitfalls.html
       int on = 1;
       setsockopt(socketFD, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
