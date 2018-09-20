@@ -192,7 +192,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       NSAssert(messages.count == 3 || messages.count == 4,
                @"The message can be either two elements or three elements with a context.");
 
-      // [0]: the request; [1]: the channel; [2]: the context [3]: the wait lock of receiving data.
+      // [0]: the request; [1]: the channel; [2]: the wait-lock of receiving data; [3]: the context.
       [self edo_handleRequest:(EDOServiceRequest *)messages[0]
                   withChannel:messages[1]
                       context:(messages.count > 3 ? messages[3] : nil)];
