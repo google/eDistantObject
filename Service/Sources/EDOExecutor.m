@@ -97,8 +97,13 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   __block NSException *exception = nil;
 
   // 1. Create the waited queue so it can also process the requests while waiting for the response
-  // when the incoming request is dispatched to this same queue.
+  // when the incoming request is dispatched to the same queue.
   EDOMessageQueue *messageQueue = [[EDOMessageQueue alloc] init];
+  // Set the message queue to process the request that will be received and dispatched to this
+  // queue while waiting for the response to come back.
+  dispatch_sync(self.isolationQueue, ^{
+    self.messageQueue = messageQueue;
+  });
 
   // 2. Do send.
 #pragma clang diagnostic push
@@ -166,18 +171,6 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   EDOServiceResponse *response = nil;
   NSArray *messages = nil;
   while (true) {
-    // Before suspending the dispatch queue, set the message queue so when the request is received
-    // and dispatched to this queue, it can be woken up.
-    // Note: this message queue can be reset in a nested handling loop, and we only need to make
-    // sure we have a message queue to process the requests before the dispatch queue gets blocked.
-    dispatch_sync(self.isolationQueue, ^{
-      // Only set the message queue when the response hasn't been received for this loop. It may be
-      // already reset right after handling the inner loop and before this line is executed.
-      if (!responseReceived) {
-        self.messageQueue = messageQueue;
-      }
-    });
-
     // Block the current queue and wait for the new message. It will unset the
     // messageQueue if it receives a response so there is no race condition where it has some
     // messages left in the queue to be processed after the queue is unset.
@@ -210,6 +203,18 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 #pragma clang diagnostic pop
       break;
     }
+
+    // Reset the message queue in case that the nested invocation clears it after its handling.
+    // Note: We only need to make sure the message queue can process any nested request, which shall
+    //       come before the response is received. If any request comes after the response is
+    //       received, this request will be dispatched async'ly.
+    dispatch_sync(self.isolationQueue, ^{
+      // Only set the message queue when the response hasn't been received for this loop. It may be
+      // already reset right after handling the inner loop and before this line is executed.
+      if (!responseReceived) {
+        self.messageQueue = messageQueue;
+      }
+    });
   }
 
   if (!response) {
