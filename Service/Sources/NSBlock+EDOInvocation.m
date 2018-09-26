@@ -42,7 +42,11 @@ __attribute__((constructor)) static void SetupBlockInvocationForward() {
   });
   BOOL forwardInvocationAdded =
       class_addMethod([NSBlock class], @selector(forwardInvocation:), forwardInvocationImp, "v@:@");
-  NSCAssert(forwardInvocationAdded, @"Failed to add forwardInvocation:.");
+  if (!forwardInvocationAdded) {
+    // TODO(haowoo): Convert this and below into macros/methods.
+    NSLog(@"Failed to add forwardInvocation:.");
+    abort();
+  }
 
   IMP methodSignatureImp = imp_implementationWithBlock(^(id block, SEL selector) {
     EDOBlockObject *blockObject = [EDOBlockObject EDOBlockObjectFromBlock:block];
@@ -54,7 +58,10 @@ __attribute__((constructor)) static void SetupBlockInvocationForward() {
   });
   BOOL methodSignatureAdded = class_addMethod(
       [NSBlock class], @selector(methodSignatureForSelector:), methodSignatureImp, "v@::");
-  NSCAssert(methodSignatureAdded, @"Failed to add methodSignatureForSelector:.");
+  if (!methodSignatureAdded) {
+    NSLog(@"Failed to add methodSignatureForSelector:.");
+    abort();
+  }
 }
 
 - (EDOParameter *)edo_parameterForService:(EDOHostService *)service {
