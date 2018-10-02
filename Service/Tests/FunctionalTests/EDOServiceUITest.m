@@ -14,12 +14,10 @@
 // limitations under the License.
 //
 
-#import <XCTest/XCTest.h>
+#import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
-#import "Channel/Sources/EDOSocketChannelPool.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
-#import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -29,223 +27,13 @@
 
 #import <objc/runtime.h>
 
-@interface EDOUITestAppUITests : XCTestCase
-@property(nonatomic) int numRemoteInvokes;
+@interface EDOUITestAppUITests : EDOServiceUIBaseTest
 @end
 
 @implementation EDOUITestAppUITests
 
-- (void)setUp {
-  [super setUp];
-
-  self.continueAfterFailure = YES;
-}
-
-- (void)tearDown {
-  [EDOSocketChannelPool.sharedChannelPool removeChannelsWithPort:EDOTEST_APP_SERVICE_PORT];
-
-  [super tearDown];
-}
-
-- (XCUIApplication *)launchAppWithPort:(int)port initValue:(int)value {
-  XCUIApplication *app = [[XCUIApplication alloc] init];
-  app.launchArguments = @[
-    @"-servicePort", [NSString stringWithFormat:@"%d", port], @"-dummyInitValue",
-    [NSString stringWithFormat:@"%d", value]
-  ];
-  [app launch];
-  return app;
-}
-
-- (void)testSimpleBlock {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
-  EDOHostService *service = [EDOHostService serviceWithPort:2234
-                                                 rootObject:self
-                                                      queue:dispatch_get_main_queue()];
-
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  __block BOOL blockAssignment = NO;
-  [remoteDummy voidWithBlock:^{
-    blockAssignment = YES;
-  }];
-  XCTAssertTrue(blockAssignment);
-  XCTAssertEqual([remoteDummy returnWithBlockDouble:^double {
-                   return 100.0;
-                 }],
-                 100.0);
-
-  self.numRemoteInvokes = 0;
-  [self assignStackBlock:remoteDummy];
-  XCTAssertNoThrow([remoteDummy invokeBlock]);
-  XCTAssertNoThrow(remoteDummy.block());
-  XCTAssertNoThrow([remoteDummy returnBlock]());
-  XCTAssertNoThrow([remoteDummy voidWithBlockAssigned:^{
-    ++self.numRemoteInvokes;
-  }]);
-  XCTAssertNoThrow([remoteDummy invokeBlock]);
-  XCTAssertEqual(self.numRemoteInvokes, 3);
-
-  [service invalidate];
-}
-
-- (void)testBlockWithStruct {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
-  EDOHostService *service = [EDOHostService serviceWithPort:2234
-                                                 rootObject:self
-                                                      queue:dispatch_get_main_queue()];
-
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  EDOTestDummyStruct dummyStruct = [remoteDummy returnStructWithBlockStret:^EDOTestDummyStruct {
-    return (EDOTestDummyStruct){.value = 100, .a = 30.0, .x = 50, .z = 200};
-  }];
-  XCTAssertEqual(dummyStruct.value, 100);
-  XCTAssertEqual(dummyStruct.a, 30);
-  XCTAssertEqual(dummyStruct.x, 50);
-  XCTAssertEqual(dummyStruct.z, 200);
-
-  EDOTestDummy *dummyReturn = [remoteDummy
-      returnWithInt:5
-        dummyStruct:(EDOTestDummyStruct){.value = 150, .a = 30.0, .x = 50, .z = 200}
-       blockComplex:^EDOTestDummy *(EDOTestDummyStruct dummy, int i, EDOTestDummy *test) {
-         XCTAssertEqual(dummyStruct.a, 30);
-         XCTAssertEqual(dummyStruct.x, 50);
-         XCTAssertEqual(dummyStruct.z, 200);
-         XCTAssertEqual(i, 5);
-         XCTAssertEqual(dummy.value, 150);
-         test.value = i + dummy.value + 4;
-         return test;
-       }];
-  XCTAssertEqual(dummyReturn.value, 159);
-  [service invalidate];
-}
-
-- (void)testBlockIsEqual {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
-  EDOHostService *service = [EDOHostService serviceWithPort:2234
-                                                 rootObject:self
-                                                      queue:dispatch_get_main_queue()];
-
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-
-  void (^localBlock)(void) = ^{
-    [self class];  // To make this a non global block.
-  };
-  id returnedBlock = [remoteDummy returnWithBlockObject:^id(EDOTestDummy *_) {
-    return localBlock;
-  }];
-  XCTAssertEqual((id)localBlock, returnedBlock);
-
-  XCTAssertEqual([remoteDummy returnBlock], [remoteDummy returnBlock]);
-  [service invalidate];
-}
-
-/*
- Test that makes sure local block is resolved to its address, when it is decoded from the service
- which is different from the service it is encoded.
- */
-- (void)testBlockResolveToLocalAddress {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  EDOHostService *service = [EDOHostService serviceWithPort:2234
-                                                 rootObject:self
-                                                      queue:dispatch_get_main_queue()];
-  dispatch_queue_t backgroundQueue =
-      dispatch_queue_create("com.google.edo.testbackground", DISPATCH_QUEUE_SERIAL);
-  EDOHostService *backgroundService = [EDOHostService serviceWithPort:2235
-                                                           rootObject:self
-                                                                queue:backgroundQueue];
-
-  void (^localBlock)(void) = ^{
-    [self class];  // To make this a non global block.
-  };
-
-  // Sending block to remote process through background eDO host.
-  dispatch_sync(backgroundQueue, ^{
-    remoteDummy.block = localBlock;
-  });
-
-  // Resolve the block from main thread eDO host.
-  id returnedBlock = remoteDummy.block;
-  XCTAssertEqual((id)localBlock, returnedBlock);
-
-  [service invalidate];
-  [backgroundService invalidate];
-}
-
-- (void)testBlockByValueAndOutArgument {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
-  EDOHostService *service = [EDOHostService serviceWithPort:2234
-                                                 rootObject:self
-                                                      queue:dispatch_get_main_queue()];
-
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-
-  NSArray *arrayReturn = [remoteDummy returnWithBlockObject:^id(EDOTestDummy *dummy) {
-    XCTAssertEqual([dummy class], NSClassFromString(@"EDOObject"));
-    XCTAssertEqual(dummy.value, 10);
-    dummy.value += 10;
-    return [@[ @(dummy.value), @20 ] passByValue];
-  }];
-  // The returned array from the block, if not passByValue, should be resolved to the local array
-  // here.
-  XCTAssertEqual([arrayReturn class], NSClassFromString(@"EDOObject"));
-  XCTAssertEqualObjects(arrayReturn[0], @20);
-  XCTAssertEqualObjects(arrayReturn[1], @20);
-
-  EDOTestDummy *outDummy;
-  XCTAssertNoThrow(outDummy = [remoteDummy returnWithBlockOutObject:^(EDOTestDummy **dummy) {
-                     *dummy = [EDO_REMOTE_CLASS(EDOTestDummy, EDOTEST_APP_SERVICE_PORT)
-                         classMethodWithNumber:@10];
-                   }]);
-  XCTAssertEqual(outDummy.value, 10);
-
-  [service invalidate];
-}
-
-- (void)assignStackBlock:(EDOTestDummy *)dummy {
-  void (^block)(void) = ^{
-    ++self.numRemoteInvokes;
-  };
-  dummy.block = block;
-}
-
-- (void)testEDOResolveToLocalAddress {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
-
-  XCTAssertNil(NSClassFromString(@"EDOTestDummy"));
-  EDOTestDummyInTest *rootObject = [[EDOTestDummyInTest alloc] initWithValue:5];
-  EDOHostService *service = [EDOHostService serviceWithPort:2234
-                                                 rootObject:rootObject
-                                                      queue:dispatch_get_main_queue()];
-
-  EDOTestDummyInTest *dummyInTest = [[EDOTestDummyInTest alloc] initWithValue:5];
-  EDOTestDummyInTest *dummyAssigned = [[EDOTestDummyInTest alloc] initWithValue:6];
-
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  XCTAssertEqualObjects([remoteDummy class], NSClassFromString(@"EDOObject"));
-
-  EDOTestDummy *returnDummy = [remoteDummy returnIdWithInt:5];
-  XCTAssertEqualObjects([returnDummy class], NSClassFromString(@"EDOObject"));
-  XCTAssertEqual(returnDummy.value, 15);
-
-  Class testDummyClass = EDO_REMOTE_CLASS(EDOTestDummy, EDOTEST_APP_SERVICE_PORT);
-  XCTAssertEqualObjects([testDummyClass class], NSClassFromString(@"EDOObject"));
-  XCTAssertEqualObjects([remoteDummy class], NSClassFromString(@"EDOObject"));
-
-  [remoteDummy setDummInTest:dummyInTest withDummy:dummyAssigned];
-
-  XCTAssertEqual(dummyInTest.dummyInTest, dummyAssigned);
-  XCTAssertEqual([remoteDummy getRootObject:2234], rootObject);
-
-  EDOTestDummyInTest *returnedDummy = [remoteDummy createEDOWithPort:2234];
-  XCTAssertEqualObjects([returnedDummy class], [EDOTestDummyInTest class]);
-  XCTAssertEqual(returnedDummy.value.intValue, 17);
-
-  [service invalidate];
-}
-
 - (void)testValueAndIdOutParameter {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:7];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:7];
   EDOHostService *service =
       [EDOHostService serviceWithPort:2234
                            rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
@@ -288,7 +76,7 @@
 }
 
 - (void)testProtocolParameter {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:10];
 
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
 
@@ -305,7 +93,7 @@
 }
 
 - (void)testTwoWayAndMultiplexInvocation {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOHostService *service =
       [EDOHostService serviceWithPort:2234
                            rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
@@ -332,7 +120,7 @@
 }
 
 - (void)testDispatchAsyncEarlyReturn {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOHostService *service =
       [EDOHostService serviceWithPort:2234
                            rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
@@ -364,7 +152,7 @@
 }
 
 - (void)testDispatchAsyncManyTimes {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
   NS_VALID_UNTIL_END_OF_SCOPE dispatch_queue_t backgroundQueue =
       dispatch_queue_create("com.google.edo.uitest", DISPATCH_QUEUE_SERIAL);
   EDOTestDummyInTest *rootDummy = [[EDOTestDummyInTest alloc] initWithValue:9];
@@ -404,21 +192,21 @@
   XCTAssertThrowsSpecificNamed([EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT],
                                NSException, NSDestinationInvalidException);
 
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
 
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   [remoteDummy invalidateService];
   XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException,
                                NSDestinationInvalidException);
 
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
 
   XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException,
                                NSInternalInconsistencyException);
 }
 
 - (void)testAllocAndClassMethod {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
 
   // Create a local service so it can wrap and deref the any returned EDOObjects.
   EDOHostService *service = [EDOHostService serviceWithPort:2234
@@ -460,7 +248,7 @@
 }
 
 - (void)testRemoteObjectCopy {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   NSArray *remoteArray = [dummy returnArray];
   NSArray *remoteArrayCopy;
@@ -469,7 +257,7 @@
 }
 
 - (void)testRemoteObjectMutableCopy {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   NSArray *remoteArray = [dummy returnArray];
   NSMutableArray *remoteArrayCopy = [remoteArray mutableCopy];
@@ -480,18 +268,18 @@
 }
 
 - (void)testInsertRemoteObjectToDictionary {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
   XCTAssertNoThrow([dict setObject:dummy forKey:@"key"]);
 }
 
 - (void)testBrokenChannelAfterServiceClosed {
-  XCUIApplication *app = [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  XCUIApplication *app = [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   XCTAssertEqualObjects([remoteDummy class], NSClassFromString(@"EDOObject"));
   [app terminate];
-  app = [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  app = [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
 
   EDOTestDummy *newRemoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   XCTAssertNotEqualObjects(remoteDummy, newRemoteDummy);
@@ -505,90 +293,6 @@
   XCTAssertEqualObjects(clazz, NSClassFromString(@"EDOObject"));
   XCTAssertThrowsSpecificNamed([remoteDummy returnInt], NSException,
                                NSInternalInconsistencyException);
-}
-
-- (void)testEDOObjectReleaseInHost {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  @autoreleasepool {
-    // Allocate a weak variable inside the autoreleasepool.
-    NS_VALID_UNTIL_END_OF_SCOPE EDOTestDummy *dummyInTest =
-        [remoteDummy weaklyHeldDummyForMemoryTest];
-    // Assert that the remoteDummy holds a reference to the weak variable.
-    XCTAssertNotNil(dummyInTest);
-    XCTAssertNotNil(remoteDummy.weakDummyInTest);
-  }
-  // The strong variable that held a strong reference is gone. Since the remoteDummy holds a weak
-  // reference to itself, then it should be nil.
-  XCTAssertNil(remoteDummy.weakDummyInTest);
-}
-
-- (void)testEDOObjectReleasedMultipleReferences {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  EDOTestDummy *strongReference;
-  __weak EDOTestDummy *weakReference;
-  @autoreleasepool {
-    // Get a weak variable.
-    NS_VALID_UNTIL_END_OF_SCOPE EDOTestDummy *dummy = [remoteDummy weaklyHeldDummyForMemoryTest];
-    // Assign it to a weak and a strong variable.
-    weakReference = dummy;
-    strongReference = dummy;
-    XCTAssertNotNil(weakReference);
-    XCTAssertNotNil(strongReference);
-  }
-  // Since there is still a strong reference to the weak variable then references are not nil.
-  XCTAssertNotNil(weakReference);
-  XCTAssertNotNil(strongReference);
-  XCTAssertNotNil(remoteDummy.weakDummyInTest);
-}
-
-- (void)testEDOObjectNotReleasedMultipleReferences {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  __weak EDOTestDummy *weakReference;
-  __weak EDOTestDummy *weakReferenceTwo;
-  @autoreleasepool {
-    // Get a weak variable.
-    NS_VALID_UNTIL_END_OF_SCOPE EDOTestDummy *dummy = [remoteDummy weaklyHeldDummyForMemoryTest];
-    weakReference = dummy;
-    weakReferenceTwo = dummy;
-    XCTAssertNotNil(weakReference);
-    XCTAssertNotNil(weakReferenceTwo);
-  }
-  // Both variables are weak. When one of them is released both of them get released.
-  XCTAssertNil(weakReference);
-  XCTAssertNil(weakReferenceTwo);
-  XCTAssertNil(remoteDummy.weakDummyInTest);
-}
-
-- (void)testEDOObjectNotReleasedStronglyHeldAppSide {
-  [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
-  __weak EDOTestDummy *remoteWeakDummy;
-  @autoreleasepool {
-    // Initialize a weak reference to the rootObject.
-    NS_VALID_UNTIL_END_OF_SCOPE EDOTestDummy *dummy =
-        [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-    remoteWeakDummy = dummy;
-    XCTAssertNotNil(remoteWeakDummy);
-  }
-  // The weak reference to the root object is gone on the test side. But since the app side
-  // holds a strong reference to root object it is not deallocated.
-  XCTAssertNil(remoteWeakDummy);
-  XCTAssertNotNil([EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT]);
-}
-
-- (void)testEDOObjectReleasedAfterAppKiled {
-  XCUIApplication *app = [self launchAppWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
-  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  __weak EDOTestDummy *weakReference;
-  @autoreleasepool {
-    NS_VALID_UNTIL_END_OF_SCOPE EDOTestDummy *dummy = [remoteDummy weaklyHeldDummyForMemoryTest];
-    weakReference = dummy;
-    [app terminate];
-  }
-  // The test shouldn't crash if the app is gone.
-  XCTAssertNil(weakReference);
 }
 
 @end
