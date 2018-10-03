@@ -21,8 +21,6 @@
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
-#import <objc/runtime.h>
-
 // Memory tests to assure the local and remote objects don't leak.
 @interface EDOUIMemoryTest : EDOServiceUIBaseTest
 // The launched application for the running test.

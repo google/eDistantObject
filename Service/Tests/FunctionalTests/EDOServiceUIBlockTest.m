@@ -21,8 +21,6 @@
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
-#import <objc/runtime.h>
-
 // Block tests to assure the block can be invoked remotely from another process.
 @interface EDOUIBlockTest : EDOServiceUIBaseTest
 @property(nonatomic) int numRemoteInvokes;

@@ -16,6 +16,8 @@
 
 #import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
+#include <objc/runtime.h>
+
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
@@ -24,8 +26,6 @@
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInApp.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInTest.h"
-
-#import <objc/runtime.h>
 
 @interface EDOUITestAppUITests : EDOServiceUIBaseTest
 @end
