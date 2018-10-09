@@ -28,7 +28,7 @@ matrix:
 install:
   - pod install --repo-update
 script:
-  - xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "$IOS_DESTINATION" test
+  - travis_retry xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "$IOS_DESTINATION" test
 branches:
   only:
     - master
