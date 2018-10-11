@@ -21,13 +21,12 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketChannelPool.h"
 #import "Service/Sources/EDOBlockObject.h"
-#import "Service/Sources/EDOClassMessage.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOClassMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
-#import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 
 @implementation EDOClientService
 
@@ -131,7 +130,11 @@
     // wasn't able to sent then it's most likely that the host side is dead and there's no need
     // to retry or try to handle it.
     if ([request class] == [EDOObjectReleaseRequest class]) {
-      NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+      // TODO(b/112517451): Support eDO with iOS 12.
+      NSData *requestData = [NSKeyedArchiver archivedDataWithRootObject:request];
+#pragma clang diagnostic pop
       [channel sendData:requestData withCompletionHandler:nil];
       [EDOSocketChannelPool.sharedChannelPool addChannel:channel];
       return nil;

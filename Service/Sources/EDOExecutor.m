@@ -20,8 +20,6 @@
 #import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOMessageQueue.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
-#import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
-#import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
 // The context key for the executor for the dispatch queue.
 static const char *_executorKey = "com.google.executorkey";
@@ -108,7 +106,11 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   });
 
   // 2. Do send.
-  NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  // TODO(b/112517451): Support eDO with iOS 12.
+  NSData *requestData = [NSKeyedArchiver archivedDataWithRootObject:request];
+#pragma clang diagnostic pop
   [channel sendData:requestData
       withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
         // TODO(haowoo): Handle errors.
@@ -194,7 +196,11 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       NSAssert(messageQueue != self.messageQueue, @"The message queue should be untracked.");
       NSAssert(responseReceived, @"The response should be received.");
 
-      response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+      // TODO(b/112517451): Support eDO with iOS 12.
+      response = [NSKeyedUnarchiver unarchiveObjectWithData:responseData];
+#pragma clang diagnostic pop
       break;
     }
 
@@ -275,7 +281,11 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
     response = [EDOServiceResponse errorResponse:error forRequest:request];
   }
 
-  NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  // TODO(b/112517451): Support eDO with iOS 12.
+  NSData *responseData = [NSKeyedArchiver archivedDataWithRootObject:response];
+#pragma clang diagnostic pop
   // TODO(haowoo): Handle the response error (should just log and ignore safely).
   [channel sendData:responseData withCompletionHandler:nil];
 }

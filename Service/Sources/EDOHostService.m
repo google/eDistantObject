@@ -26,8 +26,6 @@
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostService+Handlers.h"
 #import "Service/Sources/EDOObject+Private.h"
-#import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
-#import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
 #import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
@@ -230,7 +228,11 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                  EDOServiceRequest *request;
 
                  @try {
-                   request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                   // TODO(b/112517451): Support eDO with iOS 12.
+                   request = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+#pragma clang diagnostic pop
                  } @catch (NSException *e) {
                    // TODO(haowoo): Handle exceptions in a better way.
                    exception = e;
@@ -246,9 +248,13 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                    } else {
                      error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
                    }
-                   EDOServiceResponse *errorResponse = [EDOServiceResponse errorResponse:error
-                                                                              forRequest:request];
-                   NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                   // TODO(b/112517451): Support eDO with iOS 12.
+                   NSData *errorData = [NSKeyedArchiver
+                       archivedDataWithRootObject:[EDOServiceResponse errorResponse:error
+                                                                         forRequest:request]];
+#pragma clang diagnostic pop
                    [channel sendData:errorData
                        withCompletionHandler:^(id<EDOChannel> _Nonnull channel,
                                                NSError *_Nullable error) {
