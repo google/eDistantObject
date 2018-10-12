@@ -370,13 +370,16 @@
 
 - (void)testEDOEqual {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSSet *returnSetA = [dummyOnBackground returnSet];
-  NSSet *returnSetB = [dummyOnBackground returnSet];
+  NSSet<NSNumber *> *returnSetA = [dummyOnBackground returnSet];
+  NSSet<NSNumber *> *returnSetB = [dummyOnBackground returnSet];
   XCTAssertEqual([returnSetA class], NSClassFromString(@"EDOObject"));
   XCTAssertEqual([returnSetB class], NSClassFromString(@"EDOObject"));
 
   XCTAssertTrue([returnSetA isEqual:returnSetB]);
   XCTAssertTrue([returnSetA isEqual:returnSetA]);
+  XCTAssertEqual(returnSetB.hash, returnSetA.hash);
+  XCTAssertEqual([dummyOnBackground returnSelf].hash, [dummyOnBackground returnSelf].hash);
+  XCTAssertEqual(returnSetB.hash, [dummyOnBackground returnArray].hash);
   XCTAssertFalse([returnSetA isEqual:[self.rootObject returnSet]]);
 }
 

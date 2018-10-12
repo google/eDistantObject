@@ -183,23 +183,23 @@ static const NSInteger kLargeArraySize = 1000;
   return self;
 }
 
-- (NSDictionary *)returnDictionary {
+- (NSDictionary<NSNumber *, NSString *> *)returnDictionary {
   return @{ @"one" : @1, @"two" : @2, @"three" : @3, @"four" : @4 };
 }
 
-- (NSArray *)returnArray {
+- (NSArray<NSNumber *> *)returnArray {
   return @[ @1, @2, @3, @4 ];
 }
 
-- (NSArray *)returnLargeArray {
-  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:kLargeArraySize];
+- (NSArray<NSNumber *> *)returnLargeArray {
+  NSMutableArray<NSNumber *> *array = [[NSMutableArray alloc] initWithCapacity:kLargeArraySize];
   for (int i = 0; i < kLargeArraySize; i++) {
     [array addObject:@(i)];
   }
   return [array copy];
 }
 
-- (NSSet *)returnSet {
+- (NSSet<NSNumber *> *)returnSet {
   return [NSSet setWithObjects:@1, @2, @3, @4, nil];
 }
 

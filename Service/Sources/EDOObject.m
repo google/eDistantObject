@@ -187,6 +187,17 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   return NO;
 }
 
+- (NSUInteger)hash {
+  NSUInteger remoteHash = 0;
+  NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:_cmd];
+  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+  invocation.target = self;
+  invocation.selector = _cmd;
+  [self forwardInvocation:invocation];
+  [invocation getReturnValue:&remoteHash];
+  return remoteHash;
+}
+
 #pragma mark - NSFastEnumeration
 
 /**
