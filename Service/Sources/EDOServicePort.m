@@ -23,6 +23,10 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   uuid_t _serviceKey;
 }
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 + (instancetype)servicePortWithPort:(UInt16)port {
   return [[self alloc] initWithPort:port];
 }

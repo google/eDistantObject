@@ -34,7 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 #define EDO_IS_POINTER(__type) ((__type)[0] == _C_PTR)
 
 /** The boxed value to serialize data and objects when transferring invocations. */
-@interface EDOParameter : NSObject <NSCoding>
+@interface EDOParameter : NSObject <NSSecureCoding>
 
 /** The runtime type encoding for the boxed value. */
 @property(nonatomic, readonly) NSString *valueObjCType;

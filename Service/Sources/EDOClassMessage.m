@@ -31,6 +31,10 @@ static NSString *const kEDOObjectCoderClassNameKey = @"className";
 
 @implementation EDOClassRequest
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 + (EDORequestHandler)requestHandler {
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOClassRequest *classRequest = (EDOClassRequest *)request;
@@ -55,7 +59,7 @@ static NSString *const kEDOObjectCoderClassNameKey = @"className";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _className = [aDecoder decodeObjectForKey:kEDOObjectCoderClassNameKey];
+    _className = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOObjectCoderClassNameKey];
   }
   return self;
 }
@@ -74,6 +78,10 @@ static NSString *const kEDOObjectCoderClassNameKey = @"className";
 #pragma mark -
 
 @implementation EDOClassResponse
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"Class response (%@)", self.messageId];

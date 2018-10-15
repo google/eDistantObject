@@ -39,6 +39,10 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 
 @implementation EDOInvocationResponse
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 + (instancetype)responseWithReturnValue:(EDOBoxedValueType *)value
                               exception:(NSException *)exception
                               outValues:(NSArray<EDOBoxedValueType *> *)outValues
@@ -100,6 +104,10 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 @end
 
 @implementation EDOInvocationRequest
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 + (instancetype)requestWithTarget:(EDOPointerType)target
                          selector:(SEL)selector
@@ -300,8 +308,9 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
   self = [super initWithCoder:aDecoder];
   if (self) {
     _target = [aDecoder decodeInt64ForKey:kEDOInvocationCoderTargetKey];
-    _selName = [aDecoder decodeObjectForKey:kEDOInvocationCoderSelNameKey];
-    _arguments = [aDecoder decodeObjectForKey:kEDOInvocationCoderArgumentsKey];
+    _selName = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOInvocationCoderSelNameKey];
+    _arguments = [aDecoder decodeObjectOfClass:[NSArray class]
+                                        forKey:kEDOInvocationCoderArgumentsKey];
     _returnByValue = [aDecoder decodeBoolForKey:kEDOInvocationReturnByValueKey];
   }
   return self;

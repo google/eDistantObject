@@ -21,6 +21,7 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOServiceRequest.h"
+#import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
 @interface EDOExecutorTest : XCTestCase
 @property(weak) id weakHolder;
@@ -222,7 +223,7 @@
 
            [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
              if (data != nil) {
-               EDOServiceRequest *request = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+               EDOServiceRequest *request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
                [hostExecutor receiveRequest:request withChannel:channel context:nil];
              }
            }];

@@ -18,6 +18,10 @@
 
 @implementation EDOServiceRequest
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 + (EDORequestHandler)requestHandler {
   // Default handler that only bounces the request.
   return ^(EDOServiceRequest *request, EDOHostService *service) {
@@ -33,6 +37,10 @@
 
 @implementation EDOServiceResponse
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)initWithMessageId:(NSString *)messageId error:(NSError *)error {
   self = [super initWithMessageId:messageId];
   if (self) {
@@ -44,7 +52,7 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _error = [aDecoder decodeObjectForKey:@"error"];
+    _error = [aDecoder decodeObjectOfClass:[NSError class] forKey:@"error"];
   }
   return self;
 }

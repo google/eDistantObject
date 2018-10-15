@@ -20,6 +20,10 @@ static NSString *const kEDOProtocolObjectCoderProtocolName = @"protocolName";
 
 @implementation EDOProtocolObject
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)initWithProtocol:(Protocol *)protocol {
   self = [super init];
   if (self) {
@@ -28,18 +32,19 @@ static NSString *const kEDOProtocolObjectCoderProtocolName = @"protocolName";
   return self;
 }
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super init];
+  if (self) {
+    _protocolName = [aDecoder decodeObjectOfClass:[NSString class]
+                                           forKey:kEDOProtocolObjectCoderProtocolName];
+  }
+  return self;
+}
+
 #pragma mark - NSCoder
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [aCoder encodeObject:self.protocolName forKey:kEDOProtocolObjectCoderProtocolName];
-}
-
-- (instancetype)initWithCoder:(NSCoder *)aDecoder {
-  self = [super init];
-  if (self) {
-    _protocolName = [aDecoder decodeObjectForKey:kEDOProtocolObjectCoderProtocolName];
-  }
-  return self;
 }
 
 - (id)awakeAfterUsingCoder:(NSCoder *)aDecoder {

@@ -18,24 +18,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/**
- *  EDOProtocolObject encodes and decodes a protocol to be transferred within a single service
- */
-@interface EDOProtocolObject : NSObject <NSSecureCoding>
-
-@property(nonatomic, readonly) NSString *protocolName;
-
-/** Mark it as designated so that we can call super init without any compiler warnings */
-- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
-
-/** Initialize the wrapper object with the protocol */
-- (instancetype)initWithProtocol:(Protocol *)protocol NS_DESIGNATED_INITIALIZER;
+/** Extension to archive objects into @c NSData. */
+@interface NSKeyedArchiver (EDOAdditions)
 
 /**
- *  @remark init is not an available initializer. Use the <b>EarlGrey</b> macro
- *  to start an interaction.
+ *  Returns an @c NSData object containing the given encoded @c object.
+ *
+ *  @param object The object to be encoded.
+ *  @return The @c NSData object containing the encoded @c object.
  */
-- (instancetype)init NS_UNAVAILABLE;
++ (NSData *)edo_archivedDataWithObject:(id)object;
 
 @end
 

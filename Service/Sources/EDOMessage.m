@@ -18,6 +18,10 @@
 
 @implementation EDOMessage
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)init {
   return [self initWithMessageId:[NSUUID UUID].UUIDString];
 }
@@ -33,7 +37,7 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super init];
   if (self) {
-    _messageId = [aDecoder decodeObjectForKey:@"messageId"];
+    _messageId = [aDecoder decodeObjectOfClass:[NSString class] forKey:@"messageId"];
   }
   return self;
 }

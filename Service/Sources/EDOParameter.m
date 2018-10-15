@@ -26,10 +26,15 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
 #pragma mark -
 
 /** The placeholder type to save the NULL pointer that points to an object. */
-@interface EDONull : NSObject <NSCoding>
+@interface EDONull : NSObject <NSSecureCoding>
 @end
 
 @implementation EDONull
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 /// TODO(haowoo): This will not be needed if use EDOParameter.
 - (void)encodeWithCoder:(NSCoder *)aCoder {
 }
@@ -44,6 +49,10 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
 #pragma mark -
 
 @implementation EDOParameter
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 + (instancetype)parameterWithValue:(id<NSCoding>)value objCType:(NSString *)objCType {
   return [[self alloc] initWithValue:value objCType:objCType];
@@ -87,7 +96,8 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
   self = [super init];
   if (self) {
     _value = [aDecoder decodeObjectForKey:kEDOParameterCoderValueKey];
-    _valueObjCType = [aDecoder decodeObjectForKey:kEDOParameterCoderTypeKey];
+    _valueObjCType = [aDecoder decodeObjectOfClass:[NSString class]
+                                            forKey:kEDOParameterCoderTypeKey];
   }
   return self;
 }

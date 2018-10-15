@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  The port to identify a @c EDOHostService.
  */
-@interface EDOServicePort : NSObject <NSCoding>
+@interface EDOServicePort : NSObject <NSSecureCoding>
 
 /** The port that the service listens on. */
 @property(nonatomic, readonly) UInt16 port;

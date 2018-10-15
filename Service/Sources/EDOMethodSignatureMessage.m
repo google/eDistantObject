@@ -30,6 +30,10 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
 @implementation EDOMethodSignatureResponse
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 /** Create a response from the given signature. */
 + (instancetype)responseWithSignature:(NSString *)signature
                            forRequest:(EDOServiceRequest *)request {
@@ -47,7 +51,8 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _signature = [aDecoder decodeObjectForKey:kEDOMethodSignatureCoderSignatureKey];
+    _signature = [aDecoder decodeObjectOfClass:[NSString class]
+                                        forKey:kEDOMethodSignatureCoderSignatureKey];
   }
   return self;
 }
@@ -76,6 +81,10 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 @end
 
 @implementation EDOMethodSignatureRequest
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 + (instancetype)requestWithObject:(EDOPointerType)object
                              port:(EDOServicePort *)port
@@ -129,7 +138,8 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
   self = [super initWithCoder:aDecoder];
   if (self) {
     _object = [aDecoder decodeInt64ForKey:kEDOMethodSignatureCoderObjectKey];
-    _selectorName = [aDecoder decodeObjectForKey:kEDOMethodSignatureCoderSelectorKey];
+    _selectorName = [aDecoder decodeObjectOfClass:[NSString class]
+                                           forKey:kEDOMethodSignatureCoderSelectorKey];
     _port = [aDecoder decodeObjectForKey:kEDOMethodSignatureCoderPortKey];
   }
   return self;

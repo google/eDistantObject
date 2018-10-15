@@ -27,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  transparent proxy to its user and should only be retrieved from the @c EDOHostService or
  *  @c EDOClientService.
  */
-@interface EDOObject : NSProxy <NSCoding>
+@interface EDOObject : NSProxy <NSSecureCoding>
 
 /** The flag that tells us whether the object is a local temporary object or not. */
 @property(nonatomic, assign, getter=isLocal) BOOL local;

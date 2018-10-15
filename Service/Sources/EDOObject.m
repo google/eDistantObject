@@ -48,6 +48,10 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 
 @implementation EDOObject
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 // Initialize a remote object on the host side that is going to be sent back to the client side.
 + (instancetype)objectWithTarget:(id)target port:(EDOServicePort *)port {
   return [[self alloc] edo_initWithLocalObject:target port:port];
@@ -55,12 +59,14 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   NSAssert(sizeof(EDOPointerType) >= sizeof(void *), @"The pointer size is not big enough.");
-  _servicePort = [aDecoder decodeObjectForKey:kEDOObjectCoderPortKey];
+  _servicePort = [aDecoder decodeObjectOfClass:[EDOServicePort class]
+                                        forKey:kEDOObjectCoderPortKey];
   _remoteAddress = [aDecoder decodeInt64ForKey:kEDOObjectCoderRemoteAddressKey];
   _remoteClass = [aDecoder decodeInt64ForKey:kEDOObjectCoderRemoteClassKey];
-  _className = [aDecoder decodeObjectForKey:kEDOObjectCoderClassNameKey];
+  _className = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOObjectCoderClassNameKey];
   _local = NO;
-  _processUUID = [aDecoder decodeObjectForKey:kEDOObjectCoderProcessUUIDKey];
+  _processUUID = [aDecoder decodeObjectOfClass:[NSString class]
+                                        forKey:kEDOObjectCoderProcessUUIDKey];
   return self;
 }
 

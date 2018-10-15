@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef NSString EDOMessageID;
 
 /** The base class for the message to be transferred within a single service. */
-@interface EDOMessage : NSObject <NSCoding>
+@interface EDOMessage : NSObject <NSSecureCoding>
 
 /** The unique message Id to track the request and response. */
 @property(readonly) EDOMessageID *messageId;

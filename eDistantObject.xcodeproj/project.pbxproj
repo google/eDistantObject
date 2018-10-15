@@ -62,6 +62,8 @@
 		C8298A0721599CD3003E3C2C /* EDOServiceUIMemoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */; };
 		C8298A0821599CD3003E3C2C /* EDOServiceUIBaseTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0521599CD2003E3C2C /* EDOServiceUIBaseTest.m */; };
 		C8298A0921599CD3003E3C2C /* EDOServiceUIBlockTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0621599CD3003E3C2C /* EDOServiceUIBlockTest.m */; };
+		C833238E215C57B40071DB0C /* NSKeyedUnarchiver+EDOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C833238A215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.m */; };
+		C833238F215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C833238C215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m */; };
 		C845028A20DD9D8800D7350F /* EDOSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = C845027E20DD9D8800D7350F /* EDOSocket.m */; };
 		C845028B20DD9D8800D7350F /* EDOSocketChannelPool.m in Sources */ = {isa = PBXBuildFile; fileRef = C845028320DD9D8800D7350F /* EDOSocketChannelPool.m */; };
 		C845028C20DD9D8800D7350F /* EDOListenSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = C845028520DD9D8800D7350F /* EDOListenSocket.m */; };
@@ -246,6 +248,10 @@
 		C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceUIMemoryTest.m; path = Service/Tests/FunctionalTests/EDOServiceUIMemoryTest.m; sourceTree = "<group>"; };
 		C8298A0521599CD2003E3C2C /* EDOServiceUIBaseTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceUIBaseTest.m; path = Service/Tests/FunctionalTests/EDOServiceUIBaseTest.m; sourceTree = "<group>"; };
 		C8298A0621599CD3003E3C2C /* EDOServiceUIBlockTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceUIBlockTest.m; path = Service/Tests/FunctionalTests/EDOServiceUIBlockTest.m; sourceTree = "<group>"; };
+		C833238A215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSKeyedUnarchiver+EDOAdditions.m"; path = "Service/Sources/NSKeyedUnarchiver+EDOAdditions.m"; sourceTree = "<group>"; };
+		C833238B215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSKeyedUnarchiver+EDOAdditions.h"; path = "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"; sourceTree = "<group>"; };
+		C833238C215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSKeyedArchiver+EDOAdditions.m"; path = "Service/Sources/NSKeyedArchiver+EDOAdditions.m"; sourceTree = "<group>"; };
+		C833238D215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSKeyedArchiver+EDOAdditions.h"; path = "Service/Sources/NSKeyedArchiver+EDOAdditions.h"; sourceTree = "<group>"; };
 		C845026520DD9D2E00D7350F /* libChannelLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libChannelLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C845027720DD9D5D00D7350F /* libeDistantObject.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libeDistantObject.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C845027A20DD9D8800D7350F /* EDOSocketChannelPoolTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocketChannelPoolTest.m; sourceTree = "<group>"; };
@@ -399,6 +405,10 @@
 				C5A2EFEF2134D43200421D72 /* EDOValueObject+EDOParameter.m */,
 				C5A2EFE52134D43200421D72 /* EDOValueType.m */,
 				C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */,
+				C833238D215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.h */,
+				C833238C215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m */,
+				C833238B215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.h */,
+				C833238A215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.m */,
 				C5A2EFE62134D43200421D72 /* NSObject+EDOParameter.h */,
 				C5A2EFDF2134D43100421D72 /* NSObject+EDOParameter.m */,
 				C5A2F0052134D43400421D72 /* NSObject+EDOValue.h */,
@@ -845,8 +855,10 @@
 				C5A2F06D2134D6C100421D72 /* EDOInvocationMessage.m in Sources */,
 				C5A2F0752134D6C100421D72 /* EDOObjectMessage.m in Sources */,
 				C5A2F07A2134D6C100421D72 /* EDOServicePort.m in Sources */,
+				C833238F215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m in Sources */,
 				C5A2F06E2134D6C100421D72 /* EDOMessage.m in Sources */,
 				C5A2F06B2134D6A000421D72 /* EDOHostService.m in Sources */,
+				C833238E215C57B40071DB0C /* NSKeyedUnarchiver+EDOAdditions.m in Sources */,
 				C5A2F07F2134D6C100421D72 /* NSObject+EDOParameter.m in Sources */,
 				C5A2F0692134D6A000421D72 /* EDOClientService.m in Sources */,
 				C8A5E00521390E3B00D28052 /* EDOBlockObject.m in Sources */,
