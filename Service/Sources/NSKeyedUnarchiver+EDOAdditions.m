@@ -28,7 +28,7 @@
     NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:data
                                                                                 error:nil];
     unarchiver.decodingFailurePolicy = NSDecodingFailurePolicyRaiseException;
-    unarchiver.requiresSecureCoding = YES;
+    unarchiver.requiresSecureCoding = NO;
     id object = [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
     [unarchiver finishDecoding];
     return object;
