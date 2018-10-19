@@ -29,6 +29,10 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 
 @implementation EDOObjectReleaseRequest
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)initWithRemoteAddress:(EDOPointerType)remoteAddress {
   self = [super init];
   if (self) {

@@ -16,6 +16,7 @@
 
 #import "Service/Sources/EDOParameter.h"
 
+#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObject.h"
 
@@ -95,7 +96,12 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super init];
   if (self) {
-    _value = [aDecoder decodeObjectForKey:kEDOParameterCoderValueKey];
+    // EDOParameter can carry any type of object as long as it's serializable, so it whitelists all
+    // the types inheriting from NSObject. EDOObject and EDOBlockObject are NSProxy's and need to be
+    // whitelisted as well.
+    NSSet *anyClasses =
+        [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], [NSObject class], nil];
+    _value = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOParameterCoderValueKey];
     _valueObjCType = [aDecoder decodeObjectOfClass:[NSString class]
                                             forKey:kEDOParameterCoderTypeKey];
   }

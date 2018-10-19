@@ -83,6 +83,10 @@ static BOOL HasStructReturnForBlock(id block) {
 
 @implementation EDOBlockObject
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 + (BOOL)isBlock:(id)object {
   if ([object isProxy]) {
     return NO;
@@ -129,7 +133,8 @@ static BOOL HasStructReturnForBlock(id block) {
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _signature = [aDecoder decodeObjectForKey:kEDOBlockObjectCoderSignatureKey];
+    _signature = [aDecoder decodeObjectOfClass:[NSString class]
+                                        forKey:kEDOBlockObjectCoderSignatureKey];
     _returnsStruct = [aDecoder decodeBoolForKey:kEDOBlockObjectCoderHasStretKey];
   }
   return self;

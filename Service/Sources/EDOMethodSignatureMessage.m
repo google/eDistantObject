@@ -140,7 +140,8 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
     _object = [aDecoder decodeInt64ForKey:kEDOMethodSignatureCoderObjectKey];
     _selectorName = [aDecoder decodeObjectOfClass:[NSString class]
                                            forKey:kEDOMethodSignatureCoderSelectorKey];
-    _port = [aDecoder decodeObjectForKey:kEDOMethodSignatureCoderPortKey];
+    _port = [aDecoder decodeObjectOfClass:[EDOServicePort class]
+                                   forKey:kEDOMethodSignatureCoderPortKey];
   }
   return self;
 }

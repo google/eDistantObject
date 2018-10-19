@@ -39,6 +39,61 @@
 - (void)nonExistMethod {
 }
 
+/**
+ *  Check if the @c class implements +supportsSecureCoding on its own.
+ *
+ *  @note @c NSSecureCoding requires the subclasses also implements +supportsSecureCoding, so it
+ *  needs to manually to look up the methods in the class itself.
+ */
+- (BOOL)implementsSecureCoding:(Class)class {
+  unsigned int methodCount = 0;
+  Class dummyMeta = object_getClass(class);
+  // Only iterates over the class methods defined in this class only.
+  Method *methods = class_copyMethodList(dummyMeta, &methodCount);
+  const char *secureCodingSelectorName = sel_getName(@selector(supportsSecureCoding));
+  BOOL found = NO;
+  for (unsigned int i = 0; i < methodCount; i++) {
+    Method method = methods[i];
+    char const *selectorName = sel_getName(method_getName(method));
+
+    if (strcmp(selectorName, secureCodingSelectorName) == 0) {
+      found = YES;
+      break;
+    }
+  }
+
+  free(methods);
+  return found;
+}
+
+/** Tests that all serializable EDO classes conform to NSSecureCoding. */
+- (void)testAllEDOClassesSupportNSSecureCoding {
+  int numClasses = objc_getClassList(NULL, 0);
+  Class *classes = (__unsafe_unretained Class *)malloc(sizeof(Class) * numClasses);
+  numClasses = objc_getClassList(classes, numClasses);
+
+  for (int i = 0; i < numClasses; i++) {
+    Class klass = classes[i];
+
+    // Only check classes that start with EDO and conforms to NSCoding.
+    // TODO(haowoo): We need to skip NSException as it's not securely coded.
+    if (memcmp(class_getName(klass), "EDO", 3) != 0 ||
+        ![klass conformsToProtocol:@protocol(NSCoding)] ||
+        strcmp(class_getName(klass), "EDOTestDummyException") == 0) {
+      continue;
+    }
+
+    XCTAssertTrue([klass conformsToProtocol:@protocol(NSSecureCoding)],
+                  @"class %s doesn't conform to NSSecureCoding", class_getName(klass));
+    XCTAssertTrue([self implementsSecureCoding:classes[i]],
+                  @"class %s doesn't implement supportsSecureCoding", class_getName(klass));
+    XCTAssertTrue([classes[i] supportsSecureCoding],
+                  @"supportsSecureCoding returns NO for class %s", class_getName(klass));
+  }
+
+  free(classes);
+}
+
 - (void)testObjectRequestHandler {
   XCTestExpectation *blockExecuted = [self expectationWithDescription:@"Executed the test block."];
   id dummyLocal = [[EDOTestDummy alloc] init];

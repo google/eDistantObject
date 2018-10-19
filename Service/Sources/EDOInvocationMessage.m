@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
@@ -69,9 +70,19 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _returnValue = [aDecoder decodeObjectForKey:kEDOInvocationCoderReturnValueKey];
-    _exception = [aDecoder decodeObjectForKey:kEDOInvocationCoderExceptionKey];
-    _outValues = [aDecoder decodeObjectForKey:kEDOInvocationCoderOutValuesKey];
+    _returnValue = [aDecoder decodeObjectOfClass:[EDOParameter class]
+                                          forKey:kEDOInvocationCoderReturnValueKey];
+    // TODO(haowoo): The exception doesn't conform to NSSecureCoding, so when NSKeyedUnarchiver
+    // deserializes this class with requiresSecureCoding = YES, this will throw an exception.
+    // Because of this, we currently can't set requiresSecureCoding to be YES when deserializing the
+    // EDOInvocationResponse; we should provide a serializable EDOException that will propagate
+    // exception information. However here we still use the -[decodeObjectOfClass:forKey:] to keep
+    // our code consistent with the Apple documentation.
+    _exception = [aDecoder decodeObjectOfClass:[NSException class]
+                                        forKey:kEDOInvocationCoderExceptionKey];
+    NSSet *anyClasses =
+        [NSSet setWithObjects:[EDOBlockObject class], [NSObject class], [EDOObject class], nil];
+    _outValues = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOInvocationCoderOutValuesKey];
   }
   return self;
 }
@@ -307,10 +318,11 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
+    NSSet *anyClasses =
+        [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], [NSObject class], nil];
     _target = [aDecoder decodeInt64ForKey:kEDOInvocationCoderTargetKey];
     _selName = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOInvocationCoderSelNameKey];
-    _arguments = [aDecoder decodeObjectOfClass:[NSArray class]
-                                        forKey:kEDOInvocationCoderArgumentsKey];
+    _arguments = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOInvocationCoderArgumentsKey];
     _returnByValue = [aDecoder decodeBoolForKey:kEDOInvocationReturnByValueKey];
   }
   return self;

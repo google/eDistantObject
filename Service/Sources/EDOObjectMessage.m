@@ -26,6 +26,10 @@ static NSString *const EDOObjectCoderObjectKey = @"object";
 
 // Only the type placeholder, don't need to override the [initWithCoder:] and [encodeWithCoder:]
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 + (EDORequestHandler)requestHandler {
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     return [EDOObjectResponse responseWithObject:service.rootObject forRequest:request];
@@ -42,6 +46,10 @@ static NSString *const EDOObjectCoderObjectKey = @"object";
 
 @implementation EDOObjectResponse
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)initWithObject:(EDOObject *)object forRequest:(EDOServiceRequest *)request {
   self = [self initWithMessageId:request.messageId];
   if (self) {
@@ -53,7 +61,7 @@ static NSString *const EDOObjectCoderObjectKey = @"object";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _object = [aDecoder decodeObjectForKey:EDOObjectCoderObjectKey];
+    _object = [aDecoder decodeObjectOfClass:[EDOObject class] forKey:EDOObjectCoderObjectKey];
   }
   return self;
 }

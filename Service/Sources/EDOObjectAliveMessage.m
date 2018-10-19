@@ -33,6 +33,10 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 
 @implementation EDOObjectAliveRequest
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)initWithObject:(EDOObject *)object {
   self = [super init];
   if (self) {
@@ -44,7 +48,8 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _object = [aDecoder decodeObjectForKey:kEDOObjectAliveCoderObjectKey];
+    NSSet *objectClasses = [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], nil];
+    _object = [aDecoder decodeObjectOfClasses:objectClasses forKey:kEDOObjectAliveCoderObjectKey];
   }
   return self;
 }
@@ -74,5 +79,9 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 #pragma mark -
 
 @implementation EDOObjectAliveResponse
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 @end
