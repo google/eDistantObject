@@ -83,7 +83,7 @@
   }
 
   NSUInteger returnBufSize = invocation.methodSignature.methodReturnLength;
-  EDOHostService *service = EDOHostService.currentService;
+  EDOHostService *service = [EDOHostService serviceForCurrentQueue];
 
   char const *ctype = invocation.methodSignature.methodReturnType;
   if (EDO_IS_OBJECT_OR_CLASS(ctype)) {

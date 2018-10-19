@@ -31,6 +31,8 @@
 @property(readonly) EDOTestDummy *rootObject;
 @property(readonly) dispatch_queue_t executionQueue;
 @property(readonly) EDOTestDummy *rootObjectOnBackground;
+@property(weak) EDOHostService *weakService;
+@property(weak) dispatch_queue_t weakQueue;
 @end
 
 @implementation EDOServiceTest
@@ -64,6 +66,33 @@
   _serviceBackgroundMock = nil;
 
   [super tearDown];
+}
+
+- (void)testServiceAssociatedQueue {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  dispatch_sync(testQueue, ^{
+    XCTAssertEqual(hostService, [EDOHostService serviceForCurrentQueue]);
+    XCTAssertEqual(hostService, [EDOHostService serviceForQueue:testQueue]);
+  });
+  XCTAssertEqual(hostService, [EDOHostService serviceForQueue:testQueue]);
+}
+
+- (void)testServiceLifecycleIsBoundToQueue {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  self.weakQueue = testQueue;
+  self.weakService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  XCTAssertNotNil([EDOHostService serviceForQueue:testQueue]);
+  XCTAssertEqual(self.weakService, [EDOHostService serviceForQueue:testQueue]);
+
+  // The dispatch queue library may delegate its dealloc and callback to a different queue/thread.
+  XCTKVOExpectation *expectServiceNil = [[XCTKVOExpectation alloc] initWithKeyPath:@"weakService"
+                                                                            object:self
+                                                                     expectedValue:nil];
+  XCTKVOExpectation *expectQueueNil = [[XCTKVOExpectation alloc] initWithKeyPath:@"weakQueue"
+                                                                          object:self
+                                                                   expectedValue:nil];
+  [self waitForExpectations:@[ expectServiceNil, expectQueueNil ] timeout:10];
 }
 
 - (void)testClassMethodsAndInit {

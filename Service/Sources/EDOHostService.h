@@ -37,6 +37,21 @@ NS_ASSUME_NONNULL_BEGIN
 /** Create a service with the object and its associated execution queue. */
 + (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue;
 
+/**
+ *  Get the EDOHostService associated with the given dispatch queue if any.
+ *
+ *  @param queue The dispatch queue to retrieve the EDOHostService.
+ *  @return The instance of EDOHostService if it has been set up, or @nil if not.
+ */
++ (instancetype)serviceForQueue:(dispatch_queue_t)queue;
+
+/**
+ *  Get the EDOHostService associated with the current running dispatch queue if any.
+ *
+ *  @return The instance of EDOHostService if it has been set up, or @nil if not.
+ */
++ (instancetype)serviceForCurrentQueue;
+
 /** Invalidate the service and release all the associated objects. */
 - (void)invalidate;
 

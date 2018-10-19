@@ -25,8 +25,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOHostService (Private)
 /** The root object. */
 @property(readonly) EDOObject *rootObject;
-/** The service associated with the current queue. */
-@property(readonly, class, nullable) EDOHostService *currentService;
 
 /** Wrap a distant object for the given local object. */
 - (EDOObject *)distantObjectForLocalObject:(id)object;

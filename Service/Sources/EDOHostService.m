@@ -59,8 +59,12 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
 @implementation EDOHostService
 
-+ (EDOHostService *)currentService {
++ (instancetype)serviceForCurrentQueue {
   return (__bridge EDOHostService *)(dispatch_get_specific(gServiceKey));
+}
+
++ (instancetype)serviceForQueue:(dispatch_queue_t)queue {
+  return (__bridge EDOHostService *)(dispatch_queue_get_specific(queue, gServiceKey));
 }
 
 + (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue {

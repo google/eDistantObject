@@ -34,7 +34,8 @@
 + (id)rootObjectWithPort:(UInt16)port {
   EDOServiceResponse *response = [self sendRequest:[EDOObjectRequest request] port:port];
   EDOObject *rootObject = ((EDOObjectResponse *)response).object;
-  rootObject = [EDOHostService.currentService unwrappedObjectFromObject:rootObject] ?: rootObject;
+  rootObject =
+      [[EDOHostService serviceForCurrentQueue] unwrappedObjectFromObject:rootObject] ?: rootObject;
   rootObject = [self cachedEDOFromObjectUpdateIfNeeded:rootObject];
   return rootObject;
 }
@@ -43,8 +44,8 @@
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
   EDOServiceResponse *response = [self sendRequest:classRequest port:port];
   EDOObject *classObject = ((EDOObjectResponse *)response).object;
-  classObject =
-      [EDOHostService.currentService unwrappedObjectFromObject:classObject] ?: classObject;
+  classObject = [[EDOHostService serviceForCurrentQueue] unwrappedObjectFromObject:classObject]
+                    ?: classObject;
   classObject = [self cachedEDOFromObjectUpdateIfNeeded:classObject];
   return classObject;
 }
