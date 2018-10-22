@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOExecutor.h"
 
 #import "Channel/Sources/EDOChannel.h"
+#import "Service/Sources/EDOExecutorMessage.h"
 #import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOMessageQueue.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
@@ -31,7 +32,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
 @interface EDOExecutor ()
 // The message queue to process the requests and responses.
-@property EDOMessageQueue *messageQueue;
+@property EDOMessageQueue<EDOExecutorMessage *> *messageQueue;
 // The isolation queue for synchronization.
 @property(readonly) dispatch_queue_t isolationQueue;
 // The data of ping message for channel health check.
@@ -100,7 +101,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
   // 1. Create the waited queue so it can also process the requests while waiting for the response
   // when the incoming request is dispatched to the same queue.
-  EDOMessageQueue *messageQueue = [[EDOMessageQueue alloc] init];
+  EDOMessageQueue<EDOExecutorMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
   // Set the message queue to process the request that will be received and dispatched to this
   // queue while waiting for the response to come back.
   dispatch_sync(self.isolationQueue, ^{
@@ -140,7 +141,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
             responseReceived = YES;
             self.messageQueue = nil;
           });
-          [messageQueue enqueueMessage:@[]];
+          [messageQueue enqueueMessage:[EDOExecutorMessage emptyMessage]];
           return;
         }
 
@@ -160,34 +161,28 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
           // Enqueue the placeholder of empty array for the expected response, so the message queue
           // can be awakened.
-          [messageQueue enqueueMessage:@[]];
+          [messageQueue enqueueMessage:[EDOExecutorMessage emptyMessage]];
         }];
       }];
 
   // 4. Drain the message queue until the empty message is received - when it errors or the response
   //    data is received.
   EDOServiceResponse *response = nil;
-  NSArray *messages = nil;
+  EDOExecutorMessage *message = nil;
   while (true) {
     // Block the current queue and wait for the new message. It will unset the
     // messageQueue if it receives a response so there is no race condition where it has some
     // messages left in the queue to be processed after the queue is unset.
-    messages = [messageQueue dequeueMessage];
-    if (messages.count > 0) {
-      NSAssert([messages[0] isKindOfClass:[EDOServiceRequest class]],
-               @"The message can only be EDOServiceRequest.");
+    message = [messageQueue dequeueMessage];
+    if (!message.empty) {
       // The exception needs to be raised here (in case there's any) to make sure it runs in the
       // same queue that runs the method. Previously it was being thrown on the channel callback
       // which was unable to be caught from the test.
       [exception raise];
-      NSAssert(messages.count == 3 || messages.count == 4,
-               @"The message can be either two elements or three elements with a context.");
 
-      // [0]: the request; [1]: the channel; [2]: the wait-lock of receiving data; [3]: the context.
-      [self edo_handleRequest:(EDOServiceRequest *)messages[0]
-                  withChannel:messages[1]
-                      context:(messages.count > 3 ? messages[3] : nil)];
-      dispatch_semaphore_signal(messages[2]);
+      [self edo_handleRequest:message.request withChannel:message.channel context:message.service];
+      // TODO(haowoo): Refactor this to [message waitUntilResponse] so waitLock is hidden.
+      dispatch_semaphore_signal(message.waitLock);
     } else {
       // Dequeued the placeholder of empty array, exit the loop and return.
       NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
@@ -227,30 +222,34 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 - (void)receiveRequest:(EDOServiceRequest *)request
            withChannel:(id<EDOChannel>)channel
                context:(id)context {
-  // TODO(haowoo): throw an NSInternalInconsistencyException
+  // TODO(haowoo): Throw an NSInternalInconsistencyException.
   NSAssert(self.trackedQueue != nil, @"The tracked queue is already released.");
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  // TODO(haowoo): Replace with dispatch_assert_queue once the minimum support is iOS 10+.
   NSAssert(dispatch_get_current_queue() != self.trackedQueue,
            @"Only enqueue a request from a non-tracked queue.");
 #pragma clang diagnostic pop
-  dispatch_semaphore_t waitLock = dispatch_semaphore_create(0);
+  EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request
+                                                               channel:channel
+                                                               service:context];
   dispatch_sync(self.isolationQueue, ^{
-    EDOMessageQueue *messageQueue = self.messageQueue;
+    EDOMessageQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
     if (messageQueue) {
-      NSArray *message =
-          context ? @[ request, channel, waitLock, context ] : @[ request, channel, waitLock ];
       [messageQueue enqueueMessage:message];
     } else {
       dispatch_async(self.trackedQueue, ^{
-        [self edo_handleRequest:request withChannel:channel context:context];
-        dispatch_semaphore_signal(waitLock);
+        [self edo_handleRequest:message.request
+                    withChannel:message.channel
+                        context:message.service];
+        dispatch_semaphore_signal(message.waitLock);
       });
     }
   });
-  // the semaphore will be signaled in edo_handleRequest either directly or after dequeue.
-  dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
+  // The semaphore will be signaled in edo_handleRequest either directly or after dequeue.
+  // TODO(haowoo): Refactor this to [message waitUntilResponseIsSet];
+  dispatch_semaphore_wait(message.waitLock, DISPATCH_TIME_FOREVER);
 }
 
 #pragma mark - Private

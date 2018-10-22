@@ -36,7 +36,7 @@
 }
 
 - (void)testEnqueueDequeueMessage {
-  EDOMessageQueue *messageQueue = [[EDOMessageQueue alloc] init];
+  EDOMessageQueue<EDOMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
   NSArray<EDOMessage *> *messages = self.messages;
 
   [messageQueue enqueueMessage:messages[0]];
@@ -64,7 +64,7 @@
 }
 
 - (void)testEnqueueDequeueInDifferentThread {
-  __block EDOMessageQueue *messageQueue = nil;
+  __block EDOMessageQueue<EDOMessage *> *messageQueue = nil;
   NSArray<EDOMessage *> *messages = self.messages;
 
   dispatch_semaphore_t creationLock = dispatch_semaphore_create(0L);
@@ -89,7 +89,7 @@
 }
 
 - (void)testEnqueueDequeueInDifferentQueue {
-  __block EDOMessageQueue *messageQueue = nil;
+  __block EDOMessageQueue<EDOMessage *> *messageQueue = nil;
   NSArray<EDOMessage *> *messages = self.messages;
 
   dispatch_queue_t queue = dispatch_queue_create("com.google.servicequeue.test", NULL);
@@ -128,14 +128,14 @@
 #pragma mark - Private
 
 - (void)edo_assertMessages:(NSArray<EDOMessage *> *)messages
-           inOrderForQueue:(EDOMessageQueue *)messageQueue {
+           inOrderForQueue:(EDOMessageQueue<EDOMessage *> *)messageQueue {
   for (EDOMessage *message in messages) {
     XCTAssertEqual(message, [messageQueue dequeueMessage], @"Message should be dequeued in FIFO.");
   }
 }
 
 - (void)edo_enqueueMessages:(NSArray<EDOMessage *> *)messages
-                   forQueue:(EDOMessageQueue *)messageQueue {
+                   forQueue:(EDOMessageQueue<EDOMessage *> *)messageQueue {
   for (EDOMessage *message in messages) {
     [messageQueue enqueueMessage:message];
   }

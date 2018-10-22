@@ -26,7 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  where you've initialized instance of this class, so it is a one-to-one relationship between the
  *  message queue and the dispatch queue.
  */
-@interface EDOMessageQueue : NSObject
+@interface EDOMessageQueue<ObjectType> : NSObject
 
 @property(getter=isEmpty) BOOL empty;
 
@@ -35,7 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @param message The message to enqueue.
  */
-- (void)enqueueMessage:(id)message;
+- (void)enqueueMessage:(ObjectType)message;
 
 /**
  *  Dequeue the message.
@@ -44,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @return The message enqueued in the FIFO order.
  */
-- (id)dequeueMessage;
+- (ObjectType)dequeueMessage;
 
 @end
 
