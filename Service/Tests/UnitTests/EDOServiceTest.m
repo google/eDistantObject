@@ -499,25 +499,25 @@
   return [EDOClientService rootObjectWithPort:self.serviceOnBackground.port.port];
 }
 
-- (NSArray *)fastEnumerateDictionary:(EDOTestDummy *)dummy {
-  NSMutableArray *allKeys = [[NSMutableArray alloc] init];
-  for (id key in [dummy returnDictionary]) {
+- (NSArray<NSString *> *)fastEnumerateDictionary:(EDOTestDummy *)dummy {
+  NSMutableArray<NSString *> *allKeys = [[NSMutableArray alloc] init];
+  for (NSString *key in [dummy returnDictionary]) {
     [allKeys addObject:key];
   }
   return [allKeys copy];
 }
 
-- (NSArray *)fastEnumerateArray:(EDOTestDummy *)dummy {
+- (NSArray<NSNumber *> *)fastEnumerateArray:(EDOTestDummy *)dummy {
   NSMutableArray *allElements = [[NSMutableArray alloc] init];
-  for (id obj in [dummy returnArray]) {
+  for (NSNumber *obj in [dummy returnArray]) {
     [allElements addObject:obj];
   }
   return [allElements copy];
 }
 
-- (NSSet *)fastEnumerateSet:(EDOTestDummy *)dummy {
+- (NSSet<NSNumber *> *)fastEnumerateSet:(EDOTestDummy *)dummy {
   NSMutableSet *allElements = [[NSMutableSet alloc] init];
-  for (id obj in [dummy returnSet]) {
+  for (NSNumber *obj in [dummy returnSet]) {
     [allElements addObject:obj];
   }
   return [allElements copy];

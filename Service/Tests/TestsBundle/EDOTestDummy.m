@@ -183,7 +183,7 @@ static const NSInteger kLargeArraySize = 1000;
   return self;
 }
 
-- (NSDictionary<NSNumber *, NSString *> *)returnDictionary {
+- (NSDictionary<NSString *, NSNumber *> *)returnDictionary {
   return @{ @"one" : @1, @"two" : @2, @"three" : @3, @"four" : @4 };
 }
 

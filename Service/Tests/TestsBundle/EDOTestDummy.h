@@ -65,7 +65,7 @@ typedef struct EDOTestDummyStruct {
 - (NSString *)returnString;
 - (NSData *)returnData;
 - (EDOTestDummy *)returnSelf;
-- (NSDictionary<NSNumber *, NSString *> *)returnDictionary;
+- (NSDictionary<NSString *, NSNumber *> *)returnDictionary;
 - (NSArray<NSNumber *> *)returnArray;
 - (NSArray<NSNumber *> *)returnLargeArray;
 - (NSSet<NSNumber *> *)returnSet;
