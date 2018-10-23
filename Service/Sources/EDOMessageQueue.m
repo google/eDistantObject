@@ -29,8 +29,6 @@
 
 @implementation EDOMessageQueue
 
-@dynamic empty;
-
 - (instancetype)init {
   self = [super init];
   if (self) {

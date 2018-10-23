@@ -28,17 +28,18 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface EDOMessageQueue<ObjectType> : NSObject
 
-@property(getter=isEmpty) BOOL empty;
+/** Whether the queue has any messages. */
+@property(readonly, getter=isEmpty) BOOL empty;
 
 /**
- *  Enqueue the message for the service queue to process.
+ *  Enqueues the message for the service queue to process.
  *
  *  @param message The message to enqueue.
  */
 - (void)enqueueMessage:(ObjectType)message;
 
 /**
- *  Dequeue the message.
+ *  Dequeues the message.
  *
  *  This will block the current thread until the new message is available, a.k.a the consumer.
  *
