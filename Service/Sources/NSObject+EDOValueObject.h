@@ -25,13 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
  *  statically enable a class to be pass-by-value. All APIs require the class to conform to
  *  NSCoding.
  */
-@interface NSObject (ValueObject)
+@interface NSObject (EDOValueObject)
 
 /**
- *  Enable the type to be the value type so it will be passed by value.
+ *  Enables this type to be a value type so it will be passed by value.
  *
- *  If a class is enabled as value type, during remote invocation the objects of the class will
- *  be passed by value by default. A class needs to conform to NSCoding to be enabled for it.
+ *  If a class is enabled as a value type, during remote invocation the objects of the class will
+ *  be passed by value. Only classes conforming to @c NSCoding protocol can be passed by value.
  */
 + (void)edo_enableValueType;
 
