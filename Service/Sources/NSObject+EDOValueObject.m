@@ -15,9 +15,26 @@
 //
 #import "Service/Sources/NSObject+EDOValueObject.h"
 
+#include <objc/runtime.h>
+
 #import "Service/Sources/EDOValueObject.h"
+#import "Service/Sources/NSObject+EDOValue.h"
 
 @implementation NSObject (EDOValueObject)
+
++ (void)edo_enableValueType {
+  NSAssert([self conformsToProtocol:@protocol(NSCoding)], @"%@ does not conform to NSCoding.",
+           NSStringFromClass(self));
+  SEL originalSelector = @selector(edo_isEDOValueType);
+  Method originalMethod = class_getInstanceMethod(self, originalSelector);
+  BOOL (^impBlock)(id obj) = ^BOOL(id obj) {
+    return YES;
+  };
+  IMP newImp = imp_implementationWithBlock(impBlock);
+  if (!class_addMethod(self, originalSelector, newImp, method_getTypeEncoding(originalMethod))) {
+    method_setImplementation(originalMethod, newImp);
+  }
+}
 
 - (instancetype)returnByValue {
   NSString *reason =

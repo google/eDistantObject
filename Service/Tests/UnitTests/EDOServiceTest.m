@@ -20,8 +20,11 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
+#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
+#import "Service/Tests/TestsBundle/EDOTestNonNSCodingType.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
+#import "Service/Tests/TestsBundle/EDOTestValueType.h"
 
 @interface EDOServiceTest : XCTestCase
 @property(readonly) id serviceBackgroundMock;
@@ -447,6 +450,27 @@
     }
   }));
   XCTAssertEqualObjects(allValues, [NSSet setWithArray:tolledDict.allValues]);
+}
+
+// Test enable value type for custom class conforming to NSCoding.
+- (void)testEnableCustomClassToBeValueType {
+  EDOTestValueType *object = [[EDOTestValueType alloc] init];
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:object], @"EDOObject");
+  [EDOTestValueType edo_enableValueType];
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:object], @"EDOTestValueType");
+
+  // Enable again to guarantee idempotency
+  [EDOTestValueType edo_enableValueType];
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:object], @"EDOTestValueType");
+}
+
+// Test enable value type for custom class not conforming to NSCoding.
+- (void)testFailToEnableNonNSCodingTypetoBeValueType {
+  EDOTestNonNSCodingType *object = [[EDOTestNonNSCodingType alloc] init];
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  XCTAssertThrows([EDOTestNonNSCodingType edo_enableValueType]);
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:object], @"EDOObject");
 }
 
 - (void)testEDOReturnsAsValueType {

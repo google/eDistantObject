@@ -16,8 +16,10 @@
 
 #import <Foundation/Foundation.h>
 
+#import "Service/Tests/TestsBundle/EDOTestNonNSCodingType.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInApp.h"
+#import "Service/Tests/TestsBundle/EDOTestValueType.h"
 
 // Define the constant port number so both the test and the app process can
 // share. This will eventually be automatically assigned.
