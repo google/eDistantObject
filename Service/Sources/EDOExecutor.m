@@ -118,51 +118,41 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         // 2.5 Check ping response to make sure channel is healthy.
         [channel receiveDataWithHandler:^(id<EDOChannel> _Nonnull channel, NSData *_Nullable data,
                                           NSError *_Nullable error) {
-          // TODO(ynzhang): the data could be error response with more details.
-          // We should log the details when we have better error handling.
-          if (![data isEqualToData:EDOExecutor.pingMessageData]) {
-            // If the handler is triggered but data is nil or does not match ping message data, it
-            // indicates that the channel is closed from the other side.
-            serviceClosed = YES;
-          }
+          responseData = data;
+          serviceClosed = data == nil;
           dispatch_semaphore_signal(waitLock);
         }];
-        // The channel is broken if ping message data does not match or it is not received in
+        // The request is failed if ping message data does not match or it is not received in
         // kPingTimeOutSeconds seconds. When the service is killed, the channel connected to the
-        // service may or may not get properly closed. We need to handle both cases:
-        // (1) request timeout or (2) receiving empty data.
+        // service may or may not get properly closed. We need to handle 3 cases:
+        // (1) request timeout (2) receiving empty data or (3) receiving error response
         long result = dispatch_semaphore_wait(
             waitLock, dispatch_time(DISPATCH_TIME_NOW, kPingTimeoutSeconds));
-        if (result != 0 || serviceClosed) {
-          NSLog(@"The edo channel %@ is broken.", channel);
-          // Reset the message queue after receiving the response in the handler (the handler is not
-          // reentrant to assure the data integrity).
-          dispatch_sync(self.isolationQueue, ^{
-            responseReceived = YES;
-            self.messageQueue = nil;
-          });
-          [messageQueue enqueueMessage:[EDOExecutorMessage emptyMessage]];
-          return;
+
+        // Receive actual response if ping data is received successfully.
+        if ([responseData isEqualToData:EDOExecutor.pingMessageData]) {
+          // 3. Ready to receive the response.
+          [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
+            // TODO(haowoo): Handle errors.
+            NSAssert(error == nil, @"Data sent error: %@.", error);
+            responseData = data;
+            dispatch_semaphore_signal(waitLock);
+          }];
+          dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
         }
 
-        // 3. Ready to receive the response.
-        [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
-          // TODO(haowoo): Handle errors.
-          NSAssert(error == nil, @"Data sent errors.");
-
-          // Reset the message queue after receiving the response in the handler (the handler is not
-          // reentrant to assure the data integrity.)
-          dispatch_sync(self.isolationQueue, ^{
-            responseReceived = YES;
-            self.messageQueue = nil;
-          });
-
-          responseData = data;
-
-          // Enqueue the placeholder of empty array for the expected response, so the message queue
-          // can be awakened.
-          [messageQueue enqueueMessage:[EDOExecutorMessage emptyMessage]];
-        }];
+        if (result != 0 || serviceClosed) {
+          NSLog(@"The edo channel %@ is broken.", channel);
+        }
+        // Reset the message queue after receiving the response in the handler (the handler is not
+        // reentrant to assure the data integrity).
+        dispatch_sync(self.isolationQueue, ^{
+          responseReceived = YES;
+          self.messageQueue = nil;
+        });
+        // Enqueue the placeholder of empty array for the expected response, so the message
+        // queue can be awakened.
+        [messageQueue enqueueMessage:[EDOExecutorMessage emptyMessage]];
       }];
 
   // 4. Drain the message queue until the empty message is received - when it errors or the response

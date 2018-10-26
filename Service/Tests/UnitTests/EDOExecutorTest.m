@@ -21,7 +21,10 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOServiceRequest.h"
+#import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
+
+static NSString *const kTestErrorDomain = @"TestErrorDomain";
 
 @interface EDOExecutorTest : XCTestCase
 @property(weak) id weakHolder;
@@ -203,6 +206,33 @@
   [self waitForExpectationsWithTimeout:15 handler:nil];
 }
 
+/**
+ *  Tests receiving error response without ping message. It happens usually when a remote invocation
+ *  is sent to the wrong host service.
+ */
+- (void)testReceiveErrorResponseWithoutPingMessage {
+  [self edo_setUpErrorResponseDispatchQueueWithPort:1234];
+
+  XCTestExpectation *expectExecuted = [self expectationWithDescription:@"Executed the block."];
+  [self
+      edo_testClientExecutorWithPort:1234
+                            handlers:@{}
+                               block:^(EDOExecutor *executor, id<EDOChannel> channel) {
+                                 EDOServiceResponse *response =
+                                     [executor sendRequest:[[EDOServiceRequest alloc] init]
+                                               withChannel:channel
+                                                     error:nil];
+                                 XCTAssertEqual(executor, [EDOExecutor currentExecutor],
+                                                @"The executor is not matched.");
+                                 XCTAssertEqualObjects(response.error.domain, kTestErrorDomain,
+                                                       @"The response error code is not matched.");
+                                 XCTAssertEqual(response.error.code, 100,
+                                                @"The response error code is not matched.");
+                                 [expectExecuted fulfill];
+                               }];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
 #pragma mark - Private
 
 - (dispatch_queue_t)edo_setupDispatchQueueWithPort:(UInt16)port handlers:(NSDictionary *)handlers {
@@ -232,6 +262,34 @@
            listenSocket = nil;
          }];
   return queue;
+}
+
+/**
+ *  Creates a socket listening to given port that always returns error response without ping message
+ *  immediately.
+ */
+- (void)edo_setUpErrorResponseDispatchQueueWithPort:(UInt16)port {
+  __block EDOSocket *listenSocket = nil;
+  listenSocket = [EDOSocket
+      listenWithTCPPort:port
+                  queue:nil
+         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+           EDOSocketChannel *channel = [EDOSocketChannel channelWithSocket:socket listenPort:port];
+
+           [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
+             if (data != nil) {
+               EDOServiceRequest *request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
+               NSError *error = [NSError errorWithDomain:kTestErrorDomain code:100 userInfo:nil];
+               EDOServiceResponse *response = [EDOServiceResponse errorResponse:error
+                                                                     forRequest:request];
+               [channel sendData:[NSKeyedArchiver edo_archivedDataWithObject:response]
+                   withCompletionHandler:nil];
+             }
+           }];
+
+           // Release the reference of the listen socket so it can be invalidated in dealloc.
+           listenSocket = nil;
+         }];
 }
 
 - (void)edo_testClientExecutorWithPort:(UInt16)port
