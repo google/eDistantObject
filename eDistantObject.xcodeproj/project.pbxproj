@@ -12,6 +12,10 @@
 		C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0382134D50600421D72 /* EDOTestDummy.m */; };
 		C532ABFC2136172E00162011 /* EDOTestProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03E2134D50600421D72 /* EDOTestProtocol.m */; };
 		C532ABFD2136180A00162011 /* EDOTestDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0382134D50600421D72 /* EDOTestDummy.m */; };
+		C55F8B472183AC3100E8E75A /* EDOTestValueType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B432183AC2100E8E75A /* EDOTestValueType.m */; };
+		C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B432183AC2100E8E75A /* EDOTestValueType.m */; };
+		C55F8B4A2183AC4200E8E75A /* EDOTestNonNSCodingType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */; };
+		C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */; };
 		C5A2F0472134D52500421D72 /* EDOServicePerfTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0462134D52500421D72 /* EDOServicePerfTest.m */; };
 		C5A2F04E2134D54300421D72 /* EDOServiceUITest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0492134D54200421D72 /* EDOServiceUITest.m */; };
 		C5A2F04F2134D54300421D72 /* EDOSwiftUITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F04A2134D54200421D72 /* EDOSwiftUITest.swift */; };
@@ -161,6 +165,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C55F8B412183AC2000E8E75A /* EDOTestValueType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOTestValueType.h; path = Service/Tests/TestsBundle/EDOTestValueType.h; sourceTree = "<group>"; };
+		C55F8B422183AC2100E8E75A /* EDOTestNonNSCodingType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOTestNonNSCodingType.h; path = Service/Tests/TestsBundle/EDOTestNonNSCodingType.h; sourceTree = "<group>"; };
+		C55F8B432183AC2100E8E75A /* EDOTestValueType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOTestValueType.m; path = Service/Tests/TestsBundle/EDOTestValueType.m; sourceTree = "<group>"; };
+		C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOTestNonNSCodingType.m; path = Service/Tests/TestsBundle/EDOTestNonNSCodingType.m; sourceTree = "<group>"; };
 		C5A2EFD32134D43100421D72 /* NSProxy+EDOParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSProxy+EDOParameter.h"; path = "Service/Sources/NSProxy+EDOParameter.h"; sourceTree = "<group>"; };
 		C5A2EFD42134D43100421D72 /* EDOObjectAliveMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOObjectAliveMessage.m; path = Service/Sources/EDOObjectAliveMessage.m; sourceTree = "<group>"; };
 		C5A2EFD52134D43100421D72 /* EDOMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOMessage.m; path = Service/Sources/EDOMessage.m; sourceTree = "<group>"; };
@@ -466,6 +474,10 @@
 		C5A2F02B2134D4A900421D72 /* TestsBundle */ = {
 			isa = PBXGroup;
 			children = (
+				C55F8B422183AC2100E8E75A /* EDOTestNonNSCodingType.h */,
+				C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */,
+				C55F8B412183AC2000E8E75A /* EDOTestValueType.h */,
+				C55F8B432183AC2100E8E75A /* EDOTestValueType.m */,
 				C5A2F03C2134D50600421D72 /* EDOTestBridgingHeader.h */,
 				C5A2F03A2134D50600421D72 /* EDOTestClassDummy.h */,
 				C5A2F03B2134D50600421D72 /* EDOTestClassDummy.m */,
@@ -921,9 +933,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				C5A2F0672134D65600421D72 /* EDOServiceTest.m in Sources */,
+				C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */,
 				C5A2F0662134D65600421D72 /* EDOMessageTest.m in Sources */,
 				C5A2F0652134D65600421D72 /* EDOMessageQueueTest.m in Sources */,
 				C5A2F0642134D65600421D72 /* EDOExecutorTest.m in Sources */,
+				C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */,
 				C532ABFC2136172E00162011 /* EDOTestProtocol.m in Sources */,
 				C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */,
 			);
@@ -942,7 +956,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C55F8B472183AC3100E8E75A /* EDOTestValueType.m in Sources */,
 				C5A2F0832134D6D100421D72 /* EDOTestClassDummy.m in Sources */,
+				C55F8B4A2183AC4200E8E75A /* EDOTestNonNSCodingType.m in Sources */,
 				C5A2F0872134D6D100421D72 /* EDOTestSwiftProtocol.swift in Sources */,
 				C5A2F0862134D6D100421D72 /* EDOTestSwiftClass.swift in Sources */,
 				C5A2F0852134D6D100421D72 /* EDOTestProtocol.m in Sources */,
@@ -1109,11 +1125,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1128,11 +1140,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1169,11 +1177,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ChannelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1184,11 +1188,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ChannelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1202,10 +1202,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Service/Tests/TestsHost/Resources/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.TestsHost;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1221,10 +1218,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Service/Tests/TestsHost/Resources/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.TestsHost;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1237,11 +1231,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServiceUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = Service/Tests/FunctionalTests/EDOUITestBridgingHeader.h;
@@ -1255,11 +1245,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServiceUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = Service/Tests/FunctionalTests/EDOUITestBridgingHeader.h;
@@ -1272,11 +1258,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServiceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1288,11 +1270,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServiceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1304,11 +1282,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServicePerfTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1320,11 +1294,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServicePerfTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
