@@ -170,9 +170,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       // which was unable to be caught from the test.
       [exception raise];
 
-      [self edo_handleRequest:message.request withChannel:message.channel context:message.service];
-      // TODO(haowoo): Refactor this to [message waitUntilResponse] so waitLock is hidden.
-      dispatch_semaphore_signal(message.waitLock);
+      [self edo_handleMessage:message];
     } else {
       // Dequeued the placeholder of empty array, exit the loop and return.
       NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
@@ -221,52 +219,45 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   NSAssert(dispatch_get_current_queue() != self.trackedQueue,
            @"Only enqueue a request from a non-tracked queue.");
 #pragma clang diagnostic pop
-  EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request
-                                                               channel:channel
-                                                               service:context];
+
+  // Health check for the channel.
+  [channel sendData:EDOExecutor.pingMessageData withCompletionHandler:nil];
+
+  EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request service:context];
   dispatch_sync(self.isolationQueue, ^{
     EDOMessageQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
     if (messageQueue) {
       [messageQueue enqueueMessage:message];
     } else {
       dispatch_async(self.trackedQueue, ^{
-        [self edo_handleRequest:message.request
-                    withChannel:message.channel
-                        context:message.service];
-        dispatch_semaphore_signal(message.waitLock);
+        [self edo_handleMessage:message];
       });
     }
   });
-  // The semaphore will be signaled in edo_handleRequest either directly or after dequeue.
-  // TODO(haowoo): Refactor this to [message waitUntilResponseIsSet];
-  dispatch_semaphore_wait(message.waitLock, DISPATCH_TIME_FOREVER);
+
+  EDOServiceResponse *response = [message waitForResponse];
+  NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
+  [channel sendData:responseData withCompletionHandler:nil];
 }
 
 #pragma mark - Private
 
-/** Handle the request and send the response back to the @c channel. */
-- (void)edo_handleRequest:(EDOServiceRequest *)request
-              withChannel:(id<EDOChannel>)channel
-                  context:(id)context {
-  // Health check for the channel.
-  [channel sendData:EDOExecutor.pingMessageData withCompletionHandler:nil];
-
-  NSString *className = NSStringFromClass([request class]);
+/** Handle the request and set the response for the @c message. */
+- (void)edo_handleMessage:(EDOExecutorMessage *)message {
+  NSString *className = NSStringFromClass([message.request class]);
   EDORequestHandler handler = self.requestHandlers[className];
   EDOServiceResponse *response = nil;
   if (handler) {
-    response = handler(request, context);
+    response = handler(message.request, message.service);
   }
 
   if (!response) {
     // TODO(haowoo): Define the proper NSError domain, code and error description.
     NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
-    response = [EDOServiceResponse errorResponse:error forRequest:request];
+    response = [EDOServiceResponse errorResponse:error forRequest:message.request];
   }
 
-  NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
-  // TODO(haowoo): Handle the response error (should just log and ignore safely).
-  [channel sendData:responseData withCompletionHandler:nil];
+  [message assignResponse:response];
 }
 
 @end

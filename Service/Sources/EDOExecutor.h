@@ -44,7 +44,7 @@ typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Synchronously send out the request to remote over the channel for execution.
+ *  Synchronously sends out the request to remote over the channel for execution.
  *
  *  @note This method blocks the current execution and is still able to process incoming requests.
  *
@@ -59,7 +59,7 @@ typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
                                        error:(NSError **)errorOrNil;
 
 /**
- *  Receive request from remote to process and send the response to the @c channel.
+ *  Receives the request from remote to process and send the response to the @c channel.
  *
  *  This method should be invoked from a different queue in case the associated dispatch queue is
  *  suspended.
@@ -77,7 +77,7 @@ typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
                context:(id _Nullable)context;
 
 /**
- *  Create and associate the executor with the given dispatch queue.
+ *  Creates and associates the executor with the given dispatch queue.
  *
  *  The executor will keep track of the dispatch queue weakly, and assigned itself to its context
  *  under the key "com.google.executorkey"; the dispatch queue holds its reference so it shares the
@@ -93,7 +93,7 @@ typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
                                         queue:(dispatch_queue_t)queue;
 
 /**
- *  Get the executor for the current running queue.
+ *  Gets the executor for the current running queue.
  *
  *  If the current dispatch queue is associated with an executor already, that executor will be
  *  returned; otherwise, a new executor will be returned.

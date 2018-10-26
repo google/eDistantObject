@@ -31,19 +31,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly, nonatomic, nullable) EDOServiceRequest *request;
 /** The service where the request is received from. */
 @property(readonly, nonatomic, nullable) EDOHostService *service;
-/** The channel to send the response back. */
-@property(readonly, nonatomic, nullable) id<EDOChannel> channel;
-/** The lock to signal after the request is processed and response is sent. */
-@property(readonly, nonatomic) dispatch_semaphore_t waitLock;
 /** Whether the message has a request. */
 @property(readonly, nonatomic, getter=isEmpty) BOOL empty;
 
-/**
- *  Creates an instance of EDOExecutorMessage with the given request, channel
- *  and service.
- */
+/** Creates an instance of EDOExecutorMessage with the given request and service. */
 + (instancetype)messageWithRequest:(nullable EDOServiceRequest *)request
-                           channel:(nullable id<EDOChannel>)channel
                            service:(nullable EDOHostService *)service;
 
 /** Creates an empty message that doesn't contain a request. */
@@ -51,10 +43,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init NS_UNAVAILABLE;
 
-/** Initializes the message with the given request, channel and service. */
+/** Initializes the message with the given request and service. */
 - (instancetype)initWithRequest:(nullable EDOServiceRequest *)request
-                        channel:(nullable id<EDOChannel>)channel
                         service:(nullable EDOHostService *)service NS_DESIGNATED_INITIALIZER;
+
+/** Waits infinitely until the response is set. */
+- (EDOServiceResponse *)waitForResponse;
+
+/**
+ *  Assigns the response and signals the wait thread if any thread is waiting.
+ *
+ *  @param response The response for the message.
+ *  @return YES if the response is assigned for the first time; NO otherwise.
+ *  @note The response can only be assigned once and no new value will be applied afterwards.
+ */
+- (BOOL)assignResponse:(EDOServiceResponse *)response;
 
 @end
 
