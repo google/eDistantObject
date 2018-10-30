@@ -283,6 +283,19 @@
   }]);
 }
 
+- (void)testOutParameterCanResolveToLocalWhenDereferencing {
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  EDOTestDummy *remoteDummy = [dummyOnBackground returnSelf];
+  EDOTestDummy *localDummy = [[EDOTestDummy alloc] initWithValue:5];
+  EDOTestDummy *emptyDummy;
+
+  XCTAssertNil([dummyOnBackground returnClassNameWithObjectRef:nil]);
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObjectRef:&emptyDummy], @"");
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObjectRef:&localDummy], @"EDOObject");
+  XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObjectRef:&remoteDummy],
+                        @"EDOTestDummy");
+}
+
 - (void)testOutParameters {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 

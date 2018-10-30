@@ -104,6 +104,15 @@ typedef struct EDOTestDummyStruct {
 - (NSInteger)returnSumWithArray:(NSArray *)value;
 - (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray *)value;
 
+/**
+ *  Gets the class name for the given object reference.
+ *
+ *  @param objRef The reference to an object.
+ *  @return @c nil if objRef is @c nil; @"" if *objRef is @c nil; otherwise the
+ *          class name of *objRef.
+ */
+- (NSString *)returnClassNameWithObjectRef:(id *)objRef;
+
 /// helper methods
 - (NSException *)exceptionWithReason:(NSString *)reason;
 - (NSError *)error;

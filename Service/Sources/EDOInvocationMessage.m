@@ -236,10 +236,16 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
                    @"The argument should be id type for object pointer but (%s) instead.",
                    argument.objCType);
 
-          void *objRef = NULL;
+          // The local buffer to save the pointer to the object. We need to inspect if the object
+          // from the remote process can be unwrapped into a local object and then use the local
+          // buffer for the outvar (i.e. NSError **) argument.
+          id __unsafe_unretained *objRef = NULL;
           if (![argument isDoublePointerNullValue]) {
             [argument getValue:&outObjects[curArgIdx]];
             objRef = &outObjects[curArgIdx];
+          }
+          if (objRef && *objRef && service) {
+            *objRef = [service unwrappedObjectFromObject:*objRef];
           }
           [invocation setArgument:&objRef atIndex:curArgIdx];
         } else if (EDO_IS_OBJECT_OR_CLASS(ctype)) {

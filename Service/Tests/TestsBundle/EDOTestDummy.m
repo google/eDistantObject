@@ -267,6 +267,16 @@ static const NSInteger kLargeArraySize = 1000;
   return NSStringFromClass(object_getClass(object));
 }
 
+- (NSString *)returnClassNameWithObjectRef:(id *)objRef {
+  if (!objRef) {
+    return nil;
+  } else if (!*objRef) {
+    return @"";
+  } else {
+    return NSStringFromClass(object_getClass(*objRef));
+  }
+}
+
 - (NSInteger)returnCountWithArray:(NSArray *)value {
   return value.count;
 }
