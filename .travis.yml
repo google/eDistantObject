@@ -14,6 +14,10 @@
 #
 language: objective-c
 sudo: false
+notifications:
+  email:
+    recipients:
+      - mobile-devx-github-bot+travis@google.com
 matrix:
   include:
   - name: "Xcode 9/iPhone 6 64bit/iOS 11.0"
