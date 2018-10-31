@@ -56,6 +56,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (EDOServiceResponse *)sendRequest:(EDOServiceRequest *)request port:(UInt16)port;
 
+/**
+ *  Unwraps an @c object to a local object if it comes from the local process.
+ *
+ *  @param  object The object to be unwrapped.
+ *  @return The unwrapped local object if the given object is an EDOObject and it comes from the
+ *          current process; otherwise, the original object is returned.
+ */
++ (nullable id)unwrappedObjectFromObject:(nullable id)object;
+
 @end
 
 NS_ASSUME_NONNULL_END

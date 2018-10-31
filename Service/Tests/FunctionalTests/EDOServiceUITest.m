@@ -173,11 +173,14 @@
 
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   EDOTestDummyInTest *dummy = [EDOClientService rootObjectWithPort:2234];
-  // Dispatch to execute the block @c totalOfInvokes of times asynchronously in the background
-  // queue.
-  for (int i = 0; i < totalOfInvokes; ++i) {
-    XCTAssertEqual([remoteDummy returnPlus10AndAsyncExecuteBlock:dummy], 8 + 10);
-  }
+
+  // Dispatch to the background queue because we need to wrap dummy into the remote object, the
+  // current main queue doesn't have a host service to wrap it.
+  dispatch_async(backgroundQueue, ^{
+    for (int i = 0; i < totalOfInvokes; ++i) {
+      XCTAssertEqual([remoteDummy returnPlus10AndAsyncExecuteBlock:dummy], 8 + 10);
+    }
+  });
 
   [self waitForExpectationsWithTimeout:5 handler:nil];
 

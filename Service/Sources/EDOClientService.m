@@ -25,6 +25,7 @@
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
@@ -34,8 +35,7 @@
 + (id)rootObjectWithPort:(UInt16)port {
   EDOServiceResponse *response = [self sendRequest:[EDOObjectRequest request] port:port];
   EDOObject *rootObject = ((EDOObjectResponse *)response).object;
-  rootObject =
-      [[EDOHostService serviceForCurrentQueue] unwrappedObjectFromObject:rootObject] ?: rootObject;
+  rootObject = [EDOClientService unwrappedObjectFromObject:rootObject];
   rootObject = [self cachedEDOFromObjectUpdateIfNeeded:rootObject];
   return rootObject;
 }
@@ -44,8 +44,7 @@
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
   EDOServiceResponse *response = [self sendRequest:classRequest port:port];
   EDOObject *classObject = ((EDOObjectResponse *)response).object;
-  classObject = [[EDOHostService serviceForCurrentQueue] unwrappedObjectFromObject:classObject]
-                    ?: classObject;
+  classObject = [EDOClientService unwrappedObjectFromObject:classObject];
   classObject = [self cachedEDOFromObjectUpdateIfNeeded:classObject];
   return classObject;
 }
@@ -93,7 +92,58 @@
   });
 }
 
++ (id)unwrappedObjectFromObject:(id)object {
+  EDOObject *edoObject =
+      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
+  Class objClass = object_getClass(edoObject);
+  if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
+    EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+    // If there is a service for the current queue, we check if the object belongs to this queue.
+    // Otherwise, we send EDOObjectAlive message to another service running in the same process.
+    if ([service.port match:edoObject.servicePort]) {
+      return (__bridge id)(void *)edoObject.remoteAddress;
+    } else if (edoObject.isLocalEdo) {
+      // If the underlying object is not a local object (but in the same process) then this could
+      // return nil. For example, the service becomes invalide, or the remote object is already
+      // released.
+      id resolvedInstance = [self resolveInstanceFromEDOObject:edoObject];
+      if (resolvedInstance) {
+        return resolvedInstance;
+      }
+    }
+  }
+
+  return object;
+}
+
 #pragma mark - Private
+
+/**
+ *  Sends EDOObjectAliveRequest to the service that the given object belongs to in the current
+ *  process and check it is still alive.
+ *
+ *  @param object The remote object to check if it is alive.
+ *  @return The underlying object if it is still alive, otherwise @c nil.
+ */
++ (id)resolveInstanceFromEDOObject:(EDOObject *)object {
+  @try {
+    EDOObjectAliveRequest *request = [EDOObjectAliveRequest requestWithObject:object];
+    EDOObjectAliveResponse *response =
+        (EDOObjectAliveResponse *)[EDOClientService sendRequest:request
+                                                           port:object.servicePort.port];
+
+    EDOObject *reponseObject;
+    if ([EDOBlockObject isBlock:response.object]) {
+      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
+    } else {
+      reponseObject = response.object;
+    }
+    return (__bridge id)(void *)reponseObject.remoteAddress;
+  } @catch (NSException *e) {
+    // In case of the service is dead or error, ignore the exception and reset to nil.
+    return nil;
+  }
+}
 
 + (EDOServiceResponse *)sendRequest:(EDOServiceRequest *)request port:(UInt16)port {
   __block NSException *exception = nil;

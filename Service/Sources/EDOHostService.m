@@ -22,14 +22,12 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 #import "Service/Sources/EDOBlockObject.h"
-#import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostService+Handlers.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
-#import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 
 // The context key for the executor for the dispatch queue.
@@ -148,24 +146,6 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   }
 }
 
-- (id)resolveInstanceFromEDOObject:(EDOObject *)object {
-  @try {
-    EDOObjectAliveRequest *request = [EDOObjectAliveRequest requestWithObject:object];
-    EDOObjectAliveResponse *response =
-        (EDOObjectAliveResponse *)[EDOClientService sendRequest:request
-                                                           port:object.servicePort.port];
-
-    EDOObject *reponseObject = [EDOBlockObject isBlock:response.object]
-                                   ? [EDOBlockObject EDOBlockObjectFromBlock:response.object]
-                                   : response.object;
-    return (__bridge id)(void *)reponseObject.remoteAddress;
-  } @catch (NSException *e) {
-    // In case of the service is dead or error, ignore the exception and reset to nil.
-    // TODO(haowoo): Convert the exception to NSError.
-    return nil;
-  }
-}
-
 - (BOOL)isObjectAlive:(EDOObject *)object {
   // TODO(haowoo): There can be different strategies to evict the object from the local cache,
   //               we should check if the object is still in the cache (self.localObjects).
@@ -178,25 +158,6 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     [self.localObjects removeObjectForKey:edoKey];
   });
   return YES;
-}
-
-- (id)unwrappedObjectFromObject:(id)object {
-  EDOObject *edoObject =
-      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
-  Class objClass = object_getClass(edoObject);
-  if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
-    if ([self.port match:edoObject.servicePort]) {
-      // If the underlying object is not a local object (same process) then this could return nil.
-      return (__bridge id)(void *)edoObject.remoteAddress;
-    } else if (edoObject.isLocalEdo) {
-      id resolvedInstance = [self resolveInstanceFromEDOObject:edoObject];
-      if (resolvedInstance) {
-        return resolvedInstance;
-      }
-    }
-  }
-
-  return object;
 }
 
 - (EDOSocket *)edo_createListenSocket:(UInt16)port {

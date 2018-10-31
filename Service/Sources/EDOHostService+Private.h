@@ -30,30 +30,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (EDOObject *)distantObjectForLocalObject:(id)object;
 
 /**
- *  Unwrap an @c object to a local object if it comes from the same service.
- *
- *  @param  object The object to be unwrapped.
- *
- *  @return The unwrapped local object if the given object is a EDOObject and it
- *          comes from the same service; otherwise, the original object is
- *          returned.
- */
-- (id)unwrappedObjectFromObject:(id)object;
-
-/**
- *  Check if the underlying object for the given @c EDOObject is still alive.
+ *  Checks if the underlying object for the given @c EDOObject is still alive.
  *
  *  @param object The @c EDOObject containing the underlying object address.
- *
  *  @return @c YES if the underlying object is still in the cache; @c NO otherwise.
  */
 - (BOOL)isObjectAlive:(EDOObject *)object;
 
 /**
- *  Remove an EDOObject with the specified address in the host cache.
+ *  Removes an EDOObject with the specified address in the host cache.
  *
  *  @param remoteAddress The @c EDOPointerType containing the object address.
- *
  *  @return @c YES if an object was removed; @c NO otherwise.
  */
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress;

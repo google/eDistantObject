@@ -19,6 +19,7 @@
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOBlockObject.h"
+#import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
@@ -244,14 +245,14 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
             [argument getValue:&outObjects[curArgIdx]];
             objRef = &outObjects[curArgIdx];
           }
-          if (objRef && *objRef && service) {
-            *objRef = [service unwrappedObjectFromObject:*objRef];
+          if (objRef && *objRef) {
+            *objRef = [EDOClientService unwrappedObjectFromObject:*objRef];
           }
           [invocation setArgument:&objRef atIndex:curArgIdx];
         } else if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
           id __unsafe_unretained obj;
           [argument getValue:&obj];
-          obj = [service unwrappedObjectFromObject:obj] ?: obj;
+          obj = [EDOClientService unwrappedObjectFromObject:obj];
           [invocation setArgument:&obj atIndex:curArgIdx];
         } else {
           NSUInteger valueSize = 0;

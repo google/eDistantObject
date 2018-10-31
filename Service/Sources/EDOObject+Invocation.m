@@ -17,12 +17,10 @@
 #import "Service/Sources/EDOObject.h"
 
 #import "Service/Sources/EDOClientService+Private.h"
-#import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOInvocationMessage.h"
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOParameter.h"
-#import "Service/Sources/EDOServicePort.h"
 
 /**
  *  The extension of EDOObject to handle the message forwarding.
@@ -83,13 +81,11 @@
   }
 
   NSUInteger returnBufSize = invocation.methodSignature.methodReturnLength;
-  EDOHostService *service = [EDOHostService serviceForCurrentQueue];
-
   char const *ctype = invocation.methodSignature.methodReturnType;
   if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
     id __unsafe_unretained obj;
     [response.returnValue getValue:&obj];
-    obj = [service unwrappedObjectFromObject:obj] ?: obj;
+    obj = [EDOClientService unwrappedObjectFromObject:obj];
     obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:obj];
     [invocation setReturnValue:&obj];
   } else if (returnBufSize > 0) {
@@ -116,7 +112,7 @@
       // Fill the out value back to its original buffer if provided.
       if (obj) {
         [outValues[curOutIdx] getValue:obj];
-        *obj = [service unwrappedObjectFromObject:*obj] ?: *obj;
+        *obj = [EDOClientService unwrappedObjectFromObject:*obj];
         // When there is no running service or the object is a true remote object, we will check
         // the local distant objects cache.
         *obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:*obj];

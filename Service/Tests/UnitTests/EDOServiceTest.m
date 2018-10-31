@@ -199,6 +199,22 @@
   XCTAssertEqual(dummyOutOriginal, dummyOut);
 }
 
+- (void)testUnderlyingObjectShouldReturnFromBackgroundQueueInTheSameProcess {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  dispatch_sync(testQueue, ^{
+    XCTAssertNotEqual([[self.rootObjectOnBackground returnSelf] class], [EDOTestDummy class],
+                      @"The returned object should be a remote object.");
+  });
+
+  // The service on the background queue will resolve to the local address.
+  [self.serviceBackgroundMock stopMocking];
+
+  dispatch_sync(testQueue, ^{
+    XCTAssertEqual([[self.rootObjectOnBackground returnSelf] class], [EDOTestDummy class],
+                   @"The returned object should be a local object.");
+  });
+}
+
 - (void)testResolveToUnderlyingInstanceIfInTheSameProcess {
   EDOTestDummy *dummyOut;
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
@@ -572,6 +588,8 @@
   _serviceOnBackground = [EDOHostService serviceWithPort:0
                                               rootObject:self.rootObject
                                                    queue:self.executionQueue];
+  // Disable the isObjectAlive: check so the object from the background queue will not be resolved
+  // to the underlying object but a remote object.
   _serviceBackgroundMock = OCMPartialMock(_serviceOnBackground);
   OCMStub([_serviceBackgroundMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
 }
