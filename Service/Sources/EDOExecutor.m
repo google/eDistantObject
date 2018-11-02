@@ -96,12 +96,11 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 #pragma clang diagnostic pop
 
   __block NSData *responseData = nil;
-  __block BOOL responseReceived = NO;
-  __block NSException *exception = nil;
 
   // 1. Create the waited queue so it can also process the requests while waiting for the response
   // when the incoming request is dispatched to the same queue.
   EDOMessageQueue<EDOExecutorMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
+
   // Set the message queue to process the request that will be received and dispatched to this
   // queue while waiting for the response to come back.
   dispatch_sync(self.isolationQueue, ^{
@@ -115,7 +114,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         // TODO(haowoo): Handle errors.
         __block BOOL serviceClosed = NO;
         dispatch_semaphore_t waitLock = dispatch_semaphore_create(0);
-        // 2.5 Check ping response to make sure channel is healthy.
+        // 3. Check ping response to make sure channel is healthy.
         [channel receiveDataWithHandler:^(id<EDOChannel> _Nonnull channel, NSData *_Nullable data,
                                           NSError *_Nullable error) {
           responseData = data;
@@ -129,9 +128,8 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         long result = dispatch_semaphore_wait(
             waitLock, dispatch_time(DISPATCH_TIME_NOW, kPingTimeoutSeconds));
 
-        // Receive actual response if ping data is received successfully.
+        // 3.5 Continue to receive the response if the ping is received.
         if ([responseData isEqualToData:EDOExecutor.pingMessageData]) {
-          // 3. Ready to receive the response.
           [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
             // TODO(haowoo): Handle errors.
             NSAssert(error == nil, @"Data sent error: %@.", error);
@@ -144,64 +142,46 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         if (result != 0 || serviceClosed) {
           NSLog(@"The edo channel %@ is broken.", channel);
         }
-        // Reset the message queue after receiving the response in the handler (the handler is not
-        // reentrant to assure the data integrity).
-        dispatch_sync(self.isolationQueue, ^{
-          responseReceived = YES;
-          self.messageQueue = nil;
-        });
-        // Enqueue the placeholder of empty array for the expected response, so the message
-        // queue can be awakened.
-        [messageQueue enqueueMessage:[EDOExecutorMessage emptyMessage]];
+
+        // Close the queue because the response is received, the current message queue won't
+        // process any new messages.
+        [messageQueue closeQueue];
       }];
 
   // 4. Drain the message queue until the empty message is received - when it errors or the response
   //    data is received.
-  EDOServiceResponse *response = nil;
-  EDOExecutorMessage *message = nil;
   while (true) {
     // Block the current queue and wait for the new message. It will unset the
     // messageQueue if it receives a response so there is no race condition where it has some
     // messages left in the queue to be processed after the queue is unset.
-    message = [messageQueue dequeueMessage];
-    if (!message.empty) {
-      // The exception needs to be raised here (in case there's any) to make sure it runs in the
-      // same queue that runs the method. Previously it was being thrown on the channel callback
-      // which was unable to be caught from the test.
-      [exception raise];
-
-      [self edo_handleMessage:message];
-    } else {
-      // Dequeued the placeholder of empty array, exit the loop and return.
-      NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
-      NSAssert(messageQueue != self.messageQueue, @"The message queue should be untracked.");
-      NSAssert(responseReceived, @"The response should be received.");
-
-      response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+    EDOExecutorMessage *message = [messageQueue dequeueMessage];
+    if (!message) {
       break;
     }
 
-    // Reset the message queue in case that the nested invocation clears it after its handling.
+    [self edo_handleMessage:message];
+
+    // Reset the message queue in case that the nested invocation in -[edo_handleMessage:] clears
+    // it after its handling.
     // Note: We only need to make sure the message queue can process any nested request, which shall
     //       come before the response is received. If any request comes after the response is
     //       received, this request will be dispatched async'ly.
     dispatch_sync(self.isolationQueue, ^{
-      // Only set the message queue when the response hasn't been received for this loop. It may be
-      // already reset right after handling the inner loop and before this line is executed.
-      if (!responseReceived) {
-        self.messageQueue = messageQueue;
-      }
+      self.messageQueue = messageQueue;
     });
   }
 
-  if (!response) {
+  NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
+  EDOServiceResponse *response;
+  if (responseData) {
+    response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+    NSAssert([request.messageId isEqualToString:response.messageId],
+             @"The response (%@) Id is mismatched with the request (%@)", response, request);
+  } else {
     if (errorOrNil) {
       // TODO(ynzhang): Add better error code define.
       *errorOrNil = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
     }
-  } else {
-    NSAssert([request.messageId isEqualToString:response.messageId],
-             @"The response (%@) Id is mismatched with the request (%@)", response, request);
   }
 
   return response;
@@ -226,9 +206,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request service:context];
   dispatch_sync(self.isolationQueue, ^{
     EDOMessageQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
-    if (messageQueue) {
-      [messageQueue enqueueMessage:message];
-    } else {
+    if (![messageQueue enqueueMessage:message]) {
       dispatch_async(self.trackedQueue, ^{
         [self edo_handleMessage:message];
       });

@@ -29,23 +29,34 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOMessageQueue<ObjectType> : NSObject
 
 /** Whether the queue has any messages. */
-@property(readonly, getter=isEmpty) BOOL empty;
+@property(readonly, nonatomic, getter=isEmpty) BOOL empty;
 
 /**
  *  Enqueues the message for the service queue to process.
  *
  *  @param message The message to enqueue.
+ *  @return YES if the message is enqueued; NO, if the queue is closed already and the message
+ *          will not be enqueued.
  */
-- (void)enqueueMessage:(ObjectType)message;
+- (BOOL)enqueueMessage:(ObjectType)message;
+
+/**
+ *  Closes the queue so no more messages can be enqueued.
+ *
+ *  @return YES if the queue is just closed; NO if the queue is already closed.
+ */
+- (BOOL)closeQueue;
 
 /**
  *  Dequeues the message.
  *
- *  This will block the current thread until the new message is available, a.k.a the consumer.
+ *  This will block the current thread unless the queue is closed or there are new messages in the
+ *  queue.
  *
- *  @return The message enqueued in the FIFO order.
+ *  @return The message enqueued in the FIFO order. @c nil if the message queue doesn't have any
+ *          pending messages and is already closed.
  */
-- (ObjectType)dequeueMessage;
+- (nullable ObjectType)dequeueMessage;
 
 @end
 

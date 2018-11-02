@@ -27,12 +27,16 @@
 @property(readonly) __weak dispatch_queue_t queue; // NOLINT
 @end
 
-@implementation EDOMessageQueue
+@implementation EDOMessageQueue {
+  /** Whether the queue is closed and will reject any new messages. */
+  BOOL _closed;
+}
 
 - (instancetype)init {
   self = [super init];
   if (self) {
     _messages = [[NSMutableArray alloc] init];
+    _closed = NO;
 
     NSString *queueName = [NSString stringWithFormat:@"com.google.edo.message[%p]", self];
     _messageIsolationQueue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
@@ -46,11 +50,16 @@
   return self;
 }
 
-- (void)enqueueMessage:(id)message {
+- (BOOL)enqueueMessage:(id)message {
+  __block BOOL enqueued = NO;
   dispatch_sync(self.messageIsolationQueue, ^{
-    [self.messages addObject:message];
+    if (!self->_closed) {
+      [self.messages addObject:message];
+      enqueued = YES;
+    }
   });
   dispatch_semaphore_signal(self.numberOfMessages);
+  return enqueued;
 }
 
 - (id)dequeueMessage {
@@ -60,18 +69,48 @@
            @"Only dequeue the message from the assigned queue");
 #pragma clang diagnostic pop
 
-  // TODO(haowoo): Add finite timeout and errors.
+  __block BOOL shouldWaitMessage = YES;
+  dispatch_sync(self.messageIsolationQueue, ^{
+    if (self->_closed && self.messages.count == 0) {
+      shouldWaitMessage = NO;
+    }
+  });
+  if (!shouldWaitMessage) {
+    return nil;
+  }
+
   dispatch_semaphore_wait(self.numberOfMessages, DISPATCH_TIME_FOREVER);
 
   __block id message = nil;
   dispatch_sync(self.messageIsolationQueue, ^{
-    message = self.messages.firstObject;
-    [self.messages removeObjectAtIndex:0];
+    if (!self->_closed || self.messages.count > 0) {
+      message = self.messages.firstObject;
+      [self.messages removeObjectAtIndex:0];
+    }
   });
   return message;
 }
 
-- (BOOL)isEmpty {
-  return self.messages.count == 0;
+- (BOOL)closeQueue {
+  __block BOOL success = NO;
+  dispatch_sync(self.messageIsolationQueue, ^{
+    if (!self->_closed) {
+      self->_closed = YES;
+      success = YES;
+    }
+  });
+  if (success) {
+    dispatch_semaphore_signal(self.numberOfMessages);
+  }
+  return success;
 }
+
+- (BOOL)isEmpty {
+  __block BOOL empty = NO;
+  dispatch_sync(self.messageIsolationQueue, ^{
+    empty = self.messages.count == 0;
+  });
+  return empty;
+}
+
 @end

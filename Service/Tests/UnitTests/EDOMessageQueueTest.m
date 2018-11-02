@@ -20,26 +20,45 @@
 #import "Service/Sources/EDOMessageQueue.h"
 
 @interface EDOMessageQueueTest : XCTestCase
-@property(readonly) NSArray<EDOMessage *> *messages;
 @end
 
 @implementation EDOMessageQueueTest
 
-@dynamic messages;
+- (void)testCloseQueueWithMessages {
+  XCTestExpectation *expectClose = [self expectationWithDescription:@"The queue is closed."];
+  EDOMessageQueue<EDOMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
+  dispatch_async([self testQueue], ^{
+    XCTAssertTrue([messageQueue enqueueMessage:[[EDOMessage alloc] init]]);
+    XCTAssertTrue([messageQueue closeQueue]);
+    XCTAssertFalse([messageQueue closeQueue], @"The queue should only be closed once.");
+    [expectClose fulfill];
+  });
 
-- (NSArray<EDOMessage *> *)messages {
-  NSMutableArray<EDOMessage *> *messages = [[NSMutableArray alloc] init];
-  for (int i = arc4random() % 10 + 4; i >= 0; --i) {
-    [messages addObject:[[EDOMessage alloc] init]];
-  }
-  return messages;
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+  XCTAssertNotNil([messageQueue dequeueMessage]);
+  XCTAssertNil([messageQueue dequeueMessage]);
+  XCTAssertFalse([messageQueue enqueueMessage:[[EDOMessage alloc] init]],
+                 @"No new messages should be enqueued after it is closed");
+}
+
+- (void)testCloseQueueWithoutMessages {
+  XCTestExpectation *expectClose = [self expectationWithDescription:@"The queue is closed."];
+  EDOMessageQueue<EDOMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
+  dispatch_queue_t testQueue = [self testQueue];
+  dispatch_async(testQueue, ^{
+    XCTAssertTrue([messageQueue closeQueue]);
+    XCTAssertFalse([messageQueue closeQueue]);
+    [expectClose fulfill];
+  });
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+  XCTAssertNil([messageQueue dequeueMessage]);
 }
 
 - (void)testEnqueueDequeueMessage {
   EDOMessageQueue<EDOMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
-  NSArray<EDOMessage *> *messages = self.messages;
+  NSArray<EDOMessage *> *messages = [self messages];
 
-  [messageQueue enqueueMessage:messages[0]];
+  XCTAssertTrue([messageQueue enqueueMessage:messages[0]]);
   XCTAssertEqual([messageQueue dequeueMessage], messages[0], @"Message should be equal.");
 
   [self edo_enqueueMessages:messages forQueue:messageQueue];
@@ -65,7 +84,7 @@
 
 - (void)testEnqueueDequeueInDifferentThread {
   __block EDOMessageQueue<EDOMessage *> *messageQueue = nil;
-  NSArray<EDOMessage *> *messages = self.messages;
+  NSArray<EDOMessage *> *messages = [self messages];
 
   dispatch_semaphore_t creationLock = dispatch_semaphore_create(0L);
   XCTestExpectation *waitForThread = [self expectationWithDescription:@"Wait for thread."];
@@ -90,7 +109,7 @@
 
 - (void)testEnqueueDequeueInDifferentQueue {
   __block EDOMessageQueue<EDOMessage *> *messageQueue = nil;
-  NSArray<EDOMessage *> *messages = self.messages;
+  NSArray<EDOMessage *> *messages = [self messages];
 
   dispatch_queue_t queue = dispatch_queue_create("com.google.servicequeue.test", NULL);
   dispatch_semaphore_t creationLock = dispatch_semaphore_create(0L);
@@ -127,6 +146,20 @@
 
 #pragma mark - Private
 
+- (NSArray<EDOMessage *> *)messages {
+  NSMutableArray<EDOMessage *> *messages = [[NSMutableArray alloc] init];
+  for (int i = 10; i >= 0; --i) {
+    [messages addObject:[[EDOMessage alloc] init]];
+  }
+  return messages;
+}
+
+/** Create a dispatch queue with the current testname. */
+- (dispatch_queue_t)testQueue {
+  NSString *queueName = [NSString stringWithFormat:@"com.google.edo.MessageQueue[%@]", self.name];
+  return dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
+}
+
 - (void)edo_assertMessages:(NSArray<EDOMessage *> *)messages
            inOrderForQueue:(EDOMessageQueue<EDOMessage *> *)messageQueue {
   for (EDOMessage *message in messages) {
@@ -137,7 +170,7 @@
 - (void)edo_enqueueMessages:(NSArray<EDOMessage *> *)messages
                    forQueue:(EDOMessageQueue<EDOMessage *> *)messageQueue {
   for (EDOMessage *message in messages) {
-    [messageQueue enqueueMessage:message];
+    XCTAssertTrue([messageQueue enqueueMessage:message]);
   }
 }
 
