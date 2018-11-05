@@ -40,13 +40,13 @@
   return rootObject;
 }
 
-+ (id)classObjectWithName:(NSString *)className port:(UInt16)port {
++ (Class)classObjectWithName:(NSString *)className port:(UInt16)port {
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
   EDOServiceResponse *response = [self sendRequest:classRequest port:port];
   EDOObject *classObject = ((EDOObjectResponse *)response).object;
   classObject = [EDOClientService unwrappedObjectFromObject:classObject];
   classObject = [self cachedEDOFromObjectUpdateIfNeeded:classObject];
-  return classObject;
+  return (Class)classObject;
 }
 
 + (NSMapTable *)localDistantObjects {

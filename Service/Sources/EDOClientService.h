@@ -34,7 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (id)rootObjectWithPort:(UInt16)port;
 
 /** Retrieve the class object from the given port that's listened by a service. */
-+ (id)classObjectWithName:(NSString *)className port:(UInt16)port;
++ (Class)classObjectWithName:(NSString *)className port:(UInt16)port;
 
 @end
 
