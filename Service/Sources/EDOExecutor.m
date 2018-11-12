@@ -25,7 +25,7 @@
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
 // The context key for the executor for the dispatch queue.
-static const char *_executorKey = "com.google.executorkey";
+static const char *const kExecutorKey = "com.google.executorkey";
 
 // Timeout for ping health check.
 static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
@@ -41,6 +41,10 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
 @implementation EDOExecutor
 
++ (instancetype)executorWithHandlers:(EDORequestHandlers *)handlers queue:(dispatch_queue_t)queue {
+  return [[self alloc] initWithHandlers:handlers queue:queue];
+}
+
 /**
  *  Initialize with the request @c handlers for the dispatch @c queue.
  *
@@ -55,49 +59,25 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   if (self) {
     NSString *queueName = [NSString stringWithFormat:@"com.google.edo.executor[%p]", self];
     _isolationQueue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
-    _trackedQueue = queue;
+    _executionQueue = queue;
     _requestHandlers = handlers;
 
     if (queue) {
-      dispatch_queue_set_specific(queue, _executorKey, (void *)CFBridgingRetain(self),
+      dispatch_queue_set_specific(queue, kExecutorKey, (void *)CFBridgingRetain(self),
                                   (dispatch_function_t)CFBridgingRelease);
     }
   }
   return self;
 }
 
-// Data to use for health check.
-+ (NSData *)pingMessageData {
-  static NSData *_pingMessageData;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    _pingMessageData = [@"ping" dataUsingEncoding:NSUTF8StringEncoding];
-  });
-  return _pingMessageData;
-}
-
-+ (instancetype)currentExecutor {
-  return (__bridge EDOExecutor *)(dispatch_get_specific(_executorKey))
-             ?: [[EDOExecutor alloc] initWithHandlers:@{} queue:nil];
-}
-
-+ (instancetype)associateExecutorWithHandlers:(EDORequestHandlers *)handlers
-                                        queue:(dispatch_queue_t)queue {
-  return [[self alloc] initWithHandlers:handlers queue:queue];
-}
-
-- (EDOServiceResponse *)sendRequest:(EDOServiceRequest *)request
-                        withChannel:(id<EDOChannel>)channel
-                              error:(NSError **)errorOrNil {
+- (void)runUsingMessageQueueCloseHandler:(EDOExecutorCloseHandler)closeHandler {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  NSAssert(!self.trackedQueue || dispatch_get_current_queue() == self.trackedQueue,
-           @"Only execute the request from the tracked queue.");
+  NSAssert(!self.executionQueue || dispatch_get_current_queue() == self.executionQueue,
+           @"Only run the executor from the tracked queue.");
 #pragma clang diagnostic pop
 
-  __block NSData *responseData = nil;
-
-  // 1. Create the waited queue so it can also process the requests while waiting for the response
+  // Create the waited queue so it can also process the requests while waiting for the response
   // when the incoming request is dispatched to the same queue.
   EDOMessageQueue<EDOExecutorMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
 
@@ -107,49 +87,13 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
     self.messageQueue = messageQueue;
   });
 
-  // 2. Do send.
-  NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
-  [channel sendData:requestData
-      withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
-        // TODO(haowoo): Handle errors.
-        __block BOOL serviceClosed = NO;
-        dispatch_semaphore_t waitLock = dispatch_semaphore_create(0);
-        // 3. Check ping response to make sure channel is healthy.
-        [channel receiveDataWithHandler:^(id<EDOChannel> _Nonnull channel, NSData *_Nullable data,
-                                          NSError *_Nullable error) {
-          responseData = data;
-          serviceClosed = data == nil;
-          dispatch_semaphore_signal(waitLock);
-        }];
-        // The request is failed if ping message data does not match or it is not received in
-        // kPingTimeOutSeconds seconds. When the service is killed, the channel connected to the
-        // service may or may not get properly closed. We need to handle 3 cases:
-        // (1) request timeout (2) receiving empty data or (3) receiving error response
-        long result = dispatch_semaphore_wait(
-            waitLock, dispatch_time(DISPATCH_TIME_NOW, kPingTimeoutSeconds));
+  // Schedule the handler in the background queue so it won't block the current thread. After the
+  // handler closes the messageQueue, before or after the while loop starts, it will trigger the
+  // while loop to exit.
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    closeHandler(messageQueue);
+  });
 
-        // 3.5 Continue to receive the response if the ping is received.
-        if ([responseData isEqualToData:EDOExecutor.pingMessageData]) {
-          [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
-            // TODO(haowoo): Handle errors.
-            NSAssert(error == nil, @"Data sent error: %@.", error);
-            responseData = data;
-            dispatch_semaphore_signal(waitLock);
-          }];
-          dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
-        }
-
-        if (result != 0 || serviceClosed) {
-          NSLog(@"The edo channel %@ is broken.", channel);
-        }
-
-        // Close the queue because the response is received, the current message queue won't
-        // process any new messages.
-        [messageQueue closeQueue];
-      }];
-
-  // 4. Drain the message queue until the empty message is received - when it errors or the response
-  //    data is received.
   while (true) {
     // Block the current queue and wait for the new message. It will unset the
     // messageQueue if it receives a response so there is no race condition where it has some
@@ -172,50 +116,36 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   }
 
   NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
-  EDOServiceResponse *response;
-  if (responseData) {
-    response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
-    NSAssert([request.messageId isEqualToString:response.messageId],
-             @"The response (%@) Id is mismatched with the request (%@)", response, request);
-  } else {
-    if (errorOrNil) {
-      // TODO(ynzhang): Add better error code define.
-      *errorOrNil = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
-    }
-  }
-
-  return response;
 }
 
-- (void)receiveRequest:(EDOServiceRequest *)request
-           withChannel:(id<EDOChannel>)channel
-               context:(id)context {
-  // TODO(haowoo): Throw an NSInternalInconsistencyException.
-  NSAssert(self.trackedQueue != nil, @"The tracked queue is already released.");
-
+- (EDOServiceResponse *)handleRequest:(EDOServiceRequest *)request context:(id)context {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   // TODO(haowoo): Replace with dispatch_assert_queue once the minimum support is iOS 10+.
-  NSAssert(dispatch_get_current_queue() != self.trackedQueue,
+  NSAssert(dispatch_get_current_queue() != self.executionQueue,
            @"Only enqueue a request from a non-tracked queue.");
 #pragma clang diagnostic pop
 
-  // Health check for the channel.
-  [channel sendData:EDOExecutor.pingMessageData withCompletionHandler:nil];
-
+  __block BOOL messageHandled = YES;
   EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request service:context];
   dispatch_sync(self.isolationQueue, ^{
     EDOMessageQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
     if (![messageQueue enqueueMessage:message]) {
-      dispatch_async(self.trackedQueue, ^{
-        [self edo_handleMessage:message];
-      });
+      dispatch_queue_t executionQueue = self.executionQueue;
+      if (executionQueue) {
+        dispatch_async(self.executionQueue, ^{
+          [self edo_handleMessage:message];
+        });
+      } else {
+        messageHandled = NO;
+      }
     }
   });
 
-  EDOServiceResponse *response = [message waitForResponse];
-  NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
-  [channel sendData:responseData withCompletionHandler:nil];
+  // Assertion outside the dispatch queue in order to populate the exceptions.
+  NSAssert(messageHandled,
+           @"The message is not handled because the execution queue is already released.");
+  return [message waitForResponse];
 }
 
 #pragma mark - Private
@@ -236,6 +166,94 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   }
 
   [message assignResponse:response];
+}
+
+#pragma mark - Deprecated methods
+
+// Data to use for health check.
++ (NSData *)pingMessageData {
+  static NSData *_pingMessageData;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    _pingMessageData = [@"ping" dataUsingEncoding:NSUTF8StringEncoding];
+  });
+  return _pingMessageData;
+}
+
++ (instancetype)currentExecutor {
+  return (__bridge EDOExecutor *)(dispatch_get_specific(kExecutorKey))
+             ?: [[EDOExecutor alloc] initWithHandlers:@{} queue:nil];
+}
+
+- (EDOServiceResponse *)sendRequest:(EDOServiceRequest *)request
+                        withChannel:(id<EDOChannel>)channel
+                              error:(NSError **)errorOrNil {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  NSAssert(!self.executionQueue || dispatch_get_current_queue() == self.executionQueue,
+           @"Only execute the request from the tracked queue.");
+#pragma clang diagnostic pop
+
+  __block NSData *responseData = nil;
+  NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
+
+  [self runUsingMessageQueueCloseHandler:^(EDOMessageQueue<EDOExecutorMessage *> *messageQueue) {
+    // The channel is asynchronous and not I/O re-entrant so we chain the sending and receiving,
+    // and capture the response in the callback blocks.
+    [channel sendData:requestData withCompletionHandler:nil];
+
+    __block BOOL serviceClosed = NO;
+    dispatch_semaphore_t waitLock = dispatch_semaphore_create(0);
+    EDOChannelReceiveHandler receiveHandler =
+        ^(id<EDOChannel> channel, NSData *data, NSError *error) {
+          responseData = data;
+          serviceClosed = data == nil;
+          dispatch_semaphore_signal(waitLock);
+        };
+
+    // Check ping response to make sure channel is healthy.
+    [channel receiveDataWithHandler:receiveHandler];
+    long result =
+        dispatch_semaphore_wait(waitLock, dispatch_time(DISPATCH_TIME_NOW, kPingTimeoutSeconds));
+
+    // Continue to receive the response if the ping is received.
+    if ([responseData isEqualToData:EDOExecutor.pingMessageData]) {
+      [channel receiveDataWithHandler:receiveHandler];
+      dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
+    }
+
+    if (result != 0 || serviceClosed) {
+      NSLog(@"The edo channel %@ is broken.", channel);
+    }
+
+    [messageQueue closeQueue];
+  }];
+
+  EDOServiceResponse *response;
+  if (responseData) {
+    response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+    NSAssert([request.messageId isEqualToString:response.messageId],
+             @"The response (%@) Id is mismatched with the request (%@)", response, request);
+  } else {
+    if (errorOrNil) {
+      // TODO(ynzhang): Add better error code define.
+      *errorOrNil = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
+    }
+  }
+
+  return response;
+}
+
+- (void)receiveRequest:(EDOServiceRequest *)request
+           withChannel:(id<EDOChannel>)channel
+               context:(id)context {
+  // Health check for the channel.
+  [channel sendData:EDOExecutor.pingMessageData withCompletionHandler:nil];
+
+  EDOServiceResponse *response = [self handleRequest:request context:context];
+
+  NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
+  [channel sendData:responseData withCompletionHandler:nil];
 }
 
 @end

@@ -80,7 +80,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
         dispatch_queue_create("com.google.edo.service.handlers", DISPATCH_QUEUE_SERIAL);
 
     _executionQueue = queue;
-    _executor = [EDOExecutor associateExecutorWithHandlers:[self class].handlers queue:queue];
+    _executor = [EDOExecutor executorWithHandlers:[self class].handlers queue:queue];
     _listenSocket = [self edo_createListenSocket:port];
 
     _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port];

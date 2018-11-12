@@ -16,93 +16,94 @@
 
 #import <Foundation/Foundation.h>
 
+#import "Service/Sources/EDOMessageQueue.h"
 #import "Service/Sources/EDOServiceRequest.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOExecutorMessage;
 @protocol EDOChannel;
 
-/** The request handlers from the class name to the handler block */
+/** The request handlers from the class name to the handler block. */
 typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
 
 /**
- *  The invocation executor associated with the dispatch queue.
+ *  The handler to close the message queue and exit the while-loop of the executor.
  *
- *  The @c EDOExecutor is associated with the dispatch queue where the @c EDOObject will run.
- *  A remote request can be sent out synchronously through the executor in the tracked queue.
- *  The executor will keep looping and process incoming requests with attached handlers when it is
- *  sending a remote invocation and being suspended for the response.
+ *  Before the executor starts the while-loop, it schedules the handler in the background queue
+ *  with the message queue. This message queue can be closed and the while-loop exits.
+ *  @param messageQueue The message queue used to process the messages of the executor.
+ */
+typedef void (^EDOExecutorCloseHandler)(EDOMessageQueue<EDOExecutorMessage *> *messageQueue);
+
+/**
+ *  The executor to handle the requests.
+ *
+ *  The executor is running a while-loop and handling the requests using the message queue. The
+ *  closeHandler is used to close the message queue and thus stops the executor to run. When the
+ *  request is to be handled by the executor, it will enqueue the request to the message queue,
+ *  which will be picked up by the executor when it is running a while-loop; if it is not running
+ *  a while-loop, it will be dispatch to the execution queue to process it.
  */
 @interface EDOExecutor : NSObject
 
-/** The associated dispatch queue. */
-@property(readonly, weak, nullable) dispatch_queue_t trackedQueue;
+/** The dispatch queue to handle the request if it is not running. */
+@property(readonly, nonatomic, weak) dispatch_queue_t executionQueue;
 
 /** The request handlers. */
-@property(readonly) EDORequestHandlers *requestHandlers;
+@property(readonly, nonatomic) EDORequestHandlers *requestHandlers;
 
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Synchronously sends out the request to remote over the channel for execution.
- *
- *  @note This method blocks the current execution and is still able to process incoming requests.
- *
- *  @param request    The request to be processed remotely.
- *  @param channel    The channel to send the request and receive the response.
- *  @param errorOrNil The error when it fails to send request.
- *
- *  @return The response or nil in case of failure.
- */
-- (EDOServiceResponse *_Nullable)sendRequest:(EDOServiceRequest *)request
-                                 withChannel:(id<EDOChannel>)channel
-                                       error:(NSError **)errorOrNil;
-
-/**
- *  Receives the request from remote to process and send the response to the @c channel.
- *
- *  This method should be invoked from a different queue in case the associated dispatch queue is
- *  suspended.
- *  And in most cases, @c EDOClientService will send the request to the executor. If the executor is
- *  already waiting for a response, this method will enqueue the message and wait for it to be
- *  processed; otherwise, it will dispatch sync to its tracked dispatch queue to process the
- *  request.
- *
- *  @param request The request to process.
- *  @param channel The channel to send the response.
- *  @param context The additional context for the request.
- */
-- (void)receiveRequest:(EDOServiceRequest *)request
-           withChannel:(id<EDOChannel>)channel
-               context:(id _Nullable)context;
-
-/**
- *  Creates and associates the executor with the given dispatch queue.
+ *  Creates the executor with the given dispatch queue.
  *
  *  The executor will keep track of the dispatch queue weakly, and assigned itself to its context
  *  under the key "com.google.executorkey"; the dispatch queue holds its reference so it shares the
  *  same lifecycle as the queue (you can safely discard the returned value).
  *
+ *  @remark If the dispatch queue is already assigned one executor, it will be replaced.
  *  @param handlers The request handler map.
  *  @param queue    The dispatch queue to associate with the executor.
  *
  *  @return The @c EDOExecutor associated with the dispatch queue.
- *  @remark If the dispatch queue is already assigned one executor, it will be replaced.
  */
-+ (instancetype)associateExecutorWithHandlers:(EDORequestHandlers *)handlers
-                                        queue:(dispatch_queue_t)queue;
++ (instancetype)executorWithHandlers:(EDORequestHandlers *)handlers
+                               queue:(nullable dispatch_queue_t)queue;
 
 /**
- *  Gets the executor for the current running queue.
+ *  Runs the while-loop to handle requests from the message queue synchronously.
  *
- *  If the current dispatch queue is associated with an executor already, that executor will be
- *  returned; otherwise, a new executor will be returned.
- *
- *  @remark If no executor is associated with the current dispatch queue, every invocation will
- *          return a new executor so they will not process any requests but only waits for the
- *          response to come back. This is the intended behaviour because no requests will be
- *          dispatched without associating it with any distant object.
+ *  @note The executor will continue to wait on the messages until the close handler closes the
+ *        message queue given in the handler.
+ *  @param closeHandler The handler to close the message queue. The handler will be scheduled on
+ *                      the background queue before the while-loop starts.
  */
+- (void)runUsingMessageQueueCloseHandler:(EDOExecutorCloseHandler)closeHandler;
+
+/**
+ *  Handles the request at once with the given context.
+ *
+ *  @note If the executor is running the while-loop, the request will be enqueued to process,
+ *        or it will dispatch to the @c executionQueue to process.
+ *  @param request The request to handle.
+ *  @param context The context that will be passed to the handler along with the request.
+ *
+ *  @return The response for the given request.
+ */
+- (EDOServiceResponse *)handleRequest:(EDOServiceRequest *)request context:(nullable id)context;
+
+// Deprecating these in the follow up changes.
+- (EDOServiceResponse *_Nullable)sendRequest:(EDOServiceRequest *)request
+                                 withChannel:(id<EDOChannel>)channel
+                                       error:(NSError **)errorOrNil;
+
+// Deprecating these in the follow up changes.
+- (void)receiveRequest:(EDOServiceRequest *)request
+           withChannel:(id<EDOChannel>)channel
+               context:(id _Nullable)context;
+
+// Deprecating these in the follow up changes.
 + (instancetype)currentExecutor;
 
 @end
