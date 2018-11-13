@@ -29,11 +29,16 @@
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
+#import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
+
+/** Timeout for ping health check. */
+static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
 @implementation EDOClientService
 
 + (id)rootObjectWithPort:(UInt16)port {
-  EDOServiceResponse *response = [self sendRequest:[EDOObjectRequest request] port:port];
+  EDOObjectRequest *objectRequest = [EDOObjectRequest request];
+  EDOServiceResponse *response = [self sendSynchronousRequest:objectRequest onPort:port];
   EDOObject *rootObject = ((EDOObjectResponse *)response).object;
   rootObject = [EDOClientService unwrappedObjectFromObject:rootObject];
   rootObject = [self cachedEDOFromObjectUpdateIfNeeded:rootObject];
@@ -42,7 +47,7 @@
 
 + (Class)classObjectWithName:(NSString *)className port:(UInt16)port {
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
-  EDOServiceResponse *response = [self sendRequest:classRequest port:port];
+  EDOServiceResponse *response = [self sendSynchronousRequest:classRequest onPort:port];
   EDOObject *classObject = ((EDOObjectResponse *)response).object;
   classObject = [EDOClientService unwrappedObjectFromObject:classObject];
   classObject = [self cachedEDOFromObjectUpdateIfNeeded:classObject];
@@ -129,8 +134,8 @@
   @try {
     EDOObjectAliveRequest *request = [EDOObjectAliveRequest requestWithObject:object];
     EDOObjectAliveResponse *response =
-        (EDOObjectAliveResponse *)[EDOClientService sendRequest:request
-                                                           port:object.servicePort.port];
+        (EDOObjectAliveResponse *)[EDOClientService sendSynchronousRequest:request
+                                                                    onPort:object.servicePort.port];
 
     EDOObject *reponseObject;
     if ([EDOBlockObject isBlock:response.object]) {
@@ -145,37 +150,28 @@
   }
 }
 
-+ (EDOServiceResponse *)sendRequest:(EDOServiceRequest *)request port:(UInt16)port {
-  __block NSException *exception = nil;
-  __block id<EDOChannel> channel = nil;
-  __block NSError *retryError = nil;
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request onPort:(UInt16)port {
+  // TODO(b/119416282): We still run the executor even for the other requests before the deadlock
+  //                    isuse is fixed.
+  EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+  return [self sendSynchronousRequest:request onPort:port withExecutor:service.executor];
+}
+
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
+                                        onPort:(UInt16)port
+                                  withExecutor:(EDOExecutor *)executor {
   int attempts = 2;
 
   while (attempts > 0) {
-    dispatch_semaphore_t waitLock = dispatch_semaphore_create(0L);
-    void (^fetchChannelCompletionHandler)(EDOSocketChannel *, NSError *) =
-        ^(EDOSocketChannel *socketChannel, NSError *error) {
-          if (error) {
-            NSString *reason = [NSString
-                stringWithFormat:@"Failed to connect the service %d for %@.", port, request];
-            exception = [self exceptionWithReason:reason port:port error:error];
-          } else {
-            channel = socketChannel;
-          }
-          dispatch_semaphore_signal(waitLock);
-        };
-    [EDOSocketChannelPool.sharedChannelPool
-        fetchConnectedChannelWithPort:port
-                withCompletionHandler:fetchChannelCompletionHandler];
+    NSError *error;
+    id<EDOChannel> channel = [self connectPort:port error:&error];
 
-    // Either the response comes back in time, or connection times out.
-    dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
-
-    // Populate the connection errors so the stack is properly unwound.
-    // For nil exception, this is safely ignored.
-    [exception raise];
-
-    NSError *error = nil;
+    // Raise an exception if the connection fails.
+    if (error) {
+      NSString *reason =
+          [NSString stringWithFormat:@"Failed to connect the service %d for %@.", port, request];
+      [[self exceptionWithReason:reason port:port error:error] raise];
+    }
 
     // If the request is of type ObjectReleaseRequest then don't perform any of the
     // protocol (check if channel is alive, send ping message, report errors, etc.). If the message
@@ -187,19 +183,40 @@
       [EDOSocketChannelPool.sharedChannelPool addChannel:channel];
       return nil;
     } else {
-      EDOServiceResponse *response = [[EDOExecutor currentExecutor] sendRequest:request
-                                                                    withChannel:channel
-                                                                          error:&error];
-      // TODO(ynzhang): better to check error type when we have better error handling. In some cases
-      // we won't need to retry and could give better error information.
-      if (!error && !response.error) {
+      __block NSData *responseData = nil;
+      NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
+
+      if (executor) {
+        [executor runUsingMessageQueueCloseHandler:^(EDOMessageQueue *messageQueue) {
+          responseData = [self sendRequestData:requestData withChannel:channel];
+          [messageQueue closeQueue];
+        }];
+      } else {
+        responseData = [self sendRequestData:requestData withChannel:channel];
+      }
+
+      EDOServiceResponse *response;
+      if (responseData) {
+        response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+        NSAssert([request.messageId isEqualToString:response.messageId],
+                 @"The response (%@) Id is mismatched with the request (%@)", response, request);
+      }
+
+      if (response) {
         [EDOSocketChannelPool.sharedChannelPool addChannel:channel];
+        // TODO(haowoo): Now there are only errors from the host service when the requests don't
+        //               match the service UDID. We need to add a better error domain and code to
+        //               give a better explanation of what went wrong for the request.
+        if (response.error) {
+          [[self exceptionWithReason:@"The host service couldn't handle the request"
+                                port:port
+                               error:response.error] raise];
+        }
         return response;
       } else {
         // Cleanup broken channels before retry.
         [EDOSocketChannelPool.sharedChannelPool removeChannelsWithPort:port];
         attempts -= 1;
-        retryError = error;
       }
     }
   }
@@ -237,6 +254,73 @@
     }
   }
   return object;
+}
+
+/** Connects to the host service on the given @c port. */
++ (id<EDOChannel>)connectPort:(UInt16)port error:(__strong NSError **)error {
+  __block id<EDOChannel> channel;
+  dispatch_semaphore_t waitLock = dispatch_semaphore_create(0L);
+
+  EDOFetchChannelHandler fetchChannelCompletionHandler =
+      ^(EDOSocketChannel *socketChannel, NSError *channelError) {
+        if (!channelError) {
+          channel = socketChannel;
+        } else {
+          *error = channelError;
+        }
+        dispatch_semaphore_signal(waitLock);
+      };
+  [EDOSocketChannelPool.sharedChannelPool
+      fetchConnectedChannelWithPort:port
+              withCompletionHandler:fetchChannelCompletionHandler];
+
+  dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
+
+  return channel;
+}
+
+/** Sends the reqeust data through the given @c channel and waits for the response synchronously. */
++ (NSData *)sendRequestData:(NSData *)requestData withChannel:(id<EDOChannel>)channel {
+  __block NSData *responseData;
+  // The channel is asynchronous and not I/O re-entrant so we chain the sending and receiving,
+  // and capture the response in the callback blocks.
+  [channel sendData:requestData withCompletionHandler:nil];
+
+  __block BOOL serviceClosed = NO;
+  dispatch_semaphore_t waitLock = dispatch_semaphore_create(0);
+  EDOChannelReceiveHandler receiveHandler =
+      ^(id<EDOChannel> channel, NSData *data, NSError *error) {
+        responseData = data;
+        serviceClosed = data == nil;
+        dispatch_semaphore_signal(waitLock);
+      };
+
+  // Check ping response to make sure channel is healthy.
+  [channel receiveDataWithHandler:receiveHandler];
+
+  dispatch_time_t timeoutInSeconds = dispatch_time(DISPATCH_TIME_NOW, kPingTimeoutSeconds);
+  long result = dispatch_semaphore_wait(waitLock, timeoutInSeconds);
+
+  // Continue to receive the response if the ping is received.
+  if ([responseData isEqualToData:EDOClientService.pingMessageData]) {
+    [channel receiveDataWithHandler:receiveHandler];
+    dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
+  }
+
+  if (result != 0 || serviceClosed) {
+    NSLog(@"The edo channel %@ is broken.", channel);
+  }
+
+  return responseData;
+}
+
++ (NSData *)pingMessageData {
+  static NSData *_pingMessageData;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    _pingMessageData = [@"ping" dataUsingEncoding:NSUTF8StringEncoding];
+  });
+  return _pingMessageData;
 }
 
 @end

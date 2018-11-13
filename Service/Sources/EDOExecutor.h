@@ -93,19 +93,6 @@ typedef void (^EDOExecutorCloseHandler)(EDOMessageQueue<EDOExecutorMessage *> *m
  */
 - (EDOServiceResponse *)handleRequest:(EDOServiceRequest *)request context:(nullable id)context;
 
-// Deprecating these in the follow up changes.
-- (EDOServiceResponse *_Nullable)sendRequest:(EDOServiceRequest *)request
-                                 withChannel:(id<EDOChannel>)channel
-                                       error:(NSError **)errorOrNil;
-
-// Deprecating these in the follow up changes.
-- (void)receiveRequest:(EDOServiceRequest *)request
-           withChannel:(id<EDOChannel>)channel
-               context:(id _Nullable)context;
-
-// Deprecating these in the follow up changes.
-+ (instancetype)currentExecutor;
-
 @end
 
 NS_ASSUME_NONNULL_END

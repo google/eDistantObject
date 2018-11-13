@@ -19,12 +19,15 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOExecutor;
 @class EDOObject;
 
 /** The internal use for sending and receiving EDOObject. */
 @interface EDOHostService (Private)
 /** The root object. */
 @property(readonly) EDOObject *rootObject;
+/** The executor to handle the request. */
+@property(readonly) EDOExecutor *executor;
 
 /** Wrap a distant object for the given local object. */
 - (EDOObject *)distantObjectForLocalObject:(id)object;

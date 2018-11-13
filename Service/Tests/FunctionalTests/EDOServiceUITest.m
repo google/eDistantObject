@@ -160,31 +160,26 @@
                                                  rootObject:rootDummy
                                                       queue:backgroundQueue];
 
-  __block int numOfInvokes = 0;
   const int totalOfInvokes = 10;
   XCTestExpectation *expectsTen = [self expectationWithDescription:@"Invoked many times."];
+  expectsTen.expectedFulfillmentCount = totalOfInvokes;
   rootDummy.block = ^{
     // This block is dispatched to a background queue.
     XCTAssertFalse([NSThread isMainThread]);
-    if (++numOfInvokes == totalOfInvokes) {
-      [expectsTen fulfill];
-    }
+    [expectsTen fulfill];
   };
 
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  EDOTestDummyInTest *dummy = [EDOClientService rootObjectWithPort:2234];
 
   // Dispatch to the background queue because we need to wrap dummy into the remote object, the
   // current main queue doesn't have a host service to wrap it.
   dispatch_async(backgroundQueue, ^{
     for (int i = 0; i < totalOfInvokes; ++i) {
-      XCTAssertEqual([remoteDummy returnPlus10AndAsyncExecuteBlock:dummy], 8 + 10);
+      XCTAssertEqual([remoteDummy returnPlus10AndAsyncExecuteBlock:rootDummy], 8 + 10);
     }
   });
 
   [self waitForExpectationsWithTimeout:5 handler:nil];
-
-  XCTAssertEqual(numOfInvokes, totalOfInvokes);
   [service invalidate];
 }
 
@@ -205,7 +200,7 @@
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
 
   XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException,
-                               NSInternalInconsistencyException);
+                               NSDestinationInvalidException);
 }
 
 - (void)testAllocAndClassMethod {
@@ -294,8 +289,7 @@
   });
   [self waitForExpectationsWithTimeout:15 handler:nil];
   XCTAssertEqualObjects(clazz, NSClassFromString(@"EDOObject"));
-  XCTAssertThrowsSpecificNamed([remoteDummy returnInt], NSException,
-                               NSInternalInconsistencyException);
+  XCTAssertThrowsSpecificNamed([remoteDummy returnInt], NSException, NSDestinationInvalidException);
 }
 
 @end

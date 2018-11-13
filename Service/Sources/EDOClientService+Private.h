@@ -22,6 +22,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOObject;
+@class EDOExecutor;
 @class EDOServiceRequest;
 @class EDOServiceResponse;
 
@@ -32,6 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(class, readonly) NSMapTable<NSNumber *, EDOObject *> *localDistantObjects;
 /** The synchronization queue for accessing remote object references. */
 @property(class, readonly) dispatch_queue_t edoSyncQueue;
+/** The data of ping message for channel health check. */
+@property(class, readonly, nonatomic) NSData *pingMessageData;
 
 /** Get the reference of a distant object of the given @c remoteAddress. */
 + (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress;
@@ -46,15 +49,34 @@ NS_ASSUME_NONNULL_BEGIN
 + (id)cachedEDOFromObjectUpdateIfNeeded:(id)object;
 
 /**
- *  Synchronously send the request and wait for the response.
+ *  Synchronously sends the request and waits for the response with the executor to process
+ *  any incoming requests.
  *
- *  @param request The request to be sent.
- *  @param port    The service port number.
- *  @throw  NSInternalInconsistencyException if it fails to communicate with the service.
+ *  @note When sending a request, the executor will starts to process any incoming requests, this
+ *        makes it possible to process intercepted requests, for example, the nested remote
+ *        invocations.
+ *
+ *  @param request  The request to be sent.
+ *  @param port     The service port number.
+ *  @param executor The executor to run and process the incoming requests.
+ *  @throw NSInternalInconsistencyException if it fails to communicate with the service.
  *
  *  @return The response from the service.
  */
-+ (EDOServiceResponse *)sendRequest:(EDOServiceRequest *)request port:(UInt16)port;
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
+                                        onPort:(UInt16)port
+                                  withExecutor:(EDOExecutor *)executor;
+
+/**
+ *  Synchronously sends the request and waits for the response.
+ *
+ *  @param request The request to be sent.
+ *  @param port    The service port number.
+ *  @throw NSInternalInconsistencyException if it fails to communicate with the service.
+ *
+ *  @return The response from the service.
+ */
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request onPort:(UInt16)port;
 
 /**
  *  Unwraps an @c object to a local object if it comes from the local process.

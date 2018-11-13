@@ -405,7 +405,8 @@ static const NSInteger kLargeArraySize = 1000;
 }
 
 - (int)returnPlus10AndAsyncExecuteBlock:(EDOTestDummyInTest *)dummyInTest {
-  dispatch_async(dispatch_get_main_queue(), ^{
+  // Dispatch to the background queue to invoke the remote method to avoid the deadlock.
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     [dummyInTest invokeBlock];
   });
   return self.value + 10;

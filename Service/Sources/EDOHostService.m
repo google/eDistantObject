@@ -22,6 +22,7 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 #import "Service/Sources/EDOBlockObject.h"
+#import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostService+Handlers.h"
 #import "Service/Sources/EDOObject+Private.h"
@@ -36,8 +37,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 @interface EDOHostService ()
 /** The execution queue for the root object. */
 @property(readonly, weak) dispatch_queue_t executionQueue;
-/** The executor associated with the queue and the service. */
-@property(readonly, weak) EDOExecutor *executor;
+/** The executor to handle the request. */
+@property(readonly) EDOExecutor *executor;
 /** The set to save channel handlers in order to keep channels ready to accept request. */
 @property(readonly) NSMutableSet<EDOChannelReceiveHandler> *handlerSet;
 /** The queue to update handlerSet atomically. */
@@ -226,9 +227,14 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                    if ([request class] == [EDOObjectReleaseRequest class]) {
                      [EDOObjectReleaseRequest requestHandler](request, strongSelf);
                    } else {
-                     [strongSelf.executor receiveRequest:request
-                                             withChannel:channel
-                                                 context:strongSelf];
+                     // Health check for the channel.
+                     [channel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
+
+                     EDOServiceResponse *response = [strongSelf.executor handleRequest:request
+                                                                               context:self];
+
+                     NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
+                     [channel sendData:responseData withCompletionHandler:nil];
                    }
                    if (channel.isValid && strongSelf.listenSocket.valid) {
                      [channel receiveDataWithHandler:strongHandlerBlock];

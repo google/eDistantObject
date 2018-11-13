@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOObject.h"
 
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOInvocationMessage.h"
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
@@ -52,8 +53,8 @@
                                                                        port:self.servicePort
                                                                    selector:selector];
   EDOMethodSignatureResponse *response =
-      (EDOMethodSignatureResponse *)[EDOClientService sendRequest:request
-                                                             port:self.servicePort.port];
+      (EDOMethodSignatureResponse *)[EDOClientService sendSynchronousRequest:request
+                                                                      onPort:self.servicePort.port];
   NSString *signature = response.signature;
   return signature ? [NSMethodSignature signatureWithObjCTypes:signature.UTF8String] : nil;
 }
@@ -66,12 +67,15 @@
 - (void)edo_forwardInvocation:(NSInvocation *)invocation
                      selector:(SEL)selector
                 returnByValue:(BOOL)returnByValue {
+  EDOHostService *service = [EDOHostService serviceForCurrentQueue];
   EDOInvocationRequest *request = [EDOInvocationRequest requestWithTarget:self
                                                                  selector:selector
                                                                invocation:invocation
                                                             returnByValue:returnByValue];
   EDOInvocationResponse *response =
-      (EDOInvocationResponse *)[EDOClientService sendRequest:request port:self.servicePort.port];
+      (EDOInvocationResponse *)[EDOClientService sendSynchronousRequest:request
+                                                                 onPort:self.servicePort.port
+                                                           withExecutor:service.executor];
 
   if (response.exception) {
     // Populate the exception.

@@ -152,7 +152,7 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
     @try {
       EDOObjectReleaseRequest *request =
           [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress];
-      [EDOClientService sendRequest:request port:_servicePort.port];
+      [EDOClientService sendSynchronousRequest:request onPort:_servicePort.port];
     } @catch (NSException *e) {
       // There's an error with the service or most likely it's dead.
       // TODO(haowoo): Convert the exception to NSError and handle it accordingly.
