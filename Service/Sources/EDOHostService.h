@@ -34,8 +34,22 @@ NS_ASSUME_NONNULL_BEGIN
 /** The port to identify the service. */
 @property(readonly) EDOServicePort *port;
 
-/** Create a service with the object and its associated execution queue. */
-+ (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue;
+/**
+ *  Creates a service with the object and its associated execution queue.
+ *
+ *  @note Once the service is up and running, EDOClientService can be used to retrieve the root
+ *        object or the remote class.
+ *
+ *  @param port   The port the service will listen on. If 0 is given, the port will be automatically
+ *                assigned.
+ *  @param object The root object.
+ *  @param queue  The dispatch queue that the invocation will be executed on.
+ *
+ *  @return An instance of EDOHostService that starts listening on the given port.
+ */
++ (instancetype)serviceWithPort:(UInt16)port
+                     rootObject:(nullable id)object
+                          queue:(nullable dispatch_queue_t)queue;
 
 /**
  *  Get the EDOHostService associated with the given dispatch queue if any.

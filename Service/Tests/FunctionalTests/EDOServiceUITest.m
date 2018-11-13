@@ -32,6 +32,15 @@
 
 @implementation EDOUITestAppUITests
 
+- (void)testServiceNonExist {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+
+  // The temporary service is created and self is wrapped as a remote object being sent
+  // to the application process without the service created locally here.
+  XCTAssertEqualObjects([remoteDummy returnClassNameWithObject:self], @"EDOObject");
+}
+
 - (void)testValueAndIdOutParameter {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:7];
   EDOHostService *service =

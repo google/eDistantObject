@@ -67,11 +67,21 @@
 - (void)edo_forwardInvocation:(NSInvocation *)invocation
                      selector:(SEL)selector
                 returnByValue:(BOOL)returnByValue {
-  EDOHostService *service = [EDOHostService serviceForCurrentQueue];
-  EDOInvocationRequest *request = [EDOInvocationRequest requestWithTarget:self
-                                                                 selector:selector
-                                                               invocation:invocation
-                                                            returnByValue:returnByValue];
+  // Keep the service until the end of the invocation scope so the nested remote call can be made
+  // using this service.
+  NS_VALID_UNTIL_END_OF_SCOPE EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+
+  // If there is no host service created for the current queue, a temporary queue is created only
+  // within this invocation scope.
+  if (!service) {
+    service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  }
+
+  EDOInvocationRequest *request = [EDOInvocationRequest requestWithInvocation:invocation
+                                                                       target:self
+                                                                     selector:selector
+                                                                returnByValue:returnByValue
+                                                                      service:service];
   EDOInvocationResponse *response =
       (EDOInvocationResponse *)[EDOClientService sendSynchronousRequest:request
                                                                  onPort:self.servicePort.port

@@ -131,10 +131,11 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
                         returnByValue:returnByValue];
 }
 
-+ (instancetype)requestWithTarget:(EDOObject *)target
-                         selector:(SEL)selector
-                       invocation:(NSInvocation *)invocation
-                    returnByValue:(BOOL)returnByValue {
++ (instancetype)requestWithInvocation:(NSInvocation *)invocation
+                               target:(EDOObject *)target
+                             selector:(SEL _Nullable)selector
+                        returnByValue:(BOOL)returnByValue
+                              service:(EDOHostService *)service {
   NSMethodSignature *signature = invocation.methodSignature;
   NSUInteger numOfArgs = signature.numberOfArguments;
   // If the target is a block, the first argument starts at index 1, whereas for a regular object
@@ -150,13 +151,13 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
       id __unsafe_unretained obj;
       [invocation getArgument:&obj atIndex:i];
-      value = BOX_VALUE(obj, [EDOHostService serviceForCurrentQueue]);
+      value = BOX_VALUE(obj, service);
     } else if (EDO_IS_OBJPOINTER(ctype)) {
       id __unsafe_unretained *objRef;
       [invocation getArgument:&objRef atIndex:i];
 
       // Convert and pass the value as an object and decode it on remote side.
-      value = objRef ? BOX_VALUE(*objRef, [EDOHostService serviceForCurrentQueue])
+      value = objRef ? BOX_VALUE(*objRef, service)
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
       // TODO(haowoo): Add the proper error and/or exception handler.

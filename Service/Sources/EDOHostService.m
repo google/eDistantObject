@@ -89,8 +89,10 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     _rootObject = [EDOObject objectWithTarget:object port:_port];
 
     // Save itself to the queue.
-    dispatch_queue_set_specific(queue, gServiceKey, (void *)CFBridgingRetain(self),
-                                (dispatch_function_t)CFBridgingRelease);
+    if (queue) {
+      dispatch_queue_set_specific(queue, gServiceKey, (void *)CFBridgingRetain(self),
+                                  (dispatch_function_t)CFBridgingRelease);
+    }
 
     NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.port);
   }

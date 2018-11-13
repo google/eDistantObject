@@ -20,6 +20,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostService;
 @class EDOParameter;
 typedef EDOParameter EDOBoxedValueType;
 
@@ -29,7 +30,7 @@ typedef EDOParameter EDOBoxedValueType;
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Create an invocation request.
+ *  Creates an invocation request.
  *
  *  @param target        The remote target's plain address. The caller needs to make sure the
  *                       address is valid.
@@ -46,22 +47,24 @@ typedef EDOParameter EDOBoxedValueType;
                     returnByValue:(BOOL)returnByValue;
 
 /**
- *  Create an invocation request from an @c invocation on a EDOObject.
+ *  Creates an invocation request from an @c invocation on an EDOObject.
  *
+ *  @param invocation    The invocation.
  *  @param target        The EDOObject.
  *  @param selector      The selector to be sent. When this is nil, the case for a block invocation,
  *                       the index of the actual arguments starts at 1; otherwise the case for an
  *                       object invocation, it starts at 2.
- *  @param invocation    The invocation.
  *  @param returnByValue @c YES if the invocation should return the object by value instead of by
  *                       reference.
+ *  @param service       The host service used to wrap the arguments in the @c invocation if any.
  *
  *  @return An instance of EDOInvocationRequest.
  */
-+ (instancetype)requestWithTarget:(EDOObject *)target
-                         selector:(SEL _Nullable)selector
-                       invocation:(NSInvocation *)invocation
-                    returnByValue:(BOOL)returnByValue;
++ (instancetype)requestWithInvocation:(NSInvocation *)invocation
+                               target:(EDOObject *)target
+                             selector:(SEL _Nullable)selector
+                        returnByValue:(BOOL)returnByValue
+                              service:(EDOHostService *)service;
 
 @end
 
