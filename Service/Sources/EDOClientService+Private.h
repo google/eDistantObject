@@ -81,6 +81,9 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Unwraps an @c object to a local object if it comes from the local process.
  *
+ *  @note When nil is given, this is a no-op. This can happen when it is used to unwrap
+ *        parameters of a method which may accept nil as an input argument.
+ *
  *  @param  object The object to be unwrapped.
  *  @return The unwrapped local object if the given object is an EDOObject and it comes from the
  *          current process; otherwise, the original object is returned.
