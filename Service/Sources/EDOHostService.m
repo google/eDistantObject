@@ -58,6 +58,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
 @implementation EDOHostService
 
+@synthesize port = _port;
+
 + (instancetype)serviceForCurrentQueue {
   return (__bridge EDOHostService *)(dispatch_get_specific(gServiceKey));
 }
@@ -82,19 +84,25 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
     _executionQueue = queue;
     _executor = [EDOExecutor executorWithHandlers:[self class].handlers queue:queue];
-    _listenSocket = [self edo_createListenSocket:port];
 
-    _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port];
-    _rootLocalObject = object;
-    _rootObject = [EDOObject objectWithTarget:object port:_port];
+    // Only creates the listen socket when the port is given or the root object is given so we need
+    // to serve them at launch.
+    if (port != 0 || object) {
+      _listenSocket = [self edo_createListenSocket:port];
+      _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port];
+      NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.port);
+    }
+
+    if (object) {
+      _rootLocalObject = object;
+      _rootObject = [EDOObject objectWithTarget:object port:_port];
+    }
 
     // Save itself to the queue.
     if (queue) {
       dispatch_queue_set_specific(queue, gServiceKey, (void *)CFBridgingRetain(self),
                                   (dispatch_function_t)CFBridgingRelease);
     }
-
-    NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.port);
   }
   return self;
 }
@@ -115,6 +123,17 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     dispatch_queue_set_specific(executionQueue, gServiceKey, NULL, NULL);
   }
   NSLog(@"The EDOHostService (%p) is invalidated (%d)", self, _port.port);
+}
+
+- (EDOServicePort *)port {
+  // If the listen socket is not created at launch, we create it only when it's being used for the
+  // first time and the auto-assigned zero port is used. This is useful for the temporary services.
+  if (!_port) {
+    _listenSocket = [self edo_createListenSocket:0];
+    _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port];
+    NSLog(@"The EDOHostService (%p) is created lazily and listening on %d", self, _port.port);
+  }
+  return _port;
 }
 
 #pragma mark - Private

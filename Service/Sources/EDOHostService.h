@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOHostService : NSObject
 
 /** The port to identify the service. */
-@property(readonly) EDOServicePort *port;
+@property(readonly, nonatomic) EDOServicePort *port;
 
 /**
  *  Creates a service with the object and its associated execution queue.
