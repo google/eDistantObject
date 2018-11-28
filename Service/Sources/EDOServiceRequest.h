@@ -66,7 +66,9 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
 @interface EDOServiceResponse : EDOMessage
 
 /** The error object if there is any. */
-@property(readonly, nullable) NSError *error;
+@property(readonly, nonatomic, nullable) NSError *error;
+/** Time spent in seconds to generate the response. */
+@property(nonatomic) double duration;
 
 - (instancetype)init NS_UNAVAILABLE;
 

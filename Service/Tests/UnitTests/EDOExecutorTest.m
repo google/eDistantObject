@@ -47,6 +47,17 @@
   [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
 }
 
+- (void)testExecutorRecordProcessTime {
+  dispatch_queue_t queue = [self testQueue];
+  EDOExecutor *executor = [self executorWithQueue:queue context:nil delay:1];
+
+  EDOServiceResponse *response = [executor handleRequest:[[EDOServiceRequest alloc] init]
+                                                 context:nil];
+  [self verifyResponse:response];
+  // Assert the duration is within the reasonable range.
+  XCTAssertTrue(response.duration >= 1.0 && response.duration <= 2.0);
+}
+
 - (void)testExecutorFinishRunningAfterClosingMessageQueue {
   dispatch_queue_t queue = [self testQueue];
   EDOExecutor *executor = [self executorWithQueue:queue context:nil];
@@ -137,9 +148,15 @@
 
 /** Create an executor to handle an EDOServiceResponse. */
 - (EDOExecutor *)executorWithQueue:(dispatch_queue_t)queue context:(id)context {
+  return [self executorWithQueue:queue context:context delay:0];
+}
+
+/** Create an executor to delay @c seconds to handle an EDOServiceResponse. */
+- (EDOExecutor *)executorWithQueue:(dispatch_queue_t)queue context:(id)context delay:(int)seconds {
   NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:100 userInfo:nil];
   EDORequestHandler requestHandler = ^(EDOServiceRequest *request, id handlerContext) {
     XCTAssertEqual(context, handlerContext);
+    sleep(seconds);
     return [EDOServiceResponse errorResponse:error forRequest:request];
   };
   return [EDOExecutor executorWithHandlers:@{@"EDOServiceRequest" : requestHandler} queue:queue];

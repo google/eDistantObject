@@ -16,10 +16,23 @@
 
 #import "Service/Sources/EDOExecutor.h"
 
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
 #import "Channel/Sources/EDOChannel.h"
 #import "Service/Sources/EDOExecutorMessage.h"
 #import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOMessageQueue.h"
+
+/** Gets the current uptime to calculate the time elapsed in seconds. */
+static double GetCurrentTimeInSeconds(void) {
+  mach_timebase_info_data_t timebaseInfo;
+  mach_timebase_info(&timebaseInfo);
+  uint64_t machTime = mach_absolute_time();
+  uint64_t nanos = machTime * timebaseInfo.numer / timebaseInfo.denom;
+
+  return (double)nanos / NSEC_PER_SEC;
+}
 
 @interface EDOExecutor ()
 // The message queue to process the requests and responses.
@@ -141,7 +154,9 @@
   EDORequestHandler handler = self.requestHandlers[className];
   EDOServiceResponse *response = nil;
   if (handler) {
+    double currentTime = GetCurrentTimeInSeconds();
     response = handler(message.request, message.service);
+    response.duration = GetCurrentTimeInSeconds() - currentTime;
   }
 
   if (!response) {

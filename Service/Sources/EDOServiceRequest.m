@@ -16,6 +16,9 @@
 
 #import "Service/Sources/EDOServiceRequest.h"
 
+static NSString *const kEDOServiceRequestErrorKey = @"error";
+static NSString *const kEDOServiceRequestDurationKey = @"duration";
+
 @implementation EDOServiceRequest
 
 + (BOOL)supportsSecureCoding {
@@ -45,6 +48,7 @@
   self = [super initWithMessageId:messageId];
   if (self) {
     _error = error;
+    _duration = 0.0;
   }
   return self;
 }
@@ -52,14 +56,16 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _error = [aDecoder decodeObjectOfClass:[NSError class] forKey:@"error"];
+    _error = [aDecoder decodeObjectOfClass:[NSError class] forKey:kEDOServiceRequestErrorKey];
+    _duration = [aDecoder decodeDoubleForKey:kEDOServiceRequestDurationKey];
   }
   return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeObject:self.error forKey:@"error"];
+  [aCoder encodeObject:self.error forKey:kEDOServiceRequestErrorKey];
+  [aCoder encodeDouble:self.duration forKey:kEDOServiceRequestDurationKey];
 }
 
 + (EDOServiceResponse *)errorResponse:(NSError *)error forRequest:(EDOServiceRequest *)request {
