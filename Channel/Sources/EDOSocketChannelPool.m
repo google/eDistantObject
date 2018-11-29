@@ -16,13 +16,14 @@
 
 #import "Channel/Sources/EDOSocketChannelPool.h"
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 
 @implementation EDOSocketChannelPool {
   dispatch_queue_t _channelPoolQueue;
-  NSMutableDictionary<NSNumber *, NSMutableSet<EDOSocketChannel *> *> *_channelMap;
+  NSMutableDictionary<EDOHostPort *, NSMutableSet<EDOSocketChannel *> *> *_channelMap;
 }
 
 + (instancetype)sharedChannelPool {
@@ -43,15 +44,14 @@
   return self;
 }
 
-- (void)fetchConnectedChannelWithPort:(UInt16)port
+- (void)fetchConnectedChannelWithPort:(EDOHostPort *)port
                 withCompletionHandler:(EDOFetchChannelHandler)handler {
-  NSNumber *channelSetKey = [NSNumber numberWithUnsignedShort:port];
   __block EDOSocketChannel *socketChannel = nil;
   dispatch_sync(_channelPoolQueue, ^{
-    NSMutableSet *channelSet = self->_channelMap[channelSetKey];
+    NSMutableSet *channelSet = self->_channelMap[port];
     if (!channelSet) {
       channelSet = [[NSMutableSet alloc] init];
-      [self->_channelMap setObject:channelSet forKey:channelSetKey];
+      [self->_channelMap setObject:channelSet forKey:port];
     }
     if (channelSet.count > 0) {
       EDOSocketChannel *channel = [channelSet anyObject];
@@ -69,26 +69,23 @@
 - (void)addChannel:(EDOSocketChannel *)channel {
   // reuse the channel only when it is valid
   if (channel.isValid) {
-    NSNumber *channelSetKey = [NSNumber numberWithUnsignedShort:channel.listenPort];
     dispatch_sync(_channelPoolQueue, ^{
-      NSMutableSet<EDOSocketChannel *> *channelSet = self->_channelMap[channelSetKey];
+      NSMutableSet<EDOSocketChannel *> *channelSet = self->_channelMap[channel.hostPort];
       [channelSet addObject:channel];
     });
   }
 }
 
-- (void)removeChannelsWithPort:(UInt16)port {
-  NSNumber *channelSetKey = [NSNumber numberWithUnsignedShort:port];
+- (void)removeChannelsWithPort:(EDOHostPort *)port {
   dispatch_sync(_channelPoolQueue, ^{
-    [self->_channelMap removeObjectForKey:channelSetKey];
+    [self->_channelMap removeObjectForKey:port];
   });
 }
 
-- (NSUInteger)countChannelsWithPort:(UInt16)port {
+- (NSUInteger)countChannelsWithPort:(EDOHostPort *)port {
   __block NSUInteger channelCount = 0;
-  NSNumber *channelSetKey = [NSNumber numberWithUnsignedShort:port];
   dispatch_sync(_channelPoolQueue, ^{
-    NSMutableSet *channelSet = self->_channelMap[channelSetKey];
+    NSMutableSet *channelSet = self->_channelMap[port];
     if (channelSet) {
       channelCount = channelSet.count;
     }
@@ -98,21 +95,22 @@
 
 #pragma mark - private
 
-- (void)EDO_createChannelWithPort:(UInt16)port
+- (void)EDO_createChannelWithPort:(EDOHostPort *)port
             withCompletionHandler:(EDOFetchChannelHandler)handler {
   __block EDOSocketChannel *channel = nil;
-  [EDOSocket
-      connectWithTCPPort:port
-                   queue:nil
-          connectedBlock:^(EDOSocket *_Nullable socket, UInt16 listenPort,
-                           NSError *_Nullable error) {
-            if (error) {
-              handler(nil, error);
-            } else {
-              channel = [EDOSocketChannel channelWithSocket:socket listenPort:listenPort];
-              handler(channel, nil);
-            }
-          }];
+  [EDOSocket connectWithTCPPort:port.port
+                          queue:nil
+                 connectedBlock:^(EDOSocket *_Nullable socket, UInt16 listenPort,
+                                  NSError *_Nullable error) {
+                   if (error) {
+                     handler(nil, error);
+                   } else {
+                     channel = [EDOSocketChannel
+                         channelWithSocket:socket
+                                  hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
+                     handler(channel, nil);
+                   }
+                 }];
 }
 
 @end

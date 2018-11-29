@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
@@ -125,8 +126,10 @@
       listenWithTCPPort:0
                   queue:nil
          connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *err) {
-           remoteClient = [EDOSocketChannel channelWithSocket:socket listenPort:listenPort];
-           XCTAssertEqual(listenPort, ((EDOSocketChannel *)remoteClient).listenPort);
+           remoteClient =
+               [EDOSocketChannel channelWithSocket:socket
+                                          hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
+           XCTAssertEqual(listenPort, ((EDOSocketChannel *)remoteClient).hostPort.port);
            [expectConnected fulfill];
 
            // The client can close right away, causing the half-open socket, this is to only
@@ -167,8 +170,9 @@
                              queue:nil
                     connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
                       [expectIncoming fulfill];
-                      EDOSocketChannel *client = [EDOSocketChannel channelWithSocket:socket
-                                                                          listenPort:listenPort];
+                      EDOSocketChannel *client = [EDOSocketChannel
+                          channelWithSocket:socket
+                                   hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
                       [client sendData:replyHugeData withCompletionHandler:nil];
                       [client sendData:self.replyData withCompletionHandler:nil];
                     }];
@@ -182,7 +186,9 @@
                    XCTAssertNil(error);
                    // Holds it until received the data.
                    __block id<EDOChannel> remoteConn = nil;
-                   remoteConn = [EDOSocketChannel channelWithSocket:socket listenPort:listenPort];
+                   remoteConn = [EDOSocketChannel
+                       channelWithSocket:socket
+                                hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
                    [remoteConn receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data,
                                                         NSError *error) {
                      [receivedData addObject:data];
@@ -214,8 +220,9 @@
                   queue:nil
          connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
            [expectIncoming fulfill];
-           EDOSocketChannel *client = [EDOSocketChannel channelWithSocket:socket
-                                                               listenPort:listenPort];
+           EDOSocketChannel *client =
+               [EDOSocketChannel channelWithSocket:socket
+                                          hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
            [client receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
              [receivedData addObject:data];
              [client
@@ -234,8 +241,9 @@
                    [expectConnected fulfill];
                    XCTAssertNil(error);
 
-                   EDOSocketChannel *client = [EDOSocketChannel channelWithSocket:socket
-                                                                       listenPort:listenPort];
+                   EDOSocketChannel *client = [EDOSocketChannel
+                       channelWithSocket:socket
+                                hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
                    [client sendData:self.replyData withCompletionHandler:nil];
                    [client sendData:replyHugeData withCompletionHandler:nil];
                  }];
@@ -263,7 +271,9 @@
                           queue:nil
                  connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
                    [expectConnected fulfill];
-                   remoteConn = [EDOSocketChannel channelWithSocket:socket listenPort:listenPort];
+                   remoteConn = [EDOSocketChannel
+                       channelWithSocket:socket
+                                hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
                    [remoteConn receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data,
                                                         NSError *error) {
                      // The channel should be immediately dropped.

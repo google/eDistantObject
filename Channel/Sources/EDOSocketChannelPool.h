@@ -18,6 +18,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostPort;
 @class EDOSocketChannel;
 
 /**
@@ -46,10 +47,10 @@ typedef void (^EDOFetchChannelHandler)(EDOSocketChannel *_Nullable socketChannel
 @property(class, readonly) EDOSocketChannelPool *sharedChannelPool;
 
 /**
- *  Fetch an available channel from the pool given listen port async. If no available,
- *  it will connect the listen port to create one.
+ *  Fetch an available channel from the pool given host port async. If no available,
+ *  it will connect the host port to create one.
  */
-- (void)fetchConnectedChannelWithPort:(UInt16)port
+- (void)fetchConnectedChannelWithPort:(EDOHostPort *)port
                 withCompletionHandler:(EDOFetchChannelHandler)handler;
 /**
  *  Release an available channel and add it to the pool.
@@ -57,15 +58,15 @@ typedef void (^EDOFetchChannelHandler)(EDOSocketChannel *_Nullable socketChannel
 - (void)addChannel:(EDOSocketChannel *)channel;
 
 /**
- *  Clean up channels connected by the given listen port.
- *  This should be called when the service the listen port belongs to is closed.
+ *  Clean up channels connected by the given host port.
+ *  This should be called when the service the host port belongs to is closed.
  */
-- (void)removeChannelsWithPort:(UInt16)port;
+- (void)removeChannelsWithPort:(EDOHostPort *)port;
 
 /**
- *  The count of channels in the pool given listen port.
+ *  The count of channels in the pool given host port.
  */
-- (NSUInteger)countChannelsWithPort:(UInt16)port;
+- (NSUInteger)countChannelsWithPort:(EDOHostPort *)port;
 
 @end
 

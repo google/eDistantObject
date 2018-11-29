@@ -21,6 +21,7 @@
 #include <netinet/tcp.h>
 #include <sys/un.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketPort.h"
 
@@ -119,15 +120,14 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
 @implementation EDOSocketChannel
 @dynamic valid;
 
-+ (instancetype)channelWithSocket:(EDOSocket *)socket listenPort:(UInt16)listenPort {
-  return [[self alloc] initWithSocket:socket listenPort:listenPort];
++ (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
+  return [[self alloc] initWithSocket:socket hostPort:hostPort];
 }
 
-- (instancetype)initWithSocket:(EDOSocket *)socket listenPort:(UInt16)listenPort {
+- (instancetype)initWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
   self = [super init];
   if (self) {
     _socket = -1;
-    _listenPort = 0;
     _handlerQueue =
         dispatch_queue_create("com.google.edo.socketChannel", DISPATCH_QUEUE_CONCURRENT);
     // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
@@ -153,7 +153,7 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
       if (_channel == NULL && socketFD != -1) {
         close(socketFD);
       } else {
-        _listenPort = listenPort;
+        _hostPort = hostPort;
       }
     }
   }
@@ -266,7 +266,7 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
     dispatch_io_close(_channel, 0);
     _channel = NULL;
   }
-  _listenPort = 0;
+  _hostPort = nil;
 }
 
 @end

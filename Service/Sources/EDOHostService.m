@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
@@ -195,8 +196,9 @@ static const char *gServiceKey = "com.google.edo.servicekey";
              return;
            }
 
-           id<EDOChannel> clientChannel = [EDOSocketChannel channelWithSocket:socket
-                                                                   listenPort:listenPort];
+           id<EDOChannel> clientChannel =
+               [EDOSocketChannel channelWithSocket:socket
+                                          hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
            // This handler block will be executed recursively by calling itself at the end of the
            // block. This is to accept new request after last one is executed.
            __block __weak EDOChannelReceiveHandler weakHandlerBlock;

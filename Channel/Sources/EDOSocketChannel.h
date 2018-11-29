@@ -21,6 +21,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOSocket;
+@class EDOHostPort;
 
 /**
  *  The channel implemented using POSIX socket.
@@ -34,19 +35,19 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOSocketChannel : NSObject <EDOChannel>
 
 /**
- * The listen port number that the channel socket is connected to.
+ * The host port that the channel socket is connected to.
  */
-@property(readonly, nonatomic) UInt16 listenPort;
+@property(readonly, nonatomic) EDOHostPort *hostPort;
 
 /**
  *  Create a channel with the established socket.
  *
- *  @param socket     The established socket from the @c EDOSocketConnectedBlock callback.
- *  @param listenPort The listen port number that the channel socket is connected to.
+ *  @param socket   The established socket from the @c EDOSocketConnectedBlock callback.
+ *  @param hostPort The host port that the channel socket is connected to.
  *
  *  @return An instance of EDOSocketChannel.
  */
-+ (instancetype)channelWithSocket:(EDOSocket *)socket listenPort:(UInt16)listenPort;
++ (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort;
 
 - (instancetype)init NS_UNAVAILABLE;
 @end

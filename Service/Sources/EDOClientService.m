@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketChannelPool.h"
 #import "Service/Sources/EDOBlockObject.h"
@@ -215,7 +216,8 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         return response;
       } else {
         // Cleanup broken channels before retry.
-        [EDOSocketChannelPool.sharedChannelPool removeChannelsWithPort:port];
+        [EDOSocketChannelPool.sharedChannelPool
+            removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:port]];
         attempts -= 1;
       }
     }
@@ -271,7 +273,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         dispatch_semaphore_signal(waitLock);
       };
   [EDOSocketChannelPool.sharedChannelPool
-      fetchConnectedChannelWithPort:port
+      fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
               withCompletionHandler:fetchChannelCompletionHandler];
 
   dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
