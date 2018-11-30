@@ -82,6 +82,9 @@
 		C845036220DDA33A00D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C845038220DDA46400D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C84503A720DDAEF500D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
+		C88B8A7C21ADD3DE00DDE607 /* EDONumericMeasure.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */; };
+		C88B8A8A21ADD42700DDE607 /* EDONumericMeasureTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */; };
+		C88B8A8C21ADD43400DDE607 /* libMeasureLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */; };
 		C896A5DB217A601B00CA5610 /* EDOExecutorMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C896A5D9217A601B00CA5610 /* EDOExecutorMessage.m */; };
 		C8A5E00521390E3B00D28052 /* EDOBlockObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E00321390E3B00D28052 /* EDOBlockObject.m */; };
 		C8A5E007213F896000D28052 /* NSBlock+EDOInvocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */; };
@@ -124,6 +127,13 @@
 			remoteGlobalIDString = C845026E20DD9D5D00D7350F;
 			remoteInfo = eDistantObject;
 		};
+		C88B8A8D21ADD43A00DDE607 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C845024D20DD9CB900D7350F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C88B8A6F21ADD3BE00DDE607;
+			remoteInfo = MeasureLib;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -156,6 +166,15 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C84503C420DDB07A00D7350F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C88B8A7721ADD3BE00DDE607 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "include/$(PRODUCT_NAME)";
@@ -287,6 +306,11 @@
 		C84503A220DDAEF500D7350F /* ServiceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServiceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C84503B620DDB03E00D7350F /* ServicePerfTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServicePerfTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C84503C620DDB07A00D7350F /* libTestsBundle.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTestsBundle.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		C88B8A5E21ADD38500DDE607 /* EDONumericMeasure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EDONumericMeasure.h; sourceTree = "<group>"; };
+		C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EDONumericMeasure.m; sourceTree = "<group>"; };
+		C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EDONumericMeasureTest.m; sourceTree = "<group>"; };
+		C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libMeasureLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeasureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C896A5D9217A601B00CA5610 /* EDOExecutorMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOExecutorMessage.m; path = Service/Sources/EDOExecutorMessage.m; sourceTree = "<group>"; };
 		C896A5DA217A601B00CA5610 /* EDOExecutorMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOExecutorMessage.h; path = Service/Sources/EDOExecutorMessage.h; sourceTree = "<group>"; };
 		C8A5E00321390E3B00D28052 /* EDOBlockObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOBlockObject.m; path = Service/Sources/EDOBlockObject.m; sourceTree = "<group>"; };
@@ -355,6 +379,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C88B8A7621ADD3BE00DDE607 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C88B8A8321ADD3FD00DDE607 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C88B8A8C21ADD43400DDE607 /* libMeasureLib.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,9 +583,11 @@
 		C845024C20DD9CB900D7350F = {
 			isa = PBXGroup;
 			children = (
+				C88B8A5B21ADD38400DDE607 /* Measure */,
 				C5A2EFD02134D3D500421D72 /* Service */,
 				C845027820DD9D8800D7350F /* Channel */,
 				C845025620DD9CB900D7350F /* Products */,
+				C88B8A8B21ADD43400DDE607 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -561,6 +602,8 @@
 				C84503A220DDAEF500D7350F /* ServiceTests.xctest */,
 				C84503B620DDB03E00D7350F /* ServicePerfTests.xctest */,
 				C84503C620DDB07A00D7350F /* libTestsBundle.a */,
+				C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */,
+				C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -602,6 +645,39 @@
 				C845028720DD9D8800D7350F /* EDOSocketPort.m */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		C88B8A5B21ADD38400DDE607 /* Measure */ = {
+			isa = PBXGroup;
+			children = (
+				C88B8A5D21ADD38500DDE607 /* Sources */,
+				C88B8A6021ADD38500DDE607 /* Tests */,
+			);
+			path = Measure;
+			sourceTree = "<group>";
+		};
+		C88B8A5D21ADD38500DDE607 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				C88B8A5E21ADD38500DDE607 /* EDONumericMeasure.h */,
+				C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		C88B8A6021ADD38500DDE607 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		C88B8A8B21ADD43400DDE607 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -749,6 +825,41 @@
 			productReference = C84503C620DDB07A00D7350F /* libTestsBundle.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		C88B8A6F21ADD3BE00DDE607 /* MeasureLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C88B8A7821ADD3BE00DDE607 /* Build configuration list for PBXNativeTarget "MeasureLib" */;
+			buildPhases = (
+				C88B8A7021ADD3BE00DDE607 /* Sources */,
+				C88B8A7621ADD3BE00DDE607 /* Frameworks */,
+				C88B8A7721ADD3BE00DDE607 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MeasureLib;
+			productName = Channel;
+			productReference = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C88B8A7D21ADD3FD00DDE607 /* MeasureTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C88B8A8621ADD3FD00DDE607 /* Build configuration list for PBXNativeTarget "MeasureTests" */;
+			buildPhases = (
+				C88B8A8021ADD3FD00DDE607 /* Sources */,
+				C88B8A8321ADD3FD00DDE607 /* Frameworks */,
+				C88B8A8521ADD3FD00DDE607 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C88B8A8E21ADD43A00DDE607 /* PBXTargetDependency */,
+			);
+			name = MeasureTests;
+			productName = ChannelTests;
+			productReference = C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -798,8 +909,10 @@
 			projectRoot = "";
 			targets = (
 				C845026420DD9D2E00D7350F /* ChannelLib */,
+				C88B8A6F21ADD3BE00DDE607 /* MeasureLib */,
 				C845026E20DD9D5D00D7350F /* eDistantObject */,
 				C845033320DDA11D00D7350F /* ChannelTests */,
+				C88B8A7D21ADD3FD00DDE607 /* MeasureTests */,
 				C845034420DDA1E800D7350F /* TestsHost */,
 				C845037720DDA40A00D7350F /* ServiceUITests */,
 				C84503A120DDAEF500D7350F /* ServiceTests */,
@@ -841,6 +954,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C84503B420DDB03E00D7350F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C88B8A8521ADD3FD00DDE607 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -976,6 +1096,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C88B8A7021ADD3BE00DDE607 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C88B8A7C21ADD3DE00DDE607 /* EDONumericMeasure.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C88B8A8021ADD3FD00DDE607 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C88B8A8A21ADD42700DDE607 /* EDONumericMeasureTest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1003,6 +1139,11 @@
 			isa = PBXTargetDependency;
 			target = C845026E20DD9D5D00D7350F /* eDistantObject */;
 			targetProxy = C84503BC20DDB03E00D7350F /* PBXContainerItemProxy */;
+		};
+		C88B8A8E21ADD43A00DDE607 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C88B8A6F21ADD3BE00DDE607 /* MeasureLib */;
+			targetProxy = C88B8A8D21ADD43A00DDE607 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1384,6 +1525,73 @@
 			};
 			name = Release;
 		};
+		C88B8A7921ADD3BE00DDE607 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Debug;
+		};
+		C88B8A7A21ADD3BE00DDE607 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Release;
+		};
+		C88B8A8721ADD3FD00DDE607 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.google.ChannelTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C88B8A8821ADD3FD00DDE607 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.google.ChannelTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1464,6 +1672,24 @@
 			buildConfigurations = (
 				C84503CD20DDB07B00D7350F /* Debug */,
 				C84503CE20DDB07B00D7350F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C88B8A7821ADD3BE00DDE607 /* Build configuration list for PBXNativeTarget "MeasureLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C88B8A7921ADD3BE00DDE607 /* Debug */,
+				C88B8A7A21ADD3BE00DDE607 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C88B8A8621ADD3FD00DDE607 /* Build configuration list for PBXNativeTarget "MeasureTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C88B8A8721ADD3FD00DDE607 /* Debug */,
+				C88B8A8821ADD3FD00DDE607 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

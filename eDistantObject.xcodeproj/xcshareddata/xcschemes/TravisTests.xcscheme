@@ -118,6 +118,34 @@
                ReferencedContainer = "container:eDistantObject.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C88B8A6F21ADD3BE00DDE607"
+               BuildableName = "libMeasureLib.a"
+               BlueprintName = "MeasureLib"
+               ReferencedContainer = "container:eDistantObject.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C88B8A7D21ADD3FD00DDE607"
+               BuildableName = "MeasureTests.xctest"
+               BlueprintName = "MeasureTests"
+               ReferencedContainer = "container:eDistantObject.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -163,6 +191,16 @@
                BlueprintIdentifier = "C845037720DDA40A00D7350F"
                BuildableName = "ServiceUITests.xctest"
                BlueprintName = "ServiceUITests"
+               ReferencedContainer = "container:eDistantObject.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C88B8A7D21ADD3FD00DDE607"
+               BuildableName = "MeasureTests.xctest"
+               BlueprintName = "MeasureTests"
                ReferencedContainer = "container:eDistantObject.xcodeproj">
             </BuildableReference>
          </TestableReference>
