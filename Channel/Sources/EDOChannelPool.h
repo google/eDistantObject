@@ -19,7 +19,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOHostPort;
-@class EDOSocketChannel;
+@protocol EDOChannel;
 
 /**
  *  @typedef EDOFetchChannelHandler
@@ -31,20 +31,20 @@ NS_ASSUME_NONNULL_BEGIN
  *  @param error         The error object if the data is failed to send. Nil if
  *                       there wasn't an error in the channel.
  */
-typedef void (^EDOFetchChannelHandler)(EDOSocketChannel *_Nullable socketChannel,
+typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
                                        NSError *_Nullable error);
 
 /**
- *  The @c EDOSocketChannelPool manages channels that are used to send data to
+ *  The @c EDOChannelPool manages channels that are used to send data to
  *  another process.
  *
  *  @c EDOSocketChannel objects that are available can be stored here for future reuse.
  *  It will help save time build socket connection again. Channels are clustered with the port
  *  they are connected to.
  */
-@interface EDOSocketChannelPool : NSObject
+@interface EDOChannelPool : NSObject
 
-@property(class, readonly) EDOSocketChannelPool *sharedChannelPool;
+@property(class, readonly) EDOChannelPool *sharedChannelPool;
 
 /**
  *  Fetch an available channel from the pool given host port async. If no available,
@@ -55,7 +55,7 @@ typedef void (^EDOFetchChannelHandler)(EDOSocketChannel *_Nullable socketChannel
 /**
  *  Release an available channel and add it to the pool.
  */
-- (void)addChannel:(EDOSocketChannel *)channel;
+- (void)addChannel:(id<EDOChannel>)channel;
 
 /**
  *  Clean up channels connected by the given host port.

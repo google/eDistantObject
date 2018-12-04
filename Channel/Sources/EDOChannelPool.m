@@ -14,23 +14,23 @@
 // limitations under the License.
 //
 
-#import "Channel/Sources/EDOSocketChannelPool.h"
+#import "Channel/Sources/EDOChannelPool.h"
 
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 
-@implementation EDOSocketChannelPool {
+@implementation EDOChannelPool {
   dispatch_queue_t _channelPoolQueue;
-  NSMutableDictionary<EDOHostPort *, NSMutableSet<EDOSocketChannel *> *> *_channelMap;
+  NSMutableDictionary<EDOHostPort *, NSMutableSet<id<EDOChannel>> *> *_channelMap;
 }
 
 + (instancetype)sharedChannelPool {
-  static EDOSocketChannelPool *instance = nil;
+  static EDOChannelPool *instance = nil;
   static dispatch_once_t token = 0;
   dispatch_once(&token, ^{
-    instance = [[EDOSocketChannelPool alloc] init];
+    instance = [[EDOChannelPool alloc] init];
   });
   return instance;
 }
@@ -46,7 +46,7 @@
 
 - (void)fetchConnectedChannelWithPort:(EDOHostPort *)port
                 withCompletionHandler:(EDOFetchChannelHandler)handler {
-  __block EDOSocketChannel *socketChannel = nil;
+  __block id<EDOChannel> socketChannel = nil;
   dispatch_sync(_channelPoolQueue, ^{
     NSMutableSet *channelSet = self->_channelMap[port];
     if (!channelSet) {
@@ -54,7 +54,7 @@
       [self->_channelMap setObject:channelSet forKey:port];
     }
     if (channelSet.count > 0) {
-      EDOSocketChannel *channel = [channelSet anyObject];
+      id<EDOChannel> channel = [channelSet anyObject];
       [channelSet removeObject:channel];
       socketChannel = channel;
     }
@@ -66,11 +66,11 @@
   }
 }
 
-- (void)addChannel:(EDOSocketChannel *)channel {
+- (void)addChannel:(id<EDOChannel>)channel {
   // reuse the channel only when it is valid
   if (channel.isValid) {
     dispatch_sync(_channelPoolQueue, ^{
-      NSMutableSet<EDOSocketChannel *> *channelSet = self->_channelMap[channel.hostPort];
+      NSMutableSet<id<EDOChannel>> *channelSet = self->_channelMap[channel.hostPort];
       [channelSet addObject:channel];
     });
   }

@@ -16,21 +16,21 @@
 
 #import <XCTest/XCTest.h>
 
+#import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
-#import "Channel/Sources/EDOSocketChannelPool.h"
 #import "Channel/Sources/EDOSocketPort.h"
 
-@interface EDOSocketChannelPoolTest : XCTestCase
+@interface EDOChannelPoolTest : XCTestCase
 
 @end
 
-@implementation EDOSocketChannelPoolTest
+@implementation EDOChannelPoolTest
 
 - (void)testSimpleFetchAndReleaseAfterCreate {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
-  EDOSocketChannelPool *channelPool = EDOSocketChannelPool.sharedChannelPool;
+  EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
   __block NSMutableArray<EDOSocketChannel *> *channels =
       [[NSMutableArray alloc] initWithCapacity:10];
   for (int i = 0; i < 10; i++) {
@@ -59,7 +59,7 @@
   NSMutableSet<EDOSocketChannel *> *set1 = [[NSMutableSet alloc] init];
   NSMutableSet<EDOSocketChannel *> *set2 = [[NSMutableSet alloc] init];
   dispatch_queue_t queue = dispatch_queue_create("channel set sync queue", DISPATCH_QUEUE_SERIAL);
-  EDOSocketChannelPool *channelPool = EDOSocketChannelPool.sharedChannelPool;
+  EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
 
   XCTestExpectation *fetchExpectation = [self expectationWithDescription:@"async fetch actions"];
   fetchExpectation.expectedFulfillmentCount = 10;
@@ -89,7 +89,7 @@
 
 - (void)testClearChannelWithPort {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
-  EDOSocketChannelPool *channelPool = EDOSocketChannelPool.sharedChannelPool;
+  EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
   XCTestExpectation *clearExpectation = [self expectationWithDescription:@"Channel cleared"];
   [channelPool
       fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
@@ -106,7 +106,7 @@
 
 - (void)testReleaseInvalidChannel {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
-  EDOSocketChannelPool *channelPool = EDOSocketChannelPool.sharedChannelPool;
+  EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
   XCTestExpectation *fetchExpectation = [self expectationWithDescription:@"Channel fetched"];
   __block EDOSocketChannel *channel = nil;
   [channelPool
@@ -125,7 +125,7 @@
 
 - (void)testClearInvalidPort {
   // channel pool should be empty now
-  EDOSocketChannelPool *channelPool = EDOSocketChannelPool.sharedChannelPool;
+  EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
   // trigger two times to make sure clear a non-existing port.
   XCTAssertNoThrow([channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:12345]]);
   XCTAssertNoThrow([channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:12345]]);

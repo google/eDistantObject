@@ -16,6 +16,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostPort;
+
 /**
  *  @protocol EDOChannel
  *  The protocol that channels must conform to.
@@ -59,7 +61,10 @@ typedef void (^EDOChannelSentHandler)(id<EDOChannel> channel, NSError *_Nullable
  *  data, because the other end of channel can be closed abruptly and the transfer over network can
  *  error out for various other reasons.
  */
-@property(readonly, getter=isValid) BOOL valid;
+@property(readonly, nonatomic, getter=isValid) BOOL valid;
+
+/** The host port that the channel socket is connected to. **/
+@property(readonly, nonatomic) EDOHostPort *hostPort;
 
 /**
  *  Asynchronously send the data to this channel.

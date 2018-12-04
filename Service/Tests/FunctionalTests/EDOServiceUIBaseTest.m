@@ -16,8 +16,8 @@
 
 #import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
+#import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
-#import "Channel/Sources/EDOSocketChannelPool.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
@@ -25,7 +25,7 @@
 
 - (void)tearDown {
   // Reset the channel pool generated internally by EDOClientService.
-  [EDOSocketChannelPool.sharedChannelPool
+  [EDOChannelPool.sharedChannelPool
       removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:EDOTEST_APP_SERVICE_PORT]];
 
   [super tearDown];

@@ -35,11 +35,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOSocketChannel : NSObject <EDOChannel>
 
 /**
- * The host port that the channel socket is connected to.
- */
-@property(readonly, nonatomic) EDOHostPort *hostPort;
-
-/**
  *  Create a channel with the established socket.
  *
  *  @param socket   The established socket from the @c EDOSocketConnectedBlock callback.

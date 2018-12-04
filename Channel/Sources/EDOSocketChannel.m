@@ -119,6 +119,7 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
 
 @implementation EDOSocketChannel
 @dynamic valid;
+@synthesize hostPort = _hostPort;
 
 + (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
   return [[self alloc] initWithSocket:socket hostPort:hostPort];

@@ -18,9 +18,9 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocketChannel.h"
-#import "Channel/Sources/EDOSocketChannelPool.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClassMessage.h"
 #import "Service/Sources/EDOExecutor.h"
@@ -181,7 +181,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
     if ([request class] == [EDOObjectReleaseRequest class]) {
       NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
       [channel sendData:requestData withCompletionHandler:nil];
-      [EDOSocketChannelPool.sharedChannelPool addChannel:channel];
+      [EDOChannelPool.sharedChannelPool addChannel:channel];
       return nil;
     } else {
       __block NSData *responseData = nil;
@@ -204,7 +204,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       }
 
       if (response) {
-        [EDOSocketChannelPool.sharedChannelPool addChannel:channel];
+        [EDOChannelPool.sharedChannelPool addChannel:channel];
         // TODO(haowoo): Now there are only errors from the host service when the requests don't
         //               match the service UDID. We need to add a better error domain and code to
         //               give a better explanation of what went wrong for the request.
@@ -216,7 +216,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         return response;
       } else {
         // Cleanup broken channels before retry.
-        [EDOSocketChannelPool.sharedChannelPool
+        [EDOChannelPool.sharedChannelPool
             removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:port]];
         attempts -= 1;
       }
@@ -272,7 +272,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         }
         dispatch_semaphore_signal(waitLock);
       };
-  [EDOSocketChannelPool.sharedChannelPool
+  [EDOChannelPool.sharedChannelPool
       fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
               withCompletionHandler:fetchChannelCompletionHandler];
 

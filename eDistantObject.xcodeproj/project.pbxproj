@@ -18,6 +18,8 @@
 		C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */; };
 		C5791D8121AF79FC003EBC59 /* EDOHostPortTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5791D8021AF79FC003EBC59 /* EDOHostPortTest.m */; };
 		C5791D8421AF7A67003EBC59 /* EDOHostPort.m in Sources */ = {isa = PBXBuildFile; fileRef = C5791D8321AF7A67003EBC59 /* EDOHostPort.m */; };
+		C5791DAA21B61082003EBC59 /* EDOChannelPoolTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5791DA921B61081003EBC59 /* EDOChannelPoolTest.m */; };
+		C5791DAD21B6109A003EBC59 /* EDOChannelPool.m in Sources */ = {isa = PBXBuildFile; fileRef = C5791DAB21B61099003EBC59 /* EDOChannelPool.m */; };
 		C5A2F0472134D52500421D72 /* EDOServicePerfTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0462134D52500421D72 /* EDOServicePerfTest.m */; };
 		C5A2F04E2134D54300421D72 /* EDOServiceUITest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0492134D54200421D72 /* EDOServiceUITest.m */; };
 		C5A2F04F2134D54300421D72 /* EDOSwiftUITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F04A2134D54200421D72 /* EDOSwiftUITest.swift */; };
@@ -71,13 +73,11 @@
 		C833238E215C57B40071DB0C /* NSKeyedUnarchiver+EDOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C833238A215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.m */; };
 		C833238F215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C833238C215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m */; };
 		C845028A20DD9D8800D7350F /* EDOSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = C845027E20DD9D8800D7350F /* EDOSocket.m */; };
-		C845028B20DD9D8800D7350F /* EDOSocketChannelPool.m in Sources */ = {isa = PBXBuildFile; fileRef = C845028320DD9D8800D7350F /* EDOSocketChannelPool.m */; };
 		C845028C20DD9D8800D7350F /* EDOListenSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = C845028520DD9D8800D7350F /* EDOListenSocket.m */; };
 		C845028D20DD9D8800D7350F /* EDOSocketChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C845028620DD9D8800D7350F /* EDOSocketChannel.m */; };
 		C845028E20DD9D8800D7350F /* EDOSocketPort.m in Sources */ = {isa = PBXBuildFile; fileRef = C845028720DD9D8800D7350F /* EDOSocketPort.m */; };
 		C845032F20DDA0B200D7350F /* libChannelLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845026520DD9D2E00D7350F /* libChannelLib.a */; };
 		C845033920DDA11D00D7350F /* libChannelLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845026520DD9D2E00D7350F /* libChannelLib.a */; };
-		C845033F20DDA18100D7350F /* EDOSocketChannelPoolTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C845027A20DD9D8800D7350F /* EDOSocketChannelPoolTest.m */; };
 		C845034020DDA18100D7350F /* EDOSocketChannelTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C845027B20DD9D8800D7350F /* EDOSocketChannelTest.m */; };
 		C845036220DDA33A00D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C845038220DDA46400D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
@@ -193,6 +193,9 @@
 		C5791D8021AF79FC003EBC59 /* EDOHostPortTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOHostPortTest.m; sourceTree = "<group>"; };
 		C5791D8221AF7A66003EBC59 /* EDOHostPort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOHostPort.h; sourceTree = "<group>"; };
 		C5791D8321AF7A67003EBC59 /* EDOHostPort.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOHostPort.m; sourceTree = "<group>"; };
+		C5791DA921B61081003EBC59 /* EDOChannelPoolTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOChannelPoolTest.m; sourceTree = "<group>"; };
+		C5791DAB21B61099003EBC59 /* EDOChannelPool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOChannelPool.m; sourceTree = "<group>"; };
+		C5791DAC21B61099003EBC59 /* EDOChannelPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOChannelPool.h; sourceTree = "<group>"; };
 		C5A2EFD32134D43100421D72 /* NSProxy+EDOParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSProxy+EDOParameter.h"; path = "Service/Sources/NSProxy+EDOParameter.h"; sourceTree = "<group>"; };
 		C5A2EFD42134D43100421D72 /* EDOObjectAliveMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOObjectAliveMessage.m; path = Service/Sources/EDOObjectAliveMessage.m; sourceTree = "<group>"; };
 		C5A2EFD52134D43100421D72 /* EDOMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOMessage.m; path = Service/Sources/EDOMessage.m; sourceTree = "<group>"; };
@@ -287,15 +290,12 @@
 		C833238D215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSKeyedArchiver+EDOAdditions.h"; path = "Service/Sources/NSKeyedArchiver+EDOAdditions.h"; sourceTree = "<group>"; };
 		C845026520DD9D2E00D7350F /* libChannelLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libChannelLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C845027720DD9D5D00D7350F /* libeDistantObject.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libeDistantObject.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		C845027A20DD9D8800D7350F /* EDOSocketChannelPoolTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocketChannelPoolTest.m; sourceTree = "<group>"; };
 		C845027B20DD9D8800D7350F /* EDOSocketChannelTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocketChannelTest.m; sourceTree = "<group>"; };
-		C845027D20DD9D8800D7350F /* EDOSocketChannelPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOSocketChannelPool.h; sourceTree = "<group>"; };
 		C845027E20DD9D8800D7350F /* EDOSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocket.m; sourceTree = "<group>"; };
 		C845027F20DD9D8800D7350F /* EDOListenSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOListenSocket.h; sourceTree = "<group>"; };
 		C845028020DD9D8800D7350F /* EDOSocketChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOSocketChannel.h; sourceTree = "<group>"; };
 		C845028120DD9D8800D7350F /* EDOSocketPort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOSocketPort.h; sourceTree = "<group>"; };
 		C845028220DD9D8800D7350F /* EDOSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOSocket.h; sourceTree = "<group>"; };
-		C845028320DD9D8800D7350F /* EDOSocketChannelPool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocketChannelPool.m; sourceTree = "<group>"; };
 		C845028420DD9D8800D7350F /* EDOChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOChannel.h; sourceTree = "<group>"; };
 		C845028520DD9D8800D7350F /* EDOListenSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOListenSocket.m; sourceTree = "<group>"; };
 		C845028620DD9D8800D7350F /* EDOSocketChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocketChannel.m; sourceTree = "<group>"; };
@@ -620,8 +620,8 @@
 		C845027920DD9D8800D7350F /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				C5791DA921B61081003EBC59 /* EDOChannelPoolTest.m */,
 				C5791D8021AF79FC003EBC59 /* EDOHostPortTest.m */,
-				C845027A20DD9D8800D7350F /* EDOSocketChannelPoolTest.m */,
 				C845027B20DD9D8800D7350F /* EDOSocketChannelTest.m */,
 			);
 			path = Tests;
@@ -630,6 +630,8 @@
 		C845027C20DD9D8800D7350F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C5791DAC21B61099003EBC59 /* EDOChannelPool.h */,
+				C5791DAB21B61099003EBC59 /* EDOChannelPool.m */,
 				C5791D8221AF7A66003EBC59 /* EDOHostPort.h */,
 				C5791D8321AF7A67003EBC59 /* EDOHostPort.m */,
 				C845028420DD9D8800D7350F /* EDOChannel.h */,
@@ -639,8 +641,6 @@
 				C845027E20DD9D8800D7350F /* EDOSocket.m */,
 				C845028020DD9D8800D7350F /* EDOSocketChannel.h */,
 				C845028620DD9D8800D7350F /* EDOSocketChannel.m */,
-				C845027D20DD9D8800D7350F /* EDOSocketChannelPool.h */,
-				C845028320DD9D8800D7350F /* EDOSocketChannelPool.m */,
 				C845028120DD9D8800D7350F /* EDOSocketPort.h */,
 				C845028720DD9D8800D7350F /* EDOSocketPort.m */,
 			);
@@ -974,11 +974,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C845028B20DD9D8800D7350F /* EDOSocketChannelPool.m in Sources */,
 				C5791D8421AF7A67003EBC59 /* EDOHostPort.m in Sources */,
 				C845028E20DD9D8800D7350F /* EDOSocketPort.m in Sources */,
 				C845028D20DD9D8800D7350F /* EDOSocketChannel.m in Sources */,
 				C845028C20DD9D8800D7350F /* EDOListenSocket.m in Sources */,
+				C5791DAD21B6109A003EBC59 /* EDOChannelPool.m in Sources */,
 				C845028A20DD9D8800D7350F /* EDOSocket.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1026,8 +1026,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C5791DAA21B61082003EBC59 /* EDOChannelPoolTest.m in Sources */,
 				C5791D8121AF79FC003EBC59 /* EDOHostPortTest.m in Sources */,
-				C845033F20DDA18100D7350F /* EDOSocketChannelPoolTest.m in Sources */,
 				C845034020DDA18100D7350F /* EDOSocketChannelTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
