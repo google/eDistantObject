@@ -123,7 +123,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   if (executionQueue) {
     dispatch_queue_set_specific(executionQueue, gServiceKey, NULL, NULL);
   }
-  NSLog(@"The EDOHostService (%p) is invalidated (%d)", self, _port.port);
+  NSLog(@"The EDOHostService (%p) is invalidated on port %d", self, _port.port);
 }
 
 - (EDOServicePort *)port {
