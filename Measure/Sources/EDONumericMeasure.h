@@ -26,8 +26,11 @@ NS_ASSUME_NONNULL_BEGIN
  *  after the measurement completes by calling -complete. Any reads of @c average, @c minimum,
  *  and @c maximum will throw an exception if the measurement has not yet completed. The write is
  *  thread-safe.
+ *
+ *  @note Before serializing, the measure shall be completed; similarily, after deserialing, the
+ *        measure is already completed.
  */
-@interface EDONumericMeasure : NSObject
+@interface EDONumericMeasure : NSObject <NSSecureCoding>
 /** The average value, the default is 0.0. */
 @property(readonly, nonatomic) double average;
 /** The minimum value, the default is DBL_MAX. */

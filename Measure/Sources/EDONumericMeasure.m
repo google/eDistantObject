@@ -16,6 +16,11 @@
 
 #import "Measure/Sources/EDONumericMeasure.h"
 
+static NSString *const kEDOEDONumericMeasureMaximumKey = @"maximum";
+static NSString *const kEDOEDONumericMeasureMinimumKey = @"minimum";
+static NSString *const kEDOEDONumericMeasureAverageKey = @"average";
+static NSString *const kEDOEDONumericMeasureCountKey = @"count";
+
 @implementation EDONumericMeasure {
   /** The isolation queue to access the measure values. */
   dispatch_queue_t _measureIsolation;
@@ -30,6 +35,10 @@
   return [[self alloc] init];
 }
 
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
 - (instancetype)init {
   self = [super init];
   if (self) {
@@ -38,6 +47,27 @@
     _measureIsolation = dispatch_queue_create("com.google.edo.measure", DISPATCH_QUEUE_SERIAL);
   }
   return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super init];
+  if (self) {
+    _completed = YES;
+    _measureIsolation = dispatch_queue_create("com.google.edo.measure", DISPATCH_QUEUE_SERIAL);
+    _maximum = [aDecoder decodeDoubleForKey:kEDOEDONumericMeasureMaximumKey];
+    _minimum = [aDecoder decodeDoubleForKey:kEDOEDONumericMeasureMinimumKey];
+    _average = [aDecoder decodeDoubleForKey:kEDOEDONumericMeasureAverageKey];
+    _measureCount = [aDecoder decodeInt64ForKey:kEDOEDONumericMeasureCountKey];
+  }
+  return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [self edo_checkCompletion];
+  [aCoder encodeDouble:_maximum forKey:kEDOEDONumericMeasureMaximumKey];
+  [aCoder encodeDouble:_minimum forKey:kEDOEDONumericMeasureMinimumKey];
+  [aCoder encodeDouble:_average forKey:kEDOEDONumericMeasureAverageKey];
+  [aCoder encodeInt64:(int64_t)_measureCount forKey:kEDOEDONumericMeasureCountKey];
 }
 
 - (double)maximum {
