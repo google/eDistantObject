@@ -54,8 +54,8 @@
   EDOServiceResponse *response = [executor handleRequest:[[EDOServiceRequest alloc] init]
                                                  context:nil];
   [self verifyResponse:response];
-  // Assert the duration is within the reasonable range.
-  XCTAssertTrue(response.duration >= 1.0 && response.duration <= 2.0);
+  // Assert the duration is within the reasonable range [1000ms, 1500ms].
+  XCTAssertTrue(response.duration >= 1000 && response.duration <= 1500);
 }
 
 - (void)testExecutorFinishRunningAfterClosingMessageQueue {
