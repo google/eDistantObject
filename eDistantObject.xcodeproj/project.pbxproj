@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -89,7 +89,7 @@
 		C8A5E00521390E3B00D28052 /* EDOBlockObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E00321390E3B00D28052 /* EDOBlockObject.m */; };
 		C8A5E007213F896000D28052 /* NSBlock+EDOInvocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */; };
 		C8C3B44C2140507700A71091 /* EDOTestSwiftProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0402134D50600421D72 /* EDOTestSwiftProtocol.swift */; };
-		C8ED2AE421B7504F00118999 /* EDOServiceUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C8ED2AE221B7504E00118999 /* EDOServiceUtils.m */; };
+		C8ED2AE421B7504F00118999 /* EDOTimingFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -317,8 +317,8 @@
 		C8A5E00321390E3B00D28052 /* EDOBlockObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOBlockObject.m; path = Service/Sources/EDOBlockObject.m; sourceTree = "<group>"; };
 		C8A5E00421390E3B00D28052 /* EDOBlockObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOBlockObject.h; path = Service/Sources/EDOBlockObject.h; sourceTree = "<group>"; };
 		C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSBlock+EDOInvocation.m"; path = "Service/Sources/NSBlock+EDOInvocation.m"; sourceTree = "<group>"; };
-		C8ED2AE221B7504E00118999 /* EDOServiceUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceUtils.m; path = Service/Sources/EDOServiceUtils.m; sourceTree = "<group>"; };
-		C8ED2AE321B7504F00118999 /* EDOServiceUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOServiceUtils.h; path = Service/Sources/EDOServiceUtils.h; sourceTree = "<group>"; };
+		C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOTimingFunctions.m; path = Service/Sources/EDOTimingFunctions.m; sourceTree = "<group>"; };
+		C8ED2AE321B7504F00118999 /* EDOTimingFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOTimingFunctions.h; path = Service/Sources/EDOTimingFunctions.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -460,8 +460,8 @@
 				C5A2EFE72134D43200421D72 /* EDOServicePort.m */,
 				C5A2EFFC2134D43400421D72 /* EDOServiceRequest.h */,
 				C5A2EFFD2134D43400421D72 /* EDOServiceRequest.m */,
-				C8ED2AE321B7504F00118999 /* EDOServiceUtils.h */,
-				C8ED2AE221B7504E00118999 /* EDOServiceUtils.m */,
+				C8ED2AE321B7504F00118999 /* EDOTimingFunctions.h */,
+				C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */,
 				C5A2F0022134D43400421D72 /* EDOValueObject.h */,
 				C5A2EFF72134D43300421D72 /* EDOValueObject.m */,
 				C5A2EFEF2134D43200421D72 /* EDOValueObject+EDOParameter.m */,
@@ -999,7 +999,7 @@
 				C5A2F0772134D6C100421D72 /* EDOParameter.m in Sources */,
 				C5A2F0712134D6C100421D72 /* EDOObject.m in Sources */,
 				C5A2F07B2134D6C100421D72 /* EDOServiceRequest.m in Sources */,
-				C8ED2AE421B7504F00118999 /* EDOServiceUtils.m in Sources */,
+				C8ED2AE421B7504F00118999 /* EDOTimingFunctions.m in Sources */,
 				C5A2F06A2134D6A000421D72 /* EDOExecutor.m in Sources */,
 				C5A2F07C2134D6C100421D72 /* EDOValueObject.m in Sources */,
 				C5A2F0782134D6C100421D72 /* EDOProtocolObject.m in Sources */,
