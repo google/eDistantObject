@@ -86,6 +86,7 @@
 		C88B8A7C21ADD3DE00DDE607 /* EDONumericMeasure.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */; };
 		C88B8A8A21ADD42700DDE607 /* EDONumericMeasureTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */; };
 		C88B8A8C21ADD43400DDE607 /* libMeasureLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */; };
+		C8943DF321C1A6E300347547 /* libMeasureLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */; };
 		C896A5DB217A601B00CA5610 /* EDOExecutorMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C896A5D9217A601B00CA5610 /* EDOExecutorMessage.m */; };
 		C8A5E00521390E3B00D28052 /* EDOBlockObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E00321390E3B00D28052 /* EDOBlockObject.m */; };
 		C8A5E007213F896000D28052 /* NSBlock+EDOInvocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */; };
@@ -336,6 +337,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C8943DF321C1A6E300347547 /* libMeasureLib.a in Frameworks */,
 				C845032F20DDA0B200D7350F /* libChannelLib.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
