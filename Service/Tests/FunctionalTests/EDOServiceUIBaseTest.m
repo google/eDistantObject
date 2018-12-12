@@ -19,9 +19,19 @@
 #import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
+#import "Service/Sources/EDOClientServiceStatsCollector.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
 @implementation EDOServiceUIBaseTest
+
++ (void)setUp {
+  [EDOClientServiceStatsCollector.sharedServiceStats start];
+}
+
++ (void)tearDown {
+  [EDOClientServiceStatsCollector.sharedServiceStats complete];
+  NSLog(@"%@", EDOClientServiceStatsCollector.sharedServiceStats);
+}
 
 - (void)tearDown {
   // Reset the channel pool generated internally by EDOClientService.

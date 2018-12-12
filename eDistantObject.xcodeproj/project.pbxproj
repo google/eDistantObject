@@ -82,6 +82,7 @@
 		C845036220DDA33A00D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C845038220DDA46400D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C84503A720DDAEF500D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
+		C849824221BF212E008F0D6F /* EDOClientServiceStatsCollector.m in Sources */ = {isa = PBXBuildFile; fileRef = C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */; };
 		C88B8A7C21ADD3DE00DDE607 /* EDONumericMeasure.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */; };
 		C88B8A8A21ADD42700DDE607 /* EDONumericMeasureTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */; };
 		C88B8A8C21ADD43400DDE607 /* libMeasureLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */; };
@@ -307,6 +308,8 @@
 		C84503A220DDAEF500D7350F /* ServiceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServiceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C84503B620DDB03E00D7350F /* ServicePerfTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServicePerfTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C84503C620DDB07A00D7350F /* libTestsBundle.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTestsBundle.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOClientServiceStatsCollector.m; path = Service/Sources/EDOClientServiceStatsCollector.m; sourceTree = "<group>"; };
+		C849824121BF212E008F0D6F /* EDOClientServiceStatsCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOClientServiceStatsCollector.h; path = Service/Sources/EDOClientServiceStatsCollector.h; sourceTree = "<group>"; };
 		C88B8A5E21ADD38500DDE607 /* EDONumericMeasure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EDONumericMeasure.h; sourceTree = "<group>"; };
 		C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EDONumericMeasure.m; sourceTree = "<group>"; };
 		C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EDONumericMeasureTest.m; sourceTree = "<group>"; };
@@ -422,6 +425,8 @@
 				C5A2EFF52134D43300421D72 /* EDOClientService.h */,
 				C5A2F0002134D43400421D72 /* EDOClientService.m */,
 				C5A2EFF22134D43300421D72 /* EDOClientService+Private.h */,
+				C849824121BF212E008F0D6F /* EDOClientServiceStatsCollector.h */,
+				C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */,
 				C5A2EFF82134D43300421D72 /* EDOExecutor.h */,
 				C5A2EFD82134D43100421D72 /* EDOExecutor.m */,
 				C896A5DA217A601B00CA5610 /* EDOExecutorMessage.h */,
@@ -1005,6 +1010,7 @@
 				C5A2F0782134D6C100421D72 /* EDOProtocolObject.m in Sources */,
 				C5A2F07E2134D6C100421D72 /* EDOValueType.m in Sources */,
 				C5A2F06D2134D6C100421D72 /* EDOInvocationMessage.m in Sources */,
+				C849824221BF212E008F0D6F /* EDOClientServiceStatsCollector.m in Sources */,
 				C5A2F0752134D6C100421D72 /* EDOObjectMessage.m in Sources */,
 				C5A2F07A2134D6C100421D72 /* EDOServicePort.m in Sources */,
 				C833238F215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m in Sources */,

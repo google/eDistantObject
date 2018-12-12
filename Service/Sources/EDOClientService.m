@@ -23,12 +23,14 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClassMessage.h"
+#import "Service/Sources/EDOClientServiceStatsCollector.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOTimingFunctions.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
@@ -161,14 +163,18 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(UInt16)port
                                   withExecutor:(EDOExecutor *)executor {
-  int attempts = 2;
+  EDOClientServiceStatsCollector *stats = EDOClientServiceStatsCollector.sharedServiceStats;
 
+  int attempts = 2;
   while (attempts > 0) {
     NSError *error;
+    uint64_t connectionStartTime = mach_absolute_time();
     id<EDOChannel> channel = [self connectPort:port error:&error];
+    [stats reportConnectionDuration:EDOGetMillisecondsSinceMachTime(connectionStartTime)];
 
     // Raise an exception if the connection fails.
     if (error) {
+      [stats reportError];
       NSString *reason =
           [NSString stringWithFormat:@"Failed to connect the service %d for %@.", port, request];
       [[self exceptionWithReason:reason port:port error:error] raise];
@@ -179,11 +185,13 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
     // wasn't able to sent then it's most likely that the host side is dead and there's no need
     // to retry or try to handle it.
     if ([request class] == [EDOObjectReleaseRequest class]) {
+      [stats reportReleaseObject];
       NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
       [channel sendData:requestData withCompletionHandler:nil];
       [EDOChannelPool.sharedChannelPool addChannel:channel];
       return nil;
     } else {
+      uint64_t requestStartTime = mach_absolute_time();
       __block NSData *responseData = nil;
       NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
 
@@ -203,6 +211,9 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
                  @"The response (%@) Id is mismatched with the request (%@)", response, request);
       }
 
+      [stats reportRequestType:[request class]
+               requestDuration:EDOGetMillisecondsSinceMachTime(requestStartTime)
+              responseDuration:response.duration];
       if (response) {
         [EDOChannelPool.sharedChannelPool addChannel:channel];
         // TODO(haowoo): Now there are only errors from the host service when the requests don't

@@ -90,6 +90,22 @@
   return !alreadyCompleted;
 }
 
+- (NSString *)description {
+  __block BOOL alreadyCompleted;
+  __block size_t measureCount;
+  dispatch_sync(_measureIsolation, ^{
+    alreadyCompleted = self->_completed;
+    measureCount = self->_measureCount;
+  });
+  if (alreadyCompleted) {
+    return [NSString stringWithFormat:@"Numeric measure (%zd) in milliseconds: minimum (%lf), "
+                                      @"maximum (%lf), and average (%lf).",
+                                      measureCount, self.minimum, self.maximum, self.average];
+  } else {
+    return [NSString stringWithFormat:@"Incomplete numeric measure (%zd).", measureCount];
+  }
+}
+
 #pragma mark - Private methods
 
 - (void)edo_checkCompletion {
@@ -103,4 +119,5 @@
                            userInfo:nil] raise];
   }
 }
+
 @end
