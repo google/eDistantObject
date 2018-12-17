@@ -51,6 +51,15 @@
   return app;
 }
 
+- (XCUIApplication *)launchApplicationWithServiceName:(NSString *)serviceName initValue:(int)value {
+  XCUIApplication *app = [[XCUIApplication alloc] init];
+  app.launchArguments = @[
+    @"-serviceName", serviceName, @"-dummyInitValue", [NSString stringWithFormat:@"%d", value]
+  ];
+  [app launch];
+  return app;
+}
+
 - (EDOTestDummy *)remoteRootObject {
   return [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
 }
