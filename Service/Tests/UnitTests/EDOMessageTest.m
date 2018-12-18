@@ -555,6 +555,8 @@
   [service invalidate];
 }
 
+#pragma mark - Helper methods
+
 - (dispatch_queue_t)edo_createQueueAndServiceWithRootObject:(id)obj
                                                       block:(void (^)(EDOHostService *))block {
   NSString *queueName = [NSString stringWithFormat:@"com.google.edo.service.%@", self.name];

@@ -34,12 +34,6 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
   return YES;
 }
 
-/** Create a response from the given signature. */
-+ (instancetype)responseWithSignature:(NSString *)signature
-                           forRequest:(EDOServiceRequest *)request {
-  return [[self alloc] initWithSignature:signature forRequest:request];
-}
-
 - (instancetype)initWithSignature:(NSString *)signature forRequest:(EDOServiceRequest *)request {
   self = [super initWithMessageId:request.messageId];
   if (self) {
@@ -117,8 +111,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
         [encoding appendFormat:@"%s", [signature getArgumentTypeAtIndex:i]];
       }
     }
-    return (EDOServiceResponse *)[EDOMethodSignatureResponse responseWithSignature:encoding
-                                                                        forRequest:request];
+    return [[EDOMethodSignatureResponse alloc] initWithSignature:encoding forRequest:request];
   };
 }
 
