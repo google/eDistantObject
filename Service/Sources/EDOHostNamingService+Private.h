@@ -14,31 +14,28 @@
 // limitations under the License.
 //
 
+#import "Service/Sources/EDOHostNamingService.h"
+
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The port information of a @c EDOHostService.
+ *  A category provides methods for eDO to manage information of running @c EDOHostService
+ *  instances.
+ *
+ *  @note eDO clients should only make any remote invocation of methods in this category.
  */
-@interface EDOServicePort : NSObject <NSSecureCoding>
-
-/** The port that the service listens on. */
-@property(nonatomic, readonly) UInt16 port;
+@interface EDOHostNamingService (Private)
 
 /**
- *  The name of the service. It is to provide additional information to recognize the
- *  service.
+ *  Adds a service port to track associated @c EDOHostService instance. Returns @c NO if a service
+ *  port with the same name already exists.
  */
-@property(nonatomic, readonly) NSString *serviceName;
+- (BOOL)addServicePort:(EDOServicePort *)servicePort;
 
-/** Checks if the two @c EDOServicePort have the same identity. */
-- (BOOL)match:(EDOServicePort *)otherPort;
-
-/**
- *  Creates an instance with the given port number and service name.
- */
-+ (instancetype)servicePortWithPort:(UInt16)port serviceName:(NSString *)serviceName;
+/** Removes a service port to untrack associated @c EDOHostService instance. */
+- (void)removeServicePortWithName:(NSString *)serviceName;
 
 @end
 

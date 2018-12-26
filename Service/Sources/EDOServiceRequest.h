@@ -29,11 +29,12 @@ NS_ASSUME_NONNULL_BEGIN
  *  The request handler.
  *
  *  @param request The incoming request.
+ *  @param context The context of the response handler. It is usually the host service instance.
  *
  *  @return The response.
  */
 typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *request,
-                                                          EDOHostService *_Nullable service);
+                                                          id _Nullable context);
 
 /** The base request class for the request to send. */
 @interface EDOServiceRequest : EDOMessage
@@ -49,7 +50,7 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
 - (instancetype)initWithMessageId:(NSString *)messageId NS_UNAVAILABLE;
 
 /**
- *  Check if the request matches the @c port.
+ *  Checks if the request matches the @c port.
  *
  *  @note The default implementation will always return YES. Subclasses should override this
  *        if it contains the service-sensitive information such as the object address.
@@ -58,7 +59,7 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
  *
  *  @return YES if both the service port and UUID matches, that is, for the same service.
  */
-- (BOOL)canMatchService:(EDOServicePort *)port;
+- (BOOL)matchesService:(EDOServicePort *)port;
 
 @end
 

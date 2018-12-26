@@ -88,7 +88,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
 + (EDORequestHandler)requestHandler {
   return ^EDOServiceResponse *(EDOServiceRequest *request, EDOHostService *service) {
-    if (![request canMatchService:service.port]) {
+    if (![request matchesService:service.port]) {
       return nil;
     }
 
@@ -146,7 +146,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
   [aCoder encodeObject:self.port forKey:kEDOMethodSignatureCoderPortKey];
 }
 
-- (BOOL)canMatchService:(EDOServicePort *)originatorPort {
+- (BOOL)matchesService:(EDOServicePort *)originatorPort {
   return [self.port match:originatorPort];
 }
 

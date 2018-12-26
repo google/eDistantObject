@@ -34,4 +34,14 @@
  */
 - (XCUIApplication *)launchApplicationWithPort:(int)port initValue:(int)value;
 
+/**
+ *  Launches the application with the @c serviceName of an @c EDOHostService.
+ *
+ *  @param serviceName  The service name of @c EDOHostService to be started.
+ *  @param value        The value to initialize the root object @c EDOTestDummy.
+ *  @return The instance of the launched XCUIApplication, which can be used to terminate or
+ *          query the status of the running application.
+ */
+- (XCUIApplication *)launchApplicationWithServiceName:(NSString *)serviceName initValue:(int)value;
+
 @end

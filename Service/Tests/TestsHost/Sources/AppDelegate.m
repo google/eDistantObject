@@ -16,6 +16,7 @@
 
 #import "Service/Tests/TestsHost/Sources/AppDelegate.h"
 
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
@@ -32,9 +33,18 @@
 
   int dummyInitValue = (int)[standardDefaults integerForKey:@"dummyInitValue"];
   int portNumber = (int)[standardDefaults integerForKey:@"servicePort"];
-  _service = [EDOHostService serviceWithPort:(portNumber ?: EDOTEST_APP_SERVICE_PORT)
-                                  rootObject:[[EDOTestDummy alloc] initWithValue:dummyInitValue]
-                                       queue:dispatch_get_main_queue()];
+  NSString *serviceName = [standardDefaults stringForKey:@"serviceName"];
+  if (serviceName) {
+    _service = [EDOHostService
+        serviceWithRegisteredName:serviceName
+                       rootObject:[[EDOTestDummy alloc] initWithValue:dummyInitValue]
+                            queue:dispatch_get_main_queue()];
+  } else {
+    _service = [EDOHostService serviceWithPort:(portNumber ?: EDOTEST_APP_SERVICE_PORT)
+                                    rootObject:[[EDOTestDummy alloc] initWithValue:dummyInitValue]
+                                         queue:dispatch_get_main_queue()];
+  }
+  [EDOHostNamingService.sharedObject start];
   return YES;
 }
 

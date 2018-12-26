@@ -19,6 +19,7 @@
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOClientService.h"
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
@@ -26,6 +27,8 @@
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInApp.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInTest.h"
+
+static NSString *const kTestServiceName = @"com.google.edo.testService";
 
 @interface EDOUITestAppUITests : EDOServiceUIBaseTest
 @end
@@ -299,6 +302,25 @@
   [self waitForExpectationsWithTimeout:15 handler:nil];
   XCTAssertEqualObjects(clazz, NSClassFromString(@"EDOObject"));
   XCTAssertThrowsSpecificNamed([remoteDummy returnInt], NSException, NSDestinationInvalidException);
+}
+
+/**
+ *  Tests requesting service ports info of the application process, and verifies the port info with
+ *  service name.
+ */
+- (void)testFetchServicePortsInfo {
+  [self launchApplicationWithServiceName:kTestServiceName initValue:5];
+  EDOHostNamingService *serviceObject;
+  XCTAssertNoThrow(serviceObject =
+                       [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort]);
+  XCTAssertNotNil([serviceObject portForServiceWithName:kTestServiceName]);
+}
+
+/** Tests running multiple naming services in the same host, and verifies that exception happens. */
+- (void)testStartMultipleNamingServiceObject {
+  [self launchApplicationWithServiceName:kTestServiceName initValue:5];
+  EDOHostNamingService *localServiceObject = EDOHostNamingService.sharedObject;
+  XCTAssertFalse([localServiceObject start]);
 }
 
 @end

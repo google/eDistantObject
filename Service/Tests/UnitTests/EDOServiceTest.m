@@ -18,6 +18,7 @@
 #import <XCTest/XCTest.h>
 
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
@@ -25,6 +26,8 @@
 #import "Service/Tests/TestsBundle/EDOTestNonNSCodingType.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
 #import "Service/Tests/TestsBundle/EDOTestValueType.h"
+
+static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 @interface EDOServiceTest : XCTestCase
 @property(readonly) id serviceBackgroundMock;
@@ -47,9 +50,9 @@
   _executionQueue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
   _rootObject = [[EDOTestDummy alloc] init];
 
-  _serviceOnMain = [EDOHostService serviceWithPort:0
-                                        rootObject:[[EDOTestDummy alloc] init]
-                                             queue:dispatch_get_main_queue()];
+  _serviceOnMain = [EDOHostService serviceWithRegisteredName:kTestServiceName
+                                                  rootObject:[[EDOTestDummy alloc] init]
+                                                       queue:dispatch_get_main_queue()];
   _serviceMainMock = OCMPartialMock(_serviceOnMain);
   OCMStub([_serviceMainMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
   [self resetBackgroundService];
@@ -544,6 +547,11 @@
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
   NSArray *array = [dummyOnBackground returnArray];
   XCTAssertEqual([dummyOnBackground returnCountWithArray:[[array passByValue] returnByValue]], 4);
+}
+
+- (void)testEDOHostServiceTrackedByNamingService {
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  XCTAssertNotNil([namingServiceObject portForServiceWithName:kTestServiceName]);
 }
 
 #pragma mark - Helper methods

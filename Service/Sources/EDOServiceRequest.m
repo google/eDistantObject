@@ -32,7 +32,7 @@ static NSString *const kEDOServiceRequestDurationKey = @"duration";
   };
 }
 
-- (BOOL)canMatchService:(EDOServicePort *)unused {
+- (BOOL)matchesService:(EDOServicePort *)unused {
   return YES;
 }
 

@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOServicePort.h"
 
 static NSString *const EDOServicePortCoderPortKey = @"port";
+static NSString *const EDOServicePortCoderNameKey = @"serviceName";
 static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
 
 @implementation EDOServicePort {
@@ -27,8 +28,8 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   return YES;
 }
 
-+ (instancetype)servicePortWithPort:(UInt16)port {
-  return [[self alloc] initWithPort:port];
++ (instancetype)servicePortWithPort:(UInt16)port serviceName:(NSString *)serviceName {
+  return [[self alloc] initWithPort:port serviceName:serviceName];
 }
 
 - (instancetype)init {
@@ -40,10 +41,11 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   return self;
 }
 
-- (instancetype)initWithPort:(UInt16)port {
+- (instancetype)initWithPort:(UInt16)port serviceName:(NSString *)serviceName {
   self = [self init];
   if (self) {
     _port = port;
+    _serviceName = serviceName;
   }
   return self;
 }
@@ -52,6 +54,8 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   self = [super init];
   if (self) {
     _port = (UInt16)[aDecoder decodeIntForKey:EDOServicePortCoderPortKey];
+    _serviceName = [aDecoder decodeObjectOfClass:[NSString class]
+                                          forKey:EDOServicePortCoderNameKey];
     uuid_copy(_serviceKey, [aDecoder decodeBytesForKey:EDOServicePortCoderUUIDKey
                                         returnedLength:NULL]);
   }
@@ -60,11 +64,13 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [aCoder encodeInteger:self.port forKey:EDOServicePortCoderPortKey];
+  [aCoder encodeObject:self.serviceName forKey:EDOServicePortCoderNameKey];
   [aCoder encodeBytes:_serviceKey length:sizeof(_serviceKey) forKey:EDOServicePortCoderUUIDKey];
 }
 
 - (BOOL)match:(EDOServicePort *)otherPort {
-  return self.port == otherPort.port && uuid_compare(_serviceKey, otherPort->_serviceKey) == 0;
+  return self.port == otherPort.port && [self.serviceName isEqualToString:otherPort.serviceName] &&
+         uuid_compare(_serviceKey, otherPort->_serviceKey) == 0;
 }
 
 @end

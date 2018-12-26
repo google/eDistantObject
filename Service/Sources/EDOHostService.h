@@ -37,8 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Creates a service with the object and its associated execution queue.
  *
- *  @note Once the service is up and running, EDOClientService can be used to retrieve the root
- *        object or the remote class.
+ *  @note Once the service is up and running, @c EDOClientService can be used to retrieve the root
+ *        object or the remote class. A generated UUID will be used as the unique service name.
  *
  *  @param port   The port the service will listen on. If 0 is given, the port will be automatically
  *                assigned.
@@ -52,7 +52,23 @@ NS_ASSUME_NONNULL_BEGIN
                           queue:(nullable dispatch_queue_t)queue;
 
 /**
- *  Get the EDOHostService associated with the given dispatch queue if any.
+ *  Creates a service with the service name, the root object and its associated execution queue.
+ *
+ *  @note Once the service is up and running, @c EDOClientService can be used to retrieve the root
+ *        object or the remote class.
+ *
+ *  @param name   The service name of the @c EDOHostService. It is used to identify the service.
+ *  @param object The root object.
+ *  @param queue  The dispatch queue that the invocation will be executed on.
+ *
+ *  @return An instance of EDOHostService that starts listening on an auto-assigned port.
+ */
++ (instancetype)serviceWithRegisteredName:(NSString *)name
+                               rootObject:(nullable id)object
+                                    queue:(nullable dispatch_queue_t)queue;
+
+/**
+ *  Gets the EDOHostService associated with the given dispatch queue if any.
  *
  *  @param queue The dispatch queue to retrieve the EDOHostService.
  *  @return The instance of EDOHostService if it has been set up, or @nil if not.
@@ -60,13 +76,15 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)serviceForQueue:(dispatch_queue_t)queue;
 
 /**
- *  Get the EDOHostService associated with the current running dispatch queue if any.
+ *  Gets the EDOHostService associated with the current running dispatch queue, if any.
  *
  *  @return The instance of EDOHostService if it has been set up, or @nil if not.
  */
 + (instancetype)serviceForCurrentQueue;
 
-/** Invalidate the service and release all the associated objects. */
+- (instancetype)init NS_UNAVAILABLE;
+
+/** Invalidates the service and releases all the associated objects. */
 - (void)invalidate;
 
 @end
