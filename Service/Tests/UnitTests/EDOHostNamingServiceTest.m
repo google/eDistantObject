@@ -32,21 +32,21 @@ static const UInt16 kDummyServicePort = 1234;
 
 - (void)setUp {
   [super setUp];
-  EDOHostNamingService *serviceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *serviceObject = EDOHostNamingService.sharedService;
   EDOServicePort *dummyServicePort = [EDOServicePort servicePortWithPort:kDummyServicePort
                                                              serviceName:kDummyServiceName];
   [serviceObject addServicePort:dummyServicePort];
 }
 
 - (void)tearDown {
-  EDOHostNamingService *serviceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *serviceObject = EDOHostNamingService.sharedService;
   [serviceObject removeServicePortWithName:kDummyServiceName];
   [super tearDown];
 }
 
 /** Tests getting correct service name by sending ports message to @c EDOHostNamingService. */
 - (void)testStartEDONamingServiceObject {
-  [EDOHostNamingService.sharedObject start];
+  [EDOHostNamingService.sharedService start];
   EDOHostNamingService *serviceObject =
       [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort];
   XCTAssertEqual([serviceObject portForServiceWithName:kDummyServiceName].port, kDummyServicePort);
@@ -57,7 +57,7 @@ static const UInt16 kDummyServicePort = 1234;
  *  exception happens.
  */
 - (void)testStopEDONamingServiceObject {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   [namingServiceObject start];
   [namingServiceObject stop];
   // Clean up connected channels.
@@ -69,7 +69,7 @@ static const UInt16 kDummyServicePort = 1234;
 
 /** Tests starting/stoping the naming service multiple times to verify idempotency. */
 - (void)testStartAndStopMultipleTimes {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   [namingServiceObject start];
   [namingServiceObject start];
   XCTAssertNoThrow([EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort]);
@@ -84,7 +84,7 @@ static const UInt16 kDummyServicePort = 1234;
 
 /** Verifies no side effect when adding the same service multiple times. */
 - (void)testAddingServiceMultipleTimes {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   NSString *serviceName = @"com.google.testService.adding";
   EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:12345 serviceName:serviceName];
   [namingServiceObject addServicePort:dummyPort];
@@ -95,7 +95,7 @@ static const UInt16 kDummyServicePort = 1234;
 
 /** Verifies no side effect when removing the same service multiple times. */
 - (void)testRemoveServiceMultipleTimes {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   NSString *serviceName = @"com.google.testService.removing";
   EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:12346 serviceName:serviceName];
   [namingServiceObject addServicePort:dummyPort];
@@ -108,7 +108,7 @@ static const UInt16 kDummyServicePort = 1234;
 
 /** Verifies service are added even when naming service has stopped serving. */
 - (void)testAddingServiceAfterStop {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   [namingServiceObject stop];
   NSString *serviceName = @"com.google.testService.stop";
   UInt16 port = 12347;
@@ -125,7 +125,7 @@ static const UInt16 kDummyServicePort = 1234;
  *  concurrently. And it verifies the state of the naming service after each step.
  */
 - (void)testUpdateServicesConcurrently {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   NSString *serviceName1 = @"com.google.testService.concurrent1";
   UInt16 port1 = 12348;
   NSString *serviceName2 = @"com.google.testService.concurrent2";

@@ -105,7 +105,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
       _listenSocket = [self edo_createListenSocket:port];
       _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port
                                       serviceName:serviceName];
-      [EDOHostNamingService.sharedObject addServicePort:_port];
+      [EDOHostNamingService.sharedService addServicePort:_port];
       NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.port);
     }
 
@@ -131,7 +131,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   if (!self.listenSocket.valid) {
     return;
   }
-  [EDOHostNamingService.sharedObject removeServicePortWithName:_port.serviceName];
+  [EDOHostNamingService.sharedService removeServicePortWithName:_port.serviceName];
   [self.listenSocket invalidate];
   // Retain the strong reference first to make sure atomicity.
   dispatch_queue_t executionQueue = self.executionQueue;

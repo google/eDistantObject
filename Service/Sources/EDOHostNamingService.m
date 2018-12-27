@@ -37,7 +37,7 @@
   return 11237;
 }
 
-+ (instancetype)sharedObject {
++ (instancetype)sharedService {
   static EDOHostNamingService *instance;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{

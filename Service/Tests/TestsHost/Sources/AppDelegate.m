@@ -44,7 +44,7 @@
                                     rootObject:[[EDOTestDummy alloc] initWithValue:dummyInitValue]
                                          queue:dispatch_get_main_queue()];
   }
-  [EDOHostNamingService.sharedObject start];
+  [EDOHostNamingService.sharedService start];
   return YES;
 }
 
