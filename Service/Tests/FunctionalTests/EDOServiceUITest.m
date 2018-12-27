@@ -319,7 +319,7 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 /** Tests running multiple naming services in the same host, and verifies that exception happens. */
 - (void)testStartMultipleNamingServiceObject {
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
-  EDOHostNamingService *localServiceObject = EDOHostNamingService.sharedObject;
+  EDOHostNamingService *localServiceObject = EDOHostNamingService.sharedService;
   XCTAssertFalse([localServiceObject start]);
 }
 

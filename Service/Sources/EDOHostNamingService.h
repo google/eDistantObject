@@ -35,7 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(class, readonly) UInt16 namingServerPort;
 
 /** Shared singleton instance. */
-@property(class, readonly) EDOHostNamingService *sharedObject;
+@property(class, readonly) EDOHostNamingService *sharedService;
 
 - (instancetype)init NS_UNAVAILABLE;
 
