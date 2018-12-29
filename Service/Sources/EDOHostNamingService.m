@@ -16,6 +16,7 @@
 
 #import "Service/Sources/EDOHostNamingService.h"
 
+#import "Channel/Sources/EDOChannelPool.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOServicePort.h"
@@ -63,12 +64,16 @@
   [_service invalidate];
 }
 
-- (EDOServicePort *)portForServiceWithName:(NSString *)name {
+- (UInt16)serviceConnectionPort {
+  return EDOChannelPool.sharedChannelPool.serviceConnectionPort;
+}
+
+- (UInt16)portForServiceWithName:(NSString *)name {
   __block EDOServicePort *portInfo;
   dispatch_sync(_namingServicePortQueue, ^{
     portInfo = self->_servicePortsInfo[name];
   });
-  return portInfo;
+  return portInfo ? portInfo.port : 0;
 }
 
 - (BOOL)start {
@@ -108,9 +113,9 @@
   return result;
 }
 
-- (void)removeServicePortWithName:(NSString *)serviceName {
+- (void)removeServicePortWithName:(NSString *)name {
   dispatch_sync(_namingServicePortQueue, ^{
-    [self->_servicePortsInfo removeObjectForKey:serviceName];
+    [self->_servicePortsInfo removeObjectForKey:name];
   });
 }
 

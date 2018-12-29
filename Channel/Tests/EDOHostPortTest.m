@@ -35,6 +35,10 @@
   EDOHostPort *port4 = [EDOHostPort hostPortWithLocalPort:1 deviceSerialNumber:@"test_serial"];
   XCTAssertNotEqualObjects(port1, port4);
 
+  EDOHostPort *port5 = [EDOHostPort hostPortWithName:@"test_name"];
+  EDOHostPort *port6 = [EDOHostPort hostPortWithLocalPort:1];
+  XCTAssertNotEqualObjects(port5, port6);
+
   NSObject *object = [[NSObject alloc] init];
   XCTAssertNotEqualObjects(port1, object);
 }
@@ -43,6 +47,10 @@
   EDOHostPort *port1 = [EDOHostPort hostPortWithLocalPort:1];
   EDOHostPort *port2 = [EDOHostPort hostPortWithLocalPort:1];
   XCTAssertEqual([port1 hash], [port2 hash]);
+
+  EDOHostPort *port3 = [EDOHostPort hostPortWithName:@"test_name"];
+  EDOHostPort *port4 = [EDOHostPort hostPortWithName:@"test_name"];
+  XCTAssertEqual([port3 hash], [port4 hash]);
 }
 
 - (void)testHostPortCopy {
@@ -54,7 +62,7 @@
 
 - (void)testHostPortAsDictionaryKey {
   EDOHostPort *port1 = [EDOHostPort hostPortWithLocalPort:1];
-  EDOHostPort *port2 = [EDOHostPort hostPortWithLocalPort:2];
+  EDOHostPort *port2 = [EDOHostPort hostPortWithName:@"test_name"];
   EDOHostPort *port3 = [EDOHostPort hostPortWithLocalPort:1 deviceSerialNumber:@"test_serial"];
   NSMutableDictionary *dict = [[NSMutableDictionary alloc]
       initWithObjectsAndKeys:@"1", port1, @"2", port2, @"3", port3, nil];

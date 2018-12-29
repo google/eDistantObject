@@ -131,4 +131,52 @@
   XCTAssertNoThrow([channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:12345]]);
 }
 
+/**
+ *  Tests register a dummy service name in the app process, and verifies that the host channel can
+ *  receive test message from the app client channel.
+ */
+- (void)testConnectChannelWithServiceName {
+  UInt16 serviceConnectionPort = EDOChannelPool.sharedChannelPool.serviceConnectionPort;
+  NSString *dummyServiceName = @"dummyServiceName";
+  __block EDOSocketChannel *hostChannel;
+
+  // Connect to name registration port and send dummy service name.
+  XCTestExpectation *expectation = [self expectationWithDescription:@"HostChannelSetupExpectation"];
+  [EDOSocket connectWithTCPPort:serviceConnectionPort
+                          queue:dispatch_get_main_queue()
+                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                   hostChannel = [EDOSocketChannel channelWithSocket:socket];
+                   NSData *data = [dummyServiceName dataUsingEncoding:NSUTF8StringEncoding];
+                   [hostChannel sendData:data
+                       withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
+                         XCTAssertNil(error);
+                         [expectation fulfill];
+                       }];
+                 }];
+  [self waitForExpectationsWithTimeout:2 handler:nil];
+
+  // Send dummy message with the connected client channel in the channel pool.
+  NSString *dummyMessage = @"EDODummyMessage";
+  [EDOChannelPool.sharedChannelPool
+      fetchConnectedChannelWithPort:[EDOHostPort hostPortWithName:dummyServiceName]
+              withCompletionHandler:^(id<EDOChannel> socketChannel, NSError *error) {
+                NSData *data = [dummyMessage dataUsingEncoding:NSUTF8StringEncoding];
+                [socketChannel sendData:data
+                    withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
+                      [EDOChannelPool.sharedChannelPool addChannel:channel];
+                    }];
+              }];
+
+  __block NSString *testMessage;
+  expectation = [self expectationWithDescription:@"ReceiveTestMessage"];
+  [hostChannel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
+    XCTAssertNil(error);
+    testMessage = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    [expectation fulfill];
+  }];
+  [self waitForExpectationsWithTimeout:2 handler:nil];
+  // Verify the test message received is equal to the original dummy test message.
+  XCTAssertEqualObjects(testMessage, dummyMessage);
+}
+
 @end

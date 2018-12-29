@@ -551,7 +551,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testEDOHostServiceTrackedByNamingService {
   EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
-  XCTAssertNotNil([namingServiceObject portForServiceWithName:kTestServiceName]);
+  XCTAssertFalse([namingServiceObject portForServiceWithName:kTestServiceName] == 0);
 }
 
 #pragma mark - Helper methods

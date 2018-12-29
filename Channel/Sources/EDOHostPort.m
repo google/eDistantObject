@@ -19,22 +19,25 @@
 @implementation EDOHostPort
 
 + (instancetype)hostPortWithLocalPort:(UInt16)port {
-  return [[EDOHostPort alloc] initWithPort:port];
+  return [[EDOHostPort alloc] initWithPort:port name:nil deviceSerialNumber:nil];
 }
 
 + (instancetype)hostPortWithLocalPort:(UInt16)port
                    deviceSerialNumber:(NSString *)deviceSerialNumber {
-  return [[EDOHostPort alloc] initWithPort:port deviceSerialNumber:deviceSerialNumber];
+  return [[EDOHostPort alloc] initWithPort:port name:nil deviceSerialNumber:deviceSerialNumber];
 }
 
-- (instancetype)initWithPort:(UInt16)port {
-  return [[EDOHostPort alloc] initWithPort:port deviceSerialNumber:nil];
++ (instancetype)hostPortWithName:(NSString *)name {
+  return [[EDOHostPort alloc] initWithPort:0 name:name deviceSerialNumber:nil];
 }
 
-- (instancetype)initWithPort:(UInt16)port deviceSerialNumber:(NSString *)deviceSerialNumber {
+- (instancetype)initWithPort:(UInt16)port
+                        name:(NSString *)name
+          deviceSerialNumber:(NSString *)deviceSerialNumber {
   self = [super init];
   if (self) {
     _port = port;
+    _name = name;
     _deviceSerialNumber = [deviceSerialNumber copy];
   }
   return self;
@@ -50,19 +53,20 @@
     BOOL isPortEqual = _port == otherPort.port;
     BOOL isSerialEqual = _deviceSerialNumber == otherPort.deviceSerialNumber ||
                          [_deviceSerialNumber isEqualToString:otherPort.deviceSerialNumber];
-    return isPortEqual && isSerialEqual;
+    BOOL isNameEqual = _name == otherPort.name || [_name isEqualToString:otherPort.name];
+    return isPortEqual && isSerialEqual && isNameEqual;
   }
   return NO;
 }
 
 - (NSUInteger)hash {
-  return [_deviceSerialNumber hash] ^ _port;
+  return [_deviceSerialNumber hash] ^ [_name hash] ^ _port;
 }
 
 #pragma mark - NSCopying
 
 - (id)copyWithZone:(nullable NSZone *)zone {
-  return [[EDOHostPort alloc] initWithPort:_port deviceSerialNumber:_deviceSerialNumber];
+  return [[EDOHostPort alloc] initWithPort:_port name:_name deviceSerialNumber:_deviceSerialNumber];
 }
 
 @end

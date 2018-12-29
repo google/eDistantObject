@@ -47,6 +47,12 @@ typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
 @property(class, readonly) EDOChannelPool *sharedChannelPool;
 
 /**
+ *  A port for clients to accept connection, and receive host name to register as service. This port
+ *  will lazily create a listen socket when accessed.
+ */
+@property(readonly) UInt16 serviceConnectionPort;
+
+/**
  *  Fetch an available channel from the pool given host port async. If no available,
  *  it will connect the host port to create one.
  */

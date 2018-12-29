@@ -32,10 +32,10 @@ static const UInt16 kDummyServicePort = 1234;
 
 - (void)setUp {
   [super setUp];
-  EDOHostNamingService *serviceObject = EDOHostNamingService.sharedService;
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
   EDOServicePort *dummyServicePort = [EDOServicePort servicePortWithPort:kDummyServicePort
                                                              serviceName:kDummyServiceName];
-  [serviceObject addServicePort:dummyServicePort];
+  [namingService addServicePort:dummyServicePort];
 }
 
 - (void)tearDown {
@@ -47,9 +47,9 @@ static const UInt16 kDummyServicePort = 1234;
 /** Tests getting correct service name by sending ports message to @c EDOHostNamingService. */
 - (void)testStartEDONamingServiceObject {
   [EDOHostNamingService.sharedService start];
-  EDOHostNamingService *serviceObject =
+  EDOHostNamingService *namingService =
       [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort];
-  XCTAssertEqual([serviceObject portForServiceWithName:kDummyServiceName].port, kDummyServicePort);
+  XCTAssertEqual([namingService portForServiceWithName:kDummyServiceName], kDummyServicePort);
 }
 
 /**
@@ -57,9 +57,9 @@ static const UInt16 kDummyServicePort = 1234;
  *  exception happens.
  */
 - (void)testStopEDONamingServiceObject {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
-  [namingServiceObject start];
-  [namingServiceObject stop];
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
+  [namingService start];
+  [namingService stop];
   // Clean up connected channels.
   [EDOChannelPool.sharedChannelPool
       removeChannelsWithPort:[EDOHostPort
@@ -69,12 +69,12 @@ static const UInt16 kDummyServicePort = 1234;
 
 /** Tests starting/stoping the naming service multiple times to verify idempotency. */
 - (void)testStartAndStopMultipleTimes {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
-  [namingServiceObject start];
-  [namingServiceObject start];
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
+  [namingService start];
+  [namingService start];
   XCTAssertNoThrow([EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort]);
-  [namingServiceObject stop];
-  [namingServiceObject stop];
+  [namingService stop];
+  [namingService stop];
   // Clean up connected channels.
   [EDOChannelPool.sharedChannelPool
       removeChannelsWithPort:[EDOHostPort
@@ -84,39 +84,39 @@ static const UInt16 kDummyServicePort = 1234;
 
 /** Verifies no side effect when adding the same service multiple times. */
 - (void)testAddingServiceMultipleTimes {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
   NSString *serviceName = @"com.google.testService.adding";
   EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:12345 serviceName:serviceName];
-  [namingServiceObject addServicePort:dummyPort];
-  XCTAssertFalse([namingServiceObject addServicePort:dummyPort]);
+  [namingService addServicePort:dummyPort];
+  XCTAssertFalse([namingService addServicePort:dummyPort]);
   // Clean up.
-  [namingServiceObject removeServicePortWithName:serviceName];
+  [namingService removeServicePortWithName:serviceName];
 }
 
 /** Verifies no side effect when removing the same service multiple times. */
 - (void)testRemoveServiceMultipleTimes {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
   NSString *serviceName = @"com.google.testService.removing";
   EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:12346 serviceName:serviceName];
-  [namingServiceObject addServicePort:dummyPort];
+  [namingService addServicePort:dummyPort];
 
-  [namingServiceObject removeServicePortWithName:serviceName];
-  [namingServiceObject removeServicePortWithName:serviceName];
+  [namingService removeServicePortWithName:serviceName];
+  [namingService removeServicePortWithName:serviceName];
 
-  XCTAssertNil([namingServiceObject portForServiceWithName:serviceName]);
+  XCTAssertTrue([namingService portForServiceWithName:serviceName] == 0);
 }
 
 /** Verifies service are added even when naming service has stopped serving. */
 - (void)testAddingServiceAfterStop {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
-  [namingServiceObject stop];
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
+  [namingService stop];
   NSString *serviceName = @"com.google.testService.stop";
   UInt16 port = 12347;
   EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:port serviceName:serviceName];
-  [namingServiceObject addServicePort:dummyPort];
-  XCTAssertEqual([namingServiceObject portForServiceWithName:serviceName].port, port);
+  [namingService addServicePort:dummyPort];
+  XCTAssertEqual([namingService portForServiceWithName:serviceName], port);
   // Clean up.
-  [namingServiceObject removeServicePortWithName:serviceName];
+  [namingService removeServicePortWithName:serviceName];
 }
 
 /**
@@ -125,7 +125,7 @@ static const UInt16 kDummyServicePort = 1234;
  *  concurrently. And it verifies the state of the naming service after each step.
  */
 - (void)testUpdateServicesConcurrently {
-  EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
   NSString *serviceName1 = @"com.google.testService.concurrent1";
   UInt16 port1 = 12348;
   NSString *serviceName2 = @"com.google.testService.concurrent2";
@@ -134,25 +134,34 @@ static const UInt16 kDummyServicePort = 1234;
   EDOServicePort *dummyPort2 = [EDOServicePort servicePortWithPort:port2 serviceName:serviceName2];
   dispatch_queue_t concurrentQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_CONCURRENT);
   dispatch_async(concurrentQueue, ^{
-    [namingServiceObject addServicePort:dummyPort1];
+    [namingService addServicePort:dummyPort1];
   });
   dispatch_async(concurrentQueue, ^{
-    [namingServiceObject addServicePort:dummyPort2];
+    [namingService addServicePort:dummyPort2];
   });
   dispatch_barrier_sync(concurrentQueue, ^{
-    XCTAssertEqual([namingServiceObject portForServiceWithName:serviceName1].port, port1);
-    XCTAssertEqual([namingServiceObject portForServiceWithName:serviceName2].port, port2);
+    XCTAssertEqual([namingService portForServiceWithName:serviceName1], port1);
+    XCTAssertEqual([namingService portForServiceWithName:serviceName2], port2);
   });
   dispatch_async(concurrentQueue, ^{
-    [namingServiceObject removeServicePortWithName:serviceName1];
+    [namingService removeServicePortWithName:serviceName1];
   });
   dispatch_async(concurrentQueue, ^{
-    [namingServiceObject removeServicePortWithName:serviceName2];
+    [namingService removeServicePortWithName:serviceName2];
   });
   dispatch_barrier_sync(concurrentQueue, ^{
-    XCTAssertNil([namingServiceObject portForServiceWithName:serviceName1]);
-    XCTAssertNil([namingServiceObject portForServiceWithName:serviceName2]);
+    XCTAssertTrue([namingService portForServiceWithName:serviceName1] == 0);
+    XCTAssertTrue([namingService portForServiceWithName:serviceName2] == 0);
   });
+}
+
+/**
+ *  Tests accessing service connection port and verifies the listen socket is created and returns a
+ *  non-zero port.
+ */
+- (void)testAccessServiceConnectionPort {
+  EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
+  XCTAssertFalse(namingService.serviceConnectionPort == 0);
 }
 
 @end

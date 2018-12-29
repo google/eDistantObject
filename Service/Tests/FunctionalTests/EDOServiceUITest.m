@@ -18,6 +18,8 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOSocket.h"
+#import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
@@ -310,17 +312,17 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
  */
 - (void)testFetchServicePortsInfo {
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
-  EDOHostNamingService *serviceObject;
-  XCTAssertNoThrow(serviceObject =
+  EDOHostNamingService *service;
+  XCTAssertNoThrow(service =
                        [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort]);
-  XCTAssertNotNil([serviceObject portForServiceWithName:kTestServiceName]);
+  XCTAssertFalse([service portForServiceWithName:kTestServiceName] == 0);
 }
 
 /** Tests running multiple naming services in the same host, and verifies that exception happens. */
 - (void)testStartMultipleNamingServiceObject {
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
-  EDOHostNamingService *localServiceObject = EDOHostNamingService.sharedService;
-  XCTAssertFalse([localServiceObject start]);
+  EDOHostNamingService *localService = EDOHostNamingService.sharedService;
+  XCTAssertFalse([localService start]);
 }
 
 @end

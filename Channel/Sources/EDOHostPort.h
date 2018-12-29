@@ -24,21 +24,34 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface EDOHostPort : NSObject <NSCopying>
 
-/** The listen port number of the host. */
+/** The listen port number of the host. 0 if the host port is identified by name. */
 @property(readonly, nonatomic) UInt16 port;
 
-/** The device serial number string. @c nil if the connection is not to a physical device. */
-@property(readonly, nullable, nonatomic) NSString *deviceSerialNumber;
+/** The optional name of the host port. @c nil if the host port is identified by port. */
+@property(readonly, nonatomic, nullable) NSString *name;
 
-/** Creates a host port instance with local port number. This helper method is for a local host. */
+/** The device serial number string. @c nil if the connection is not to a physical iOS device. */
+@property(readonly, nonatomic, nullable) NSString *deviceSerialNumber;
+
+/**
+ *  Creates a host port instance with local port number. This is used for host ports on local
+ *  machine.
+ */
 + (instancetype)hostPortWithLocalPort:(UInt16)port;
 
 /**
- *  Create a host port instance with local port number and device serial number. This helper method
- *  is for a host running on devices.
+ *  Creates a host port instance with local port number and device serial number. This is used on
+ *  the Mac side for host ports on an iOS physical device.
  */
 + (instancetype)hostPortWithLocalPort:(UInt16)port
                    deviceSerialNumber:(NSString *)deviceSerialNumber;
+
+/**
+ *  Creates a host port instance with a unique name which is to identify the host port when
+ *  communicate with a service on Mac from an iOS physical device.
+ *  In this case the @c port is always 0 and @c deviceSerialNumber is always @c nil.
+ */
++ (instancetype)hostPortWithName:(NSString *)name;
 
 - (instancetype)init NS_UNAVAILABLE;
 

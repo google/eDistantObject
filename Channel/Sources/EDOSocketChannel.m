@@ -21,82 +21,10 @@
 #include <netinet/tcp.h>
 #include <sys/un.h>
 
+#import "Channel/Sources/EDOChannelUtil.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketPort.h"
-
-static char const *gSocketChannelQueueLabel = "com.google.edo.socket_channel";
-
-#pragma mark - Socket Frame Header
-
-/**
- *  The data header for each data package being sent.
- *
- *  The header data layout:
- *  |--- 32bit ---|--- 32bit ---|----- 32 bit -----|--- flexible ---|
- *  |-- type(1) --|- 0xc080c080-|- length of data -|--*-* data *-*--|
- */
-typedef struct EDOSocketFrameHeader_s {
-  // Type of frame, always 1.
-  uint32_t type;
-
-  // Tag.
-  uint32_t tag;
-
-  // If payloadSize is larger than zero, @c payloadSize of bytes are following.
-  uint32_t payloadSize;
-} EDOSocketFrameHeader_t;
-
-#pragma mark - EDOSocketFrameHeader util functions
-
-static const uint64_t kGEdoSocketFrameHeaderTag = 0xc080c080;
-
-// Check if the frame header is valid
-// TODO(haowoo): add more checksum checks.
-static BOOL edo_isFrameHeaderValid(EDOSocketFrameHeader_t *header) {
-  // Make sure it is not NULL and the tag matches the magic tag so we can make sure the data being
-  // processed is in the expected format.
-  return header != NULL && header->tag == kGEdoSocketFrameHeaderTag;
-}
-
-/** Get the size of the payload from the frame header. */
-static size_t GetPayloadSizeFromFrameData(dispatch_data_t data) {
-  if (data == NULL) {
-    return 0;
-  }
-
-  EDOSocketFrameHeader_t *frame = NULL;
-  dispatch_data_t contiguousData = dispatch_data_create_map(data, (const void **)&frame, NULL);
-
-  if (!edo_isFrameHeaderValid(frame)) {
-    return 0;
-  }
-
-  size_t payloadSize = ntohl(frame->payloadSize);
-  contiguousData = NULL;
-  return payloadSize;
-}
-
-/** Util to create dispatch_data from NSData */
-static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_t queue) {
-  dispatch_data_t frameData = dispatch_data_create(data.bytes, data.length, queue, ^{
-    // The trick to have the block capture and retain the data.
-    [data length];
-  });
-
-  dispatch_data_t headerData = ({
-    EDOSocketFrameHeader_t frameHeader = {
-        .type = 1,
-        .tag = kGEdoSocketFrameHeaderTag,
-        .payloadSize = htonl(data.length),
-    };
-    NSData *headerData = [NSData dataWithBytes:&frameHeader length:sizeof(frameHeader)];
-    dispatch_data_create(headerData.bytes, headerData.length, queue, ^{
-      [headerData length];
-    });
-  });
-  return dispatch_data_create_concat(headerData, frameData);
-}
 
 #pragma mark - Socket Connection Extension
 
@@ -121,25 +49,21 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
 @dynamic valid;
 @synthesize hostPort = _hostPort;
 
++ (instancetype)channelWithSocket:(EDOSocket *)socket {
+  return [[self alloc] initWithSocket:socket hostPort:nil];
+}
+
 + (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
   return [[self alloc] initWithSocket:socket hostPort:hostPort];
 }
 
 - (instancetype)initWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
-  self = [super init];
+  self = [self initInternal];
   if (self) {
-    _socket = -1;
-    _handlerQueue =
-        dispatch_queue_create("com.google.edo.socketChannel", DISPATCH_QUEUE_CONCURRENT);
-    // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
-    // are not reentrant and only one block will be scheduled by dispatch io and dispatch source.
-    _eventQueue = dispatch_queue_create(gSocketChannelQueueLabel, DISPATCH_QUEUE_SERIAL);
-
     if (socket.valid) {
       // The channel takes over the socket.
       dispatch_fd_t socketFD = [socket releaseSocket];
       _socket = socketFD;
-
       __weak EDOSocketChannel *weakSelf = self;
       _channel = dispatch_io_create(DISPATCH_IO_STREAM, socketFD, _eventQueue, ^(int error) {
         weakSelf.socket = -1;
@@ -161,9 +85,29 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
   return self;
 }
 
+- (instancetype)initInternal {
+  self = [super init];
+  if (self) {
+    _socket = -1;
+    _handlerQueue =
+        dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_CONCURRENT);
+    // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
+    // are not reentrant and only one block will be scheduled by dispatch io and dispatch source.
+    _eventQueue =
+        dispatch_queue_create("com.google.edo.socketChannel.event", DISPATCH_QUEUE_SERIAL);
+  }
+  return self;
+}
+
 - (void)dealloc {
   [self invalidate];
 }
+
+- (void)updateHostPort:(EDOHostPort *)hostPort {
+  _hostPort = hostPort;
+}
+
+#pragma mark - EDOChannel
 
 - (void)sendData:(NSData *)data withCompletionHandler:(EDOChannelSentHandler)handler {
   if (!self.channel) {
@@ -175,7 +119,7 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
     return;
   }
 
-  dispatch_data_t totalData = BuildFrameFromDataWithQueue(data, self.eventQueue);
+  dispatch_data_t totalData = EDOBuildFrameFromDataWithQueue(data, self.eventQueue);
   dispatch_io_write(
       self.channel, 0, totalData, self.eventQueue, ^(bool done, dispatch_data_t _, int errCode) {
         if (!done) {
@@ -233,7 +177,7 @@ static dispatch_data_t BuildFrameFromDataWithQueue(NSData *data, dispatch_queue_
 
   dispatch_io_handler_t frameHandler = ^(bool done, dispatch_data_t data, int error) {
     dispatch_io_t channel = self.channel;
-    size_t payloadSize = GetPayloadSizeFromFrameData(data);
+    size_t payloadSize = EDOGetPayloadSizeFromFrameData(data);
     if (payloadSize > 0) {
       self.remainingDataSize = payloadSize;
       dispatch_io_read(channel, 0, payloadSize, self.eventQueue, dataHandler);
