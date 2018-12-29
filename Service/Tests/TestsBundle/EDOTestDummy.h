@@ -113,6 +113,8 @@ typedef struct EDOTestDummyStruct {
  */
 - (NSString *)returnClassNameWithObjectRef:(id *)objRef;
 
+- (void)sendMessage:(NSString *)message toServiceWithName:(NSString *)name;
+
 /// helper methods
 - (NSException *)exceptionWithReason:(NSString *)reason;
 - (NSError *)error;

@@ -37,6 +37,12 @@ NS_ASSUME_NONNULL_BEGIN
 /** Shared singleton instance. */
 @property(class, readonly) EDOHostNamingService *sharedService;
 
+/**
+ *  The port name for service registration. Clients can connect to this port to register their
+ *  services by name.
+ */
+@property(class, readonly) NSString *serviceRegistrationPortName;
+
 - (instancetype)init NS_UNAVAILABLE;
 
 /**

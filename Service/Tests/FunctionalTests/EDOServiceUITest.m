@@ -18,6 +18,8 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOSocket.h"
+#import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
@@ -310,17 +312,63 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
  */
 - (void)testFetchServicePortsInfo {
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
-  EDOHostNamingService *serviceObject;
-  XCTAssertNoThrow(serviceObject =
+  EDOHostNamingService *service;
+  XCTAssertNoThrow(service =
                        [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort]);
-  XCTAssertNotNil([serviceObject portForServiceWithName:kTestServiceName]);
+  XCTAssertNotNil([service portForServiceWithName:kTestServiceName]);
 }
 
 /** Tests running multiple naming services in the same host, and verifies that exception happens. */
 - (void)testStartMultipleNamingServiceObject {
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
-  EDOHostNamingService *localServiceObject = EDOHostNamingService.sharedService;
-  XCTAssertFalse([localServiceObject start]);
+  EDOHostNamingService *localService = EDOHostNamingService.sharedService;
+  XCTAssertFalse([localService start]);
+}
+
+/**
+ *  Tests register a dummy service name in the app process, and verifies that the host channel can
+ *  receive test message from the app client channel.
+ */
+- (void)testRegisterServiceName {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOHostNamingService *service =
+      [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort];
+  EDOServicePort *servicePort =
+      [service portForServiceWithName:EDOHostNamingService.serviceRegistrationPortName];
+  UInt16 port = servicePort.port;
+  NSString *dummyServiceName = @"dummyServiceName";
+  __block EDOSocketChannel *hostChannel;
+
+  // Connect to name registration port and send dummy service name.
+  XCTestExpectation *expectation = [self expectationWithDescription:@"HostChannelSetupExpectation"];
+  [EDOSocket connectWithTCPPort:port
+                          queue:dispatch_get_main_queue()
+                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                   hostChannel = [EDOSocketChannel channelWithSocket:socket];
+                   NSData *data = [dummyServiceName dataUsingEncoding:NSUTF8StringEncoding];
+                   [hostChannel sendData:data
+                       withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
+                         XCTAssertNil(error);
+                         [expectation fulfill];
+                       }];
+                 }];
+  [self waitForExpectationsWithTimeout:2 handler:nil];
+
+  // Use a remote dummy object to send a dummy message to the test process.
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  NSString *dummyMessage = @"EDODummyMessage";
+  [remoteDummy sendMessage:dummyMessage toServiceWithName:dummyServiceName];
+
+  __block NSString *testMessage;
+  expectation = [self expectationWithDescription:@"ReceiveTestMessage"];
+  [hostChannel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
+    XCTAssertNil(error);
+    testMessage = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    [expectation fulfill];
+  }];
+  [self waitForExpectationsWithTimeout:2 handler:nil];
+  // Verify the test message received is equal to the original dummy test message.
+  XCTAssertEqualObjects(testMessage, dummyMessage);
 }
 
 @end

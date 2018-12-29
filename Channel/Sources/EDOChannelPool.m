@@ -71,6 +71,10 @@
   if (channel.isValid) {
     dispatch_sync(_channelPoolQueue, ^{
       NSMutableSet<id<EDOChannel>> *channelSet = self->_channelMap[channel.hostPort];
+      if (!channelSet) {
+        channelSet = [[NSMutableSet alloc] init];
+        [self->_channelMap setObject:channelSet forKey:channel.hostPort];
+      }
       [channelSet addObject:channel];
     });
   }

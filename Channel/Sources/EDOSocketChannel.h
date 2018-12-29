@@ -38,13 +38,31 @@ NS_ASSUME_NONNULL_BEGIN
  *  Create a channel with the established socket.
  *
  *  @param socket   The established socket from the @c EDOSocketConnectedBlock callback.
+ *
+ *  @return An instance of EDOSocketChannel.
+ */
++ (instancetype)channelWithSocket:(EDOSocket *)socket;
+
+/**
+ *  Create a channel with the established socket.
+ *
+ *  @param socket   The established socket from the @c EDOSocketConnectedBlock callback.
  *  @param hostPort The host port that the channel socket is connected to.
  *
  *  @return An instance of EDOSocketChannel.
  */
 + (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort;
 
+/**
+ *  Updates the host port of the channel.
+ *
+ *  Sometimes the host port is unknown when the channel is created. This method could be used to
+ *  set the host port later.
+ */
+- (void)updateHostPort:(EDOHostPort *)hostPort;
+
 - (instancetype)init NS_UNAVAILABLE;
+
 @end
 
 NS_ASSUME_NONNULL_END

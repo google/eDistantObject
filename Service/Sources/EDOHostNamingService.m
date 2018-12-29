@@ -16,6 +16,11 @@
 
 #import "Service/Sources/EDOHostNamingService.h"
 
+#import "Channel/Sources/EDOChannelPool.h"
+#import "Channel/Sources/EDOHostPort.h"
+#import "Channel/Sources/EDOSocket.h"
+#import "Channel/Sources/EDOSocketChannel.h"
+#import "Channel/Sources/EDOSocketPort.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOServicePort.h"
@@ -29,12 +34,20 @@
   // The dispatch queue to execute service start/stop events and request handler of the naming
   // service.
   dispatch_queue_t _namingServiceEventQueue;
+  // The dispatch queue to register service by name.
+  dispatch_queue_t _serviceRegistrationQueue;
   // The host service serving the naming service object.
   EDOHostService *_service;
+  // The socket of service registration.
+  EDOSocket *_serviceRegistrationSocket;
 }
 
 + (UInt16)namingServerPort {
   return 11237;
+}
+
++ (NSString *)serviceRegistrationPortName {
+  return @"EDOServiceReigstration";
 }
 
 + (instancetype)sharedService {
@@ -82,14 +95,26 @@
                                           rootObject:self
                                                queue:self->_namingServiceEventQueue];
     result = self->_service.port.port != 0;
+    self->_serviceRegistrationSocket = [self startHostRegistrationPortIfNeeded];
+
+    if (self->_serviceRegistrationSocket) {
+      UInt16 port = self->_serviceRegistrationSocket.socketPort.port;
+      [self
+          addServicePort:[EDOServicePort
+                             servicePortWithPort:port
+                                     serviceName:EDOHostNamingService.serviceRegistrationPortName]];
+    }
   });
   return result;
 }
 
 - (void)stop {
+  [self removeServicePortWithName:EDOHostNamingService.serviceRegistrationPortName];
   dispatch_sync(_namingServiceEventQueue, ^{
     [self->_service invalidate];
     self->_service = nil;
+    [self->_serviceRegistrationSocket invalidate];
+    self->_serviceRegistrationSocket = nil;
   });
 }
 
@@ -108,10 +133,48 @@
   return result;
 }
 
-- (void)removeServicePortWithName:(NSString *)serviceName {
+- (void)removeServicePortWithName:(NSString *)name {
   dispatch_sync(_namingServicePortQueue, ^{
-    [self->_servicePortsInfo removeObjectForKey:serviceName];
+    [self->_servicePortsInfo removeObjectForKey:name];
   });
+}
+
+#pragma mark - Private
+
+/**
+ *  Starts a port for clients to connect, and receive host name to register as service. Returns the
+ *  listen port number.
+ *
+ *  Does nothing if the host registration port is already listening and returns the current listen
+ *  port.
+ */
+- (EDOSocket *)startHostRegistrationPortIfNeeded {
+  if (_serviceRegistrationSocket) {
+    return _serviceRegistrationSocket;
+  }
+  __block UInt16 port = 0;
+  return [EDOSocket
+      listenWithTCPPort:0
+                  queue:_serviceRegistrationQueue
+         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *serviceError) {
+           if (!serviceError) {
+             EDOSocketChannel *socketChannel = [EDOSocketChannel channelWithSocket:socket];
+             [socketChannel
+                 receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
+                   if (!error) {
+                     NSString *name = [[NSString alloc] initWithData:data
+                                                            encoding:NSUTF8StringEncoding];
+                     [socketChannel updateHostPort:[EDOHostPort hostPortWithName:name]];
+                     [EDOChannelPool.sharedChannelPool addChannel:socketChannel];
+                     port = listenPort;
+                   } else {
+                     // Log the error instead of exception in order not to terminate the process,
+                     // since eDO may still work without getting the host port name.
+                     NSLog(@"Unable to receive host port name: %@", error);
+                   }
+                 }];
+           }
+         }];
 }
 
 @end

@@ -18,7 +18,11 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOChannel.h"
+#import "Channel/Sources/EDOChannelPool.h"
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 
 static const NSInteger kLargeArraySize = 1000;
@@ -265,6 +269,22 @@ static const NSInteger kLargeArraySize = 1000;
 
 - (NSString *)returnClassNameWithObject:(id)object {
   return NSStringFromClass(object_getClass(object));
+}
+
+- (void)sendMessage:(NSString *)message toServiceWithName:(NSString *)name {
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithName:name];
+  dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+  [EDOChannelPool.sharedChannelPool
+      fetchConnectedChannelWithPort:hostPort
+              withCompletionHandler:^(id<EDOChannel> socketChannel, NSError *error) {
+                NSData *data = [message dataUsingEncoding:NSUTF8StringEncoding];
+                [socketChannel sendData:data
+                    withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
+                      [EDOChannelPool.sharedChannelPool addChannel:channel];
+                      dispatch_semaphore_signal(lock);
+                    }];
+              }];
+  dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
 }
 
 - (NSString *)returnClassNameWithObjectRef:(id *)objRef {
