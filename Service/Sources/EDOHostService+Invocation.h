@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,17 +21,17 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol EDOChannel;
 
 /**
- *  The category to schedule request receiving for @c EDOHostService.
+ *  A category to set up a channel to receive requests for the current @c EDOHostService.
  */
 @interface EDOHostService (Invocation)
 
 /**
  *  Starts receiving requests and handling them from @c channel.
- *  This will properly handle all incoming requests to the given channel until the channel or the
+ *  This will properly handle all incoming requests for the given channel until the channel or the
  *  host service is invalidated.
  *  @param channel The channel to schedule receiving requests from clients.
  */
-- (void)scheduleReceiveRequestsForChannel:(id<EDOChannel>)channel;
+- (void)setupReceivingRequestsForChannel:(id<EDOChannel>)channel;
 
 @end
 

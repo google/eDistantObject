@@ -211,7 +211,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
            id<EDOChannel> clientChannel =
                [EDOSocketChannel channelWithSocket:socket
                                           hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
-           [self scheduleReceiveRequestsForChannel:clientChannel];
+           [self setupReceivingRequestsForChannel:clientChannel];
          }];
 }
 

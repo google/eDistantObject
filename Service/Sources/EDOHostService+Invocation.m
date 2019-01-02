@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,13 +35,13 @@
 
 @implementation EDOHostService (Invocation)
 
-- (void)scheduleReceiveRequestsForChannel:(id<EDOChannel>)channel {
+- (void)setupReceivingRequestsForChannel:(id<EDOChannel>)channel {
   // This handler block will be executed recursively by calling itself at the end of the
   // block. This is to accept new request after last one is executed.
   __block __weak EDOChannelReceiveHandler weakHandlerBlock;
   __weak EDOHostService *weakSelf = self;
 
-  EDOChannelReceiveHandler receiveHandler = ^(id<EDOChannel> channel, NSData *data,
+  EDOChannelReceiveHandler receiveHandler = ^(id<EDOChannel> targetChannel, NSData *data,
                                               NSError *error) {
     EDOChannelReceiveHandler strongHandlerBlock = weakHandlerBlock;
     EDOHostService *strongSelf = weakSelf;
@@ -50,7 +50,7 @@
     NSAssert(error == nil, @"Failed to receive the data (%d) for %@.", strongSelf.port.port, error);
     if (data == nil) {
       // the client socket is closed.
-      NSLog(@"The channel (%p) with port %d is closed", channel, strongSelf.port.port);
+      NSLog(@"The channel (%p) with port %d is closed", targetChannel, strongSelf.port.port);
       dispatch_sync(strongSelf.handlerSyncQueue, ^{
         [strongSelf.handlerSet removeObject:strongHandlerBlock];
       });
@@ -78,8 +78,8 @@
       EDOServiceResponse *errorResponse = [EDOServiceResponse errorResponse:error
                                                                  forRequest:request];
       NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
-      [channel sendData:errorData
-          withCompletionHandler:^(id<EDOChannel> _Nonnull channel, NSError *_Nullable error) {
+      [targetChannel sendData:errorData
+          withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {
             dispatch_sync(strongSelf.handlerSyncQueue, ^{
               [strongSelf.handlerSet removeObject:strongHandlerBlock];
             });
@@ -92,14 +92,14 @@
         [EDOObjectReleaseRequest requestHandler](request, strongSelf);
       } else {
         // Health check for the channel.
-        [channel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
+        [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
         EDOServiceResponse *response = [strongSelf.executor handleRequest:request context:self];
 
         NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
-        [channel sendData:responseData withCompletionHandler:nil];
+        [targetChannel sendData:responseData withCompletionHandler:nil];
       }
-      if (channel.isValid && strongSelf.listenSocket.valid) {
-        [channel receiveDataWithHandler:strongHandlerBlock];
+      if (targetChannel.isValid && strongSelf.listenSocket.valid) {
+        [targetChannel receiveDataWithHandler:strongHandlerBlock];
       }
     }
     // Channel will be released and invalidated if service becomes invalid. So the
