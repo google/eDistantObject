@@ -69,7 +69,6 @@
 		C5A2F0852134D6D100421D72 /* EDOTestProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03E2134D50600421D72 /* EDOTestProtocol.m */; };
 		C5A2F0862134D6D100421D72 /* EDOTestSwiftClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03F2134D50600421D72 /* EDOTestSwiftClass.swift */; };
 		C5A2F0872134D6D100421D72 /* EDOTestSwiftProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0402134D50600421D72 /* EDOTestSwiftProtocol.swift */; };
-		C5D0403821DB66A0003DC06A /* EDOHostService+Invocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D0403521DB6699003DC06A /* EDOHostService+Invocation.m */; };
 		C8298A0721599CD3003E3C2C /* EDOServiceUIMemoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */; };
 		C8298A0821599CD3003E3C2C /* EDOServiceUIBaseTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0521599CD2003E3C2C /* EDOServiceUIBaseTest.m */; };
 		C8298A0921599CD3003E3C2C /* EDOServiceUIBlockTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0621599CD3003E3C2C /* EDOServiceUIBlockTest.m */; };
@@ -290,8 +289,6 @@
 		C5A2F05E2134D5D900421D72 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Service/Tests/TestsHost/Resources/Info.plist; sourceTree = "<group>"; };
 		C5A2F05F2134D5D900421D72 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Service/Tests/TestsHost/Resources/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C5A2F0602134D5D900421D72 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Service/Tests/TestsHost/Resources/Main.storyboard; sourceTree = "<group>"; };
-		C5D0403521DB6699003DC06A /* EDOHostService+Invocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "EDOHostService+Invocation.m"; path = "Service/Sources/EDOHostService+Invocation.m"; sourceTree = "<group>"; };
-		C5D0403621DB6699003DC06A /* EDOHostService+Invocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "EDOHostService+Invocation.h"; path = "Service/Sources/EDOHostService+Invocation.h"; sourceTree = "<group>"; };
 		C8298A0321599CD2003E3C2C /* EDOServiceUIBaseTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOServiceUIBaseTest.h; path = Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h; sourceTree = "<group>"; };
 		C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceUIMemoryTest.m; path = Service/Tests/FunctionalTests/EDOServiceUIMemoryTest.m; sourceTree = "<group>"; };
 		C8298A0521599CD2003E3C2C /* EDOServiceUIBaseTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceUIBaseTest.m; path = Service/Tests/FunctionalTests/EDOServiceUIBaseTest.m; sourceTree = "<group>"; };
@@ -429,8 +426,6 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C5D0403621DB6699003DC06A /* EDOHostService+Invocation.h */,
-				C5D0403521DB6699003DC06A /* EDOHostService+Invocation.m */,
 				C535B59721D3077100BAE558 /* EDOHostNamingService.h */,
 				C535B59921D3077200BAE558 /* EDOHostNamingService.m */,
 				C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */,
@@ -1020,7 +1015,6 @@
 				C5A2F0822134D6C100421D72 /* NSProxy+EDOParameter.m in Sources */,
 				C5A2F0772134D6C100421D72 /* EDOParameter.m in Sources */,
 				C5A2F0712134D6C100421D72 /* EDOObject.m in Sources */,
-				C5D0403821DB66A0003DC06A /* EDOHostService+Invocation.m in Sources */,
 				C5A2F07B2134D6C100421D72 /* EDOServiceRequest.m in Sources */,
 				C8ED2AE421B7504F00118999 /* EDOTimingFunctions.m in Sources */,
 				C5A2F06A2134D6A000421D72 /* EDOExecutor.m in Sources */,

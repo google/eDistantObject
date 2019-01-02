@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class EDOExecutor;
 @class EDOObject;
+@protocol EDOChannel;
 
 /** The internal use for sending and receiving EDOObject. */
 @interface EDOHostService (Private)
@@ -47,6 +48,17 @@ NS_ASSUME_NONNULL_BEGIN
  *  @return @c YES if an object was removed; @c NO otherwise.
  */
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress;
+
+/**
+ *  Starts receiving requests and handling them from @c channel.
+ *
+ *  This will properly handle all incoming requests for the given channel, which will be strongly
+ *  referenced in the method by an internal handler block until the channel or the host service is
+ *  invalidated.
+ *
+ *  @param channel The channel to schedule receiving requests from clients.
+ */
+- (void)startReceivingRequestsForChannel:(id<EDOChannel>)channel;
 
 @end
 
