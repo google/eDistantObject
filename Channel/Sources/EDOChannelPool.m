@@ -28,6 +28,8 @@
   EDOSocket *_serviceRegistrationSocket;
   // The dispatch queue to accept service connection by name.
   dispatch_queue_t _serviceConnectionQueue;
+  // The once token to guarantee thread-safety of service connection port setup.
+  dispatch_once_t _serviceConnectionOnceToken;
 }
 
 + (instancetype)sharedChannelPool {
@@ -55,10 +57,6 @@
   __block id<EDOChannel> socketChannel = nil;
   dispatch_sync(_channelPoolQueue, ^{
     NSMutableSet *channelSet = self->_channelMap[port];
-    if (!channelSet) {
-      channelSet = [[NSMutableSet alloc] init];
-      [self->_channelMap setObject:channelSet forKey:port];
-    }
     if (channelSet.count > 0) {
       id<EDOChannel> channel = [channelSet anyObject];
       [channelSet removeObject:channel];
@@ -104,8 +102,7 @@
 }
 
 - (UInt16)serviceConnectionPort {
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
+  dispatch_once(&_serviceConnectionOnceToken, ^{
     [self EDO_startHostRegistrationPortIfNeeded];
   });
   return _serviceRegistrationSocket.socketPort.port;
