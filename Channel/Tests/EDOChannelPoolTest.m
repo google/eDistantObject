@@ -34,15 +34,11 @@
   __block NSMutableArray<EDOSocketChannel *> *channels =
       [[NSMutableArray alloc] initWithCapacity:10];
   for (int i = 0; i < 10; i++) {
-    XCTestExpectation *fetchExpectation = [self expectationWithDescription:@"Channel fetched"];
-    [channelPool
+    id<EDOChannel> socketChannel = [channelPool
         fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
-                withCompletionHandler:^(EDOSocketChannel *socketChannel, NSError *error) {
-                  [channels addObject:socketChannel];
-                  [channelPool addChannel:socketChannel];
-                  [fetchExpectation fulfill];
-                }];
-    [self waitForExpectationsWithTimeout:2 handler:nil];
+                                error:nil];
+    [channels addObject:socketChannel];
+    [channelPool addChannel:socketChannel];
   }
   XCTAssertEqual(
       [channelPool countChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]],
@@ -61,23 +57,19 @@
   dispatch_queue_t queue = dispatch_queue_create("channel set sync queue", DISPATCH_QUEUE_SERIAL);
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
 
-  XCTestExpectation *fetchExpectation = [self expectationWithDescription:@"async fetch actions"];
-  fetchExpectation.expectedFulfillmentCount = 10;
-
   for (int i = 0; i < 10; i++) {
     UInt16 port = i % 2 == 0 ? host1.socketPort.port : host2.socketPort.port;
     NSMutableSet *set = i % 2 == 0 ? set1 : set2;
-    [channelPool fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
-                         withCompletionHandler:^(EDOSocketChannel *socketChannel, NSError *error) {
-                           [channelPool addChannel:socketChannel];
-                           dispatch_sync(queue, ^{
-                             [set addObject:socketChannel];
-                           });
-                           [fetchExpectation fulfill];
-                         }];
-  }
+    id<EDOChannel> socketChannel =
+        [channelPool fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
+                                             error:nil];
 
-  [self waitForExpectationsWithTimeout:10 handler:nil];
+    [channelPool addChannel:socketChannel];
+    dispatch_sync(queue, ^{
+      [set addObject:socketChannel];
+    });
+  };
+
   NSUInteger host1ChannelCount =
       [channelPool countChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host1.socketPort.port]];
   NSUInteger host2ChannelCount =
@@ -90,14 +82,11 @@
 - (void)testClearChannelWithPort {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
-  XCTestExpectation *clearExpectation = [self expectationWithDescription:@"Channel cleared"];
-  [channelPool
+  id<EDOChannel> socketChannel = [channelPool
       fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
-              withCompletionHandler:^(EDOSocketChannel *socketChannel, NSError *error) {
-                [channelPool addChannel:socketChannel];
-                [clearExpectation fulfill];
-              }];
-  [self waitForExpectationsWithTimeout:2 handler:nil];
+                              error:nil];
+  [channelPool addChannel:socketChannel];
+
   [channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]];
   XCTAssertEqual(
       [channelPool countChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]],
@@ -107,15 +96,10 @@
 - (void)testReleaseInvalidChannel {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
-  XCTestExpectation *fetchExpectation = [self expectationWithDescription:@"Channel fetched"];
-  __block EDOSocketChannel *channel = nil;
-  [channelPool
+  id<EDOChannel> channel = [channelPool
       fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
-              withCompletionHandler:^(EDOSocketChannel *socketChannel, NSError *error) {
-                [channel invalidate];
-                [fetchExpectation fulfill];
-              }];
-  [self waitForExpectationsWithTimeout:2 handler:nil];
+                              error:nil];
+  [channel invalidate];
   [channelPool addChannel:channel];
   XCTAssertEqual(
       [channelPool countChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]],
@@ -157,15 +141,14 @@
 
   // Send dummy message with the connected client channel in the channel pool.
   NSString *dummyMessage = @"EDODummyMessage";
-  [EDOChannelPool.sharedChannelPool
+  id<EDOChannel> socketChannel = [EDOChannelPool.sharedChannelPool
       fetchConnectedChannelWithPort:[EDOHostPort hostPortWithName:dummyServiceName]
-              withCompletionHandler:^(id<EDOChannel> socketChannel, NSError *error) {
-                NSData *data = [dummyMessage dataUsingEncoding:NSUTF8StringEncoding];
-                [socketChannel sendData:data
-                    withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
-                      [EDOChannelPool.sharedChannelPool addChannel:channel];
-                    }];
-              }];
+                              error:nil];
+  NSData *data = [dummyMessage dataUsingEncoding:NSUTF8StringEncoding];
+  [socketChannel sendData:data
+      withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
+        [EDOChannelPool.sharedChannelPool addChannel:channel];
+      }];
 
   __block NSString *testMessage;
   expectation = [self expectationWithDescription:@"ReceiveTestMessage"];
