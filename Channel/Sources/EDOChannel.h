@@ -63,8 +63,11 @@ typedef void (^EDOChannelSentHandler)(id<EDOChannel> channel, NSError *_Nullable
  */
 @property(readonly, nonatomic, getter=isValid) BOOL valid;
 
-/** The host port that the channel socket is connected to. **/
-@property(readonly, nonatomic) EDOHostPort *hostPort;
+/**
+ *  The host port that the channel socket is connected to. @c nil if the channel is not connected to
+ *  a host port or not known yet.
+ */
+@property(readonly, nonatomic, nullable) EDOHostPort *hostPort;
 
 /**
  *  Asynchronously send the data to this channel.
