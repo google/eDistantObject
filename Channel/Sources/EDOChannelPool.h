@@ -53,11 +53,11 @@ typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
 @property(readonly) UInt16 serviceConnectionPort;
 
 /**
- *  Fetch an available channel from the pool given host port async. If no available,
- *  it will connect the host port to create one.
+ *  Fetch an available channel from the pool given host port. If no available, it will connect the
+ *  host port to create one.
  */
-- (void)fetchConnectedChannelWithPort:(EDOHostPort *)port
-                withCompletionHandler:(EDOFetchChannelHandler)handler;
+- (id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port
+                                          error:(NSError *_Nullable *_Nullable)error;
 /**
  *  Release an available channel and add it to the pool.
  */

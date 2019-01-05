@@ -270,26 +270,10 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 }
 
 /** Connects to the host service on the given @c port. */
-+ (id<EDOChannel>)connectPort:(UInt16)port error:(__strong NSError **)error {
-  __block id<EDOChannel> channel;
-  dispatch_semaphore_t waitLock = dispatch_semaphore_create(0L);
-
-  EDOFetchChannelHandler fetchChannelCompletionHandler =
-      ^(EDOSocketChannel *socketChannel, NSError *channelError) {
-        if (!channelError) {
-          channel = socketChannel;
-        } else {
-          *error = channelError;
-        }
-        dispatch_semaphore_signal(waitLock);
-      };
-  [EDOChannelPool.sharedChannelPool
++ (id<EDOChannel>)connectPort:(UInt16)port error:(NSError **)error {
+  return [EDOChannelPool.sharedChannelPool
       fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
-              withCompletionHandler:fetchChannelCompletionHandler];
-
-  dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
-
-  return channel;
+                              error:error];
 }
 
 /** Sends the reqeust data through the given @c channel and waits for the response synchronously. */

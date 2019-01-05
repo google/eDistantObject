@@ -21,9 +21,35 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 
+/** Timeout for channel fetch. */
+static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
+
+/**
+ *  A data object to store channels with the same host port along with a semaphore to control
+ *  available channel resource.
+ */
+@interface EDOChannelSet : NSObject
+@property(nonatomic) NSMutableSet<id<EDOChannel>> *channels;
+// Each channel set has a semaphore to guarantee available channel when make connection.
+@property(nonatomic) dispatch_semaphore_t channelSemaphore;
+@end
+
+@implementation EDOChannelSet
+
+- (instancetype)init {
+  self = [super init];
+  if (self) {
+    _channels = [[NSMutableSet alloc] init];
+    _channelSemaphore = dispatch_semaphore_create(0);
+  }
+  return self;
+}
+
+@end
+
 @implementation EDOChannelPool {
   dispatch_queue_t _channelPoolQueue;
-  NSMutableDictionary<EDOHostPort *, NSMutableSet<id<EDOChannel>> *> *_channelMap;
+  NSMutableDictionary<EDOHostPort *, EDOChannelSet *> *_channelMap;
   // The socket of service registration.
   EDOSocket *_serviceRegistrationSocket;
   // The dispatch queue to accept service connection by name.
@@ -52,34 +78,46 @@
   return self;
 }
 
-- (void)fetchConnectedChannelWithPort:(EDOHostPort *)port
-                withCompletionHandler:(EDOFetchChannelHandler)handler {
-  __block id<EDOChannel> socketChannel = nil;
-  dispatch_sync(_channelPoolQueue, ^{
-    NSMutableSet *channelSet = self->_channelMap[port];
-    if (channelSet.count > 0) {
-      id<EDOChannel> channel = [channelSet anyObject];
-      [channelSet removeObject:channel];
-      socketChannel = channel;
-    }
-  });
-  if (socketChannel) {
-    handler(socketChannel, nil);
+- (id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
+  __block id<EDOChannel> channel = [self edo_popChannelFromChannelMapWithPort:port forcedToWait:NO];
+  __block NSError *resultError;
+
+  if (channel) {
+    return channel;
+  } else if (port.port == 0) {
+    // TODO(ynzhang): Should request connection channel from the service side and add it to channel
+    // pool. Now it is done in the unit test.
+    channel = [self edo_popChannelFromChannelMapWithPort:port forcedToWait:YES];
   } else {
-    [self EDO_createChannelWithPort:port withCompletionHandler:handler];
+    [self edo_createChannelWithPort:port
+              withCompletionHandler:^(id<EDOChannel> socketChannel, NSError *createChannelError) {
+                resultError = createChannelError;
+                if (socketChannel) {
+                  [self addChannel:socketChannel];
+                }
+              }];
+
+    channel = [self edo_popChannelFromChannelMapWithPort:port forcedToWait:YES];
   }
+  if (error) {
+    *error = resultError;
+  } else {
+    NSLog(@"Error fetching channel: %@", resultError);
+  }
+  return channel;
 }
 
 - (void)addChannel:(id<EDOChannel>)channel {
   // reuse the channel only when it is valid
   if (channel.isValid) {
     dispatch_sync(_channelPoolQueue, ^{
-      NSMutableSet<id<EDOChannel>> *channelSet = self->_channelMap[channel.hostPort];
+      EDOChannelSet *channelSet = self->_channelMap[channel.hostPort];
       if (!channelSet) {
-        channelSet = [[NSMutableSet alloc] init];
+        channelSet = [[EDOChannelSet alloc] init];
         [self->_channelMap setObject:channelSet forKey:channel.hostPort];
       }
-      [channelSet addObject:channel];
+      [channelSet.channels addObject:channel];
+      dispatch_semaphore_signal(channelSet.channelSemaphore);
     });
   }
 }
@@ -93,7 +131,7 @@
 - (NSUInteger)countChannelsWithPort:(EDOHostPort *)port {
   __block NSUInteger channelCount = 0;
   dispatch_sync(_channelPoolQueue, ^{
-    NSMutableSet *channelSet = self->_channelMap[port];
+    NSMutableSet *channelSet = self->_channelMap[port].channels;
     if (channelSet) {
       channelCount = channelSet.count;
     }
@@ -103,14 +141,14 @@
 
 - (UInt16)serviceConnectionPort {
   dispatch_once(&_serviceConnectionOnceToken, ^{
-    [self EDO_startHostRegistrationPortIfNeeded];
+    [self edo_startHostRegistrationPortIfNeeded];
   });
   return _serviceRegistrationSocket.socketPort.port;
 }
 
 #pragma mark - private
 
-- (void)EDO_createChannelWithPort:(EDOHostPort *)port
+- (void)edo_createChannelWithPort:(EDOHostPort *)port
             withCompletionHandler:(EDOFetchChannelHandler)handler {
   __block EDOSocketChannel *channel = nil;
   [EDOSocket connectWithTCPPort:port.port
@@ -128,7 +166,51 @@
                  }];
 }
 
-- (void)EDO_startHostRegistrationPortIfNeeded {
+/**
+ *  Pops channel from the channel set. If @c forcedToWait is @c NO, it will return @c nil if the
+ *  channel set is empty.
+ */
+- (id<EDOChannel>)edo_popChannelFromChannelMapWithPort:(EDOHostPort *)port
+                                          forcedToWait:(BOOL)forcedToWait {
+  __block id<EDOChannel> socketChannel = nil;
+  __block EDOChannelSet *channelSet;
+  dispatch_sync(_channelPoolQueue, ^{
+    channelSet = self->_channelMap[port];
+    if (!channelSet) {
+      channelSet = [[EDOChannelSet alloc] init];
+      [self->_channelMap setObject:channelSet forKey:port];
+    }
+    if (channelSet.channels.count > 0) {
+      NSAssert(
+          dispatch_semaphore_wait(self->_channelMap[port].channelSemaphore, DISPATCH_TIME_NOW) == 0,
+          @"Channel semaphore is not consistent with the channel count.");
+      socketChannel = channelSet.channels.anyObject;
+      [channelSet.channels removeObject:socketChannel];
+    }
+  });
+  if (socketChannel) {
+    return socketChannel;
+  }
+
+  // When channel set is empty, only wait if explicitly requested.
+  if (forcedToWait) {
+    long result = dispatch_semaphore_wait(_channelMap[port].channelSemaphore,
+                                          dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout));
+    if (result != 0) {
+      return nil;
+    }
+  } else {
+    return nil;
+  }
+
+  dispatch_sync(_channelPoolQueue, ^{
+    socketChannel = channelSet.channels.anyObject;
+    [channelSet.channels removeObject:socketChannel];
+  });
+  return socketChannel;
+}
+
+- (void)edo_startHostRegistrationPortIfNeeded {
   if (_serviceRegistrationSocket) {
     return;
   }
