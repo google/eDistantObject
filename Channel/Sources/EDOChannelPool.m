@@ -79,7 +79,8 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 - (id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
-  __block id<EDOChannel> channel = [self edo_popChannelFromChannelMapWithPort:port forcedToWait:NO];
+  __block id<EDOChannel> channel = [self edo_popChannelFromChannelMapWithPort:port
+                                                             waitUntilTimeout:NO];
   __block NSError *resultError;
 
   if (channel) {
@@ -87,7 +88,6 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   } else if (port.port == 0) {
     // TODO(ynzhang): Should request connection channel from the service side and add it to channel
     // pool. Now it is done in the unit test.
-    channel = [self edo_popChannelFromChannelMapWithPort:port forcedToWait:YES];
   } else {
     [self edo_createChannelWithPort:port
               withCompletionHandler:^(id<EDOChannel> socketChannel, NSError *createChannelError) {
@@ -96,9 +96,8 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
                   [self addChannel:socketChannel];
                 }
               }];
-
-    channel = [self edo_popChannelFromChannelMapWithPort:port forcedToWait:YES];
   }
+  channel = [self edo_popChannelFromChannelMapWithPort:port waitUntilTimeout:YES];
   if (error) {
     *error = resultError;
   } else {
@@ -171,8 +170,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
  *  channel set is empty.
  */
 - (id<EDOChannel>)edo_popChannelFromChannelMapWithPort:(EDOHostPort *)port
-                                          forcedToWait:(BOOL)forcedToWait {
-  __block id<EDOChannel> socketChannel = nil;
+                                      waitUntilTimeout:(BOOL)waitUntilTimeout {
   __block EDOChannelSet *channelSet;
   dispatch_sync(_channelPoolQueue, ^{
     channelSet = self->_channelMap[port];
@@ -180,33 +178,18 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
       channelSet = [[EDOChannelSet alloc] init];
       [self->_channelMap setObject:channelSet forKey:port];
     }
-    if (channelSet.channels.count > 0) {
-      NSAssert(
-          dispatch_semaphore_wait(self->_channelMap[port].channelSemaphore, DISPATCH_TIME_NOW) == 0,
-          @"Channel semaphore is not consistent with the channel count.");
+  });
+
+  __block id<EDOChannel> socketChannel = nil;
+  long success = dispatch_semaphore_wait(
+      _channelMap[port].channelSemaphore,
+      waitUntilTimeout ? dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout) : DISPATCH_TIME_NOW);
+  if (success == 0) {
+    dispatch_sync(_channelPoolQueue, ^{
       socketChannel = channelSet.channels.anyObject;
       [channelSet.channels removeObject:socketChannel];
-    }
-  });
-  if (socketChannel) {
-    return socketChannel;
+    });
   }
-
-  // When channel set is empty, only wait if explicitly requested.
-  if (forcedToWait) {
-    long result = dispatch_semaphore_wait(_channelMap[port].channelSemaphore,
-                                          dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout));
-    if (result != 0) {
-      return nil;
-    }
-  } else {
-    return nil;
-  }
-
-  dispatch_sync(_channelPoolQueue, ^{
-    socketChannel = channelSet.channels.anyObject;
-    [channelSet.channels removeObject:socketChannel];
-  });
   return socketChannel;
 }
 
