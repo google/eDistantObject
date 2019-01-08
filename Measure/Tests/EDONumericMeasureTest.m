@@ -84,7 +84,7 @@
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"measureCount == 400"];
   XCTNSPredicateExpectation *expect = [[XCTNSPredicateExpectation alloc] initWithPredicate:predicate
                                                                                     object:measure];
-  [self waitForExpectations:@[ expect ] timeout:1];
+  [self waitForExpectations:@[ expect ] timeout:4];
   XCTAssertTrue([measure complete]);
 
   // Use a broader tolerance as this seems to produce more errors on some machines.
