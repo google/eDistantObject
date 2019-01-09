@@ -295,6 +295,14 @@ static const NSInteger kLargeArraySize = 1000;
   return [self returnSumWithArray:value];
 }
 
+- (UInt64)memoryAddressFromObject:(id)object {
+  return (UInt64)(__bridge void *)object;
+}
+
+- (UInt64)memoryAddressFromObjectRef:(id *)objRef {
+  return (UInt64)(__bridge void *)(*objRef);
+}
+
 - (NSException *)exceptionWithReason:(NSString *)reason {
   return [EDOTestDummyException
       exceptionWithName:[NSString stringWithFormat:@"Dummy %@ %d", reason, _value]

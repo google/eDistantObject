@@ -113,6 +113,12 @@ typedef struct EDOTestDummyStruct {
  */
 - (NSString *)returnClassNameWithObjectRef:(id *)objRef;
 
+/** Gets the given argument's local address. */
+- (UInt64)memoryAddressFromObject:(id)object;
+
+/** Gets the given argument pointee's local address. */
+- (UInt64)memoryAddressFromObjectRef:(id *)objRef;
+
 /// helper methods
 - (NSException *)exceptionWithReason:(NSString *)reason;
 - (NSError *)error;

@@ -248,12 +248,14 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
           }
           if (objRef && *objRef) {
             *objRef = [EDOClientService unwrappedObjectFromObject:*objRef];
+            *objRef = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:*objRef];
           }
           [invocation setArgument:&objRef atIndex:curArgIdx];
         } else if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
           id __unsafe_unretained obj;
           [argument getValue:&obj];
           obj = [EDOClientService unwrappedObjectFromObject:obj];
+          obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:obj];
           [invocation setArgument:&obj atIndex:curArgIdx];
         } else {
           NSUInteger valueSize = 0;

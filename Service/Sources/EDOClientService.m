@@ -336,7 +336,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 + (EDOObject *)responseObjectWithRequest:(EDOServiceRequest *)request onPort:(EDOHostPort *)port {
   EDOServiceResponse *response = [self sendSynchronousRequest:request onPort:port];
   EDOObject *remoteObject = ((EDOObjectResponse *)response).object;
-  remoteObject = [EDOClientService unwrappedObjectFromObject:remoteObject];
+  remoteObject = [self unwrappedObjectFromObject:remoteObject];
   remoteObject = [self cachedEDOFromObjectUpdateIfNeeded:remoteObject];
   return remoteObject;
 }
