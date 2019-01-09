@@ -17,6 +17,7 @@
 #import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
@@ -94,11 +95,11 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 }
 
 - (EDOTestDummy *)remoteDummy {
-  return [EDOClientService rootObjectWithPort:self.serviceOnBackground.port.port];
+  return [EDOClientService rootObjectWithPort:self.serviceOnBackground.port.hostPort.port];
 }
 
 - (Class)remoteClass {
-  return EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.port);
+  return EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port);
 }
 
 - (void)testSimpleMethodLotsTimes {
@@ -218,8 +219,9 @@ static const size_t kNumOfBenchmarkExecutions = 100;
  *  Assert the block is performed within the @weight multiple of threshold.
  */
 - (uint64_t)assertPerformBlockWithWeight:(uint64_t)weight block:(void (^)(EDOTestDummy *))block {
-  return
-      [self assertPerformBlockWithWeight:weight executions:kNumOfBenchmarkExecutions block:block];
+  return [self assertPerformBlockWithWeight:weight
+                                 executions:kNumOfBenchmarkExecutions
+                                      block:block];
 }
 
 /**

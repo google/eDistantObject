@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  The information for a port that the host service is listening on.
  *  This interface can represent either a host port on local machine or host port on a real device.
  */
-@interface EDOHostPort : NSObject <NSCopying>
+@interface EDOHostPort : NSObject <NSCopying, NSSecureCoding>
 
 /** The listen port number of the host. 0 if the host port is identified by name. */
 @property(readonly, nonatomic) UInt16 port;
@@ -34,17 +34,23 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly, nonatomic, nullable) NSString *deviceSerialNumber;
 
 /**
- *  Creates a host port instance with local port number. This is used for host ports on local
+ *  Creates a host port instance with local port number. This is used for host ports on a local
  *  machine.
  */
 + (instancetype)hostPortWithLocalPort:(UInt16)port;
 
 /**
- *  Creates a host port instance with local port number and device serial number. This is used on
+ *  Creates a host port instance with local port number and optional service name. This is used for
+ *  host ports on a local machine.
+ */
++ (instancetype)hostPortWithLocalPort:(UInt16)port serviceName:(NSString *_Nullable)name;
+
+/**
+ *  Creates a host port instance with device port number and device serial number. This is used on
  *  the Mac side for host ports on an iOS physical device.
  */
-+ (instancetype)hostPortWithLocalPort:(UInt16)port
-                   deviceSerialNumber:(NSString *)deviceSerialNumber;
++ (instancetype)hostPortWithDevicePort:(UInt16)port
+                    deviceSerialNumber:(NSString *)deviceSerialNumber;
 
 /**
  *  Creates a host port instance with a unique name which is to identify the host port when

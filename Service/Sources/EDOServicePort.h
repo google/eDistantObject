@@ -18,6 +18,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostPort;
+
 /**
  *  The port information of a @c EDOHostService.
  */
@@ -26,11 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 /** The port that the service listens on. */
 @property(nonatomic, readonly) UInt16 port;
 
-/**
- *  The name of the service. It is to provide additional information to recognize the
- *  service.
- */
-@property(nonatomic, readonly) NSString *serviceName;
+/** The port information to recognize the service. */
+@property(nonatomic, readonly) EDOHostPort *hostPort;
 
 /** Checks if the two @c EDOServicePort have the same identity. */
 - (BOOL)match:(EDOServicePort *)otherPort;
@@ -38,7 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Creates an instance with the given port number and service name.
  */
-+ (instancetype)servicePortWithPort:(UInt16)port serviceName:(NSString *)serviceName;
++ (instancetype)servicePortWithPort:(UInt16)port serviceName:(NSString *_Nullable)serviceName;
 
 @end
 

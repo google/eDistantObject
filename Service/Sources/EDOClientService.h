@@ -30,11 +30,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init NS_UNAVAILABLE;
 
-/** Retrieve the root object from the given port that's listened by a service. */
+/** Retrieve the root object from the given host port of a service. */
 + (id)rootObjectWithPort:(UInt16)port;
 
-/** Retrieve the class object from the given port that's listened by a service. */
+/** Retrieve the root object from the given host and name of a service. */
++ (id)rootObjectWithPort:(UInt16)port serviceName:(NSString *)serviceName;
+
+/** Retrieve the class object from the given host port of a service. */
 + (Class)classObjectWithName:(NSString *)className port:(UInt16)port;
+
+/** Retrieve the class object from the given host port of and name of a service. */
++ (Class)classObjectWithName:(NSString *)className
+                        port:(UInt16)port
+                 serviceName:(NSString *)serviceName;
 
 @end
 

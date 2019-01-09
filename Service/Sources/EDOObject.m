@@ -16,7 +16,7 @@
 
 #import "Service/Sources/EDOObject.h"
 
-#import <objc/runtime.h>
+#include <objc/runtime.h>
 
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
@@ -152,7 +152,7 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
     @try {
       EDOObjectReleaseRequest *request =
           [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress];
-      [EDOClientService sendSynchronousRequest:request onPort:_servicePort.port];
+      [EDOClientService sendSynchronousRequest:request onPort:_servicePort.hostPort];
     } @catch (NSException *e) {
       // There's an error with the service or most likely it's dead.
       // TODO(haowoo): Convert the exception to NSError and handle it accordingly.

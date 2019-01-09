@@ -35,7 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)addServicePort:(EDOServicePort *)servicePort;
 
 /** Removes a service port to untrack associated @c EDOHostService instance. */
-- (void)removeServicePortWithName:(NSString *)serviceName;
+- (BOOL)removeServicePort:(EDOServicePort *)servicePort;
 
 @end
 

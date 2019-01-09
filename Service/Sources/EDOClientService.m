@@ -41,21 +41,55 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
 + (id)rootObjectWithPort:(UInt16)port {
   EDOObjectRequest *objectRequest = [EDOObjectRequest request];
-  EDOServiceResponse *response = [self sendSynchronousRequest:objectRequest onPort:port];
-  EDOObject *rootObject = ((EDOObjectResponse *)response).object;
-  rootObject = [EDOClientService unwrappedObjectFromObject:rootObject];
-  rootObject = [self cachedEDOFromObjectUpdateIfNeeded:rootObject];
-  return rootObject;
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
+  return [self responseObjectWithRequest:objectRequest onPort:hostPort];
+}
+
++ (id)rootObjectWithPort:(UInt16)port serviceName:(NSString *)serviceName {
+  EDOObjectRequest *objectRequest = [EDOObjectRequest request];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
+  return [self responseObjectWithRequest:objectRequest onPort:hostPort];
 }
 
 + (Class)classObjectWithName:(NSString *)className port:(UInt16)port {
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
-  EDOServiceResponse *response = [self sendSynchronousRequest:classRequest onPort:port];
-  EDOObject *classObject = ((EDOObjectResponse *)response).object;
-  classObject = [EDOClientService unwrappedObjectFromObject:classObject];
-  classObject = [self cachedEDOFromObjectUpdateIfNeeded:classObject];
-  return (Class)classObject;
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
+  return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
 }
+
++ (Class)classObjectWithName:(NSString *)className
+                        port:(UInt16)port
+                 serviceName:(NSString *)serviceName {
+  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
+  return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
+}
+
++ (id)unwrappedObjectFromObject:(id)object {
+  EDOObject *edoObject =
+      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
+  Class objClass = object_getClass(edoObject);
+  if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
+    EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+    // If there is a service for the current queue, we check if the object belongs to this queue.
+    // Otherwise, we send EDOObjectAlive message to another service running in the same process.
+    if ([service.port match:edoObject.servicePort]) {
+      return (__bridge id)(void *)edoObject.remoteAddress;
+    } else if (edoObject.isLocalEdo) {
+      // If the underlying object is not a local object (but in the same process) then this could
+      // return nil. For example, the service becomes invalide, or the remote object is already
+      // released.
+      id resolvedInstance = [self resolveInstanceFromEDOObject:edoObject];
+      if (resolvedInstance) {
+        return resolvedInstance;
+      }
+    }
+  }
+
+  return object;
+}
+
+#pragma mark - Private Category
 
 + (NSMapTable *)localDistantObjects {
   static NSMapTable<NSNumber *, EDOObject *> *localDistantObjects;
@@ -73,6 +107,15 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
     edoSyncQueue = dispatch_queue_create("com.google.edo.service.edoSync", DISPATCH_QUEUE_SERIAL);
   });
   return edoSyncQueue;
+}
+
++ (NSData *)pingMessageData {
+  static NSData *_pingMessageData;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    _pingMessageData = [@"ping" dataUsingEncoding:NSUTF8StringEncoding];
+  });
+  return _pingMessageData;
 }
 
 + (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress {
@@ -100,60 +143,32 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   });
 }
 
-+ (id)unwrappedObjectFromObject:(id)object {
++ (id)cachedEDOFromObjectUpdateIfNeeded:(id)object {
   EDOObject *edoObject =
       [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
-    EDOHostService *service = [EDOHostService serviceForCurrentQueue];
-    // If there is a service for the current queue, we check if the object belongs to this queue.
-    // Otherwise, we send EDOObjectAlive message to another service running in the same process.
-    if ([service.port match:edoObject.servicePort]) {
-      return (__bridge id)(void *)edoObject.remoteAddress;
-    } else if (edoObject.isLocalEdo) {
-      // If the underlying object is not a local object (but in the same process) then this could
-      // return nil. For example, the service becomes invalide, or the remote object is already
-      // released.
-      id resolvedInstance = [self resolveInstanceFromEDOObject:edoObject];
-      if (resolvedInstance) {
-        return resolvedInstance;
-      }
+    id localObject = [self distantObjectReferenceForRemoteAddress:edoObject.remoteAddress];
+    EDOObject *localEDO = localObject;
+    if ([EDOBlockObject isBlock:localObject]) {
+      localEDO = [EDOBlockObject EDOBlockObjectFromBlock:localEDO];
+    }
+    // Verify the service in case the old address is overwritten by a new service.
+    if ([edoObject.servicePort match:localEDO.servicePort]) {
+      // Since we already have the EDOObject in the cache, the new decoded EDOObject is
+      // taken as a temporary local object, which does not send release message.
+      edoObject.local = YES;
+      return localObject;
+    } else {
+      // Track the new remote object.
+      [self addDistantObjectReference:object];
     }
   }
-
   return object;
 }
 
-#pragma mark - Private
-
-/**
- *  Sends EDOObjectAliveRequest to the service that the given object belongs to in the current
- *  process and check it is still alive.
- *
- *  @param object The remote object to check if it is alive.
- *  @return The underlying object if it is still alive, otherwise @c nil.
- */
-+ (id)resolveInstanceFromEDOObject:(EDOObject *)object {
-  @try {
-    EDOObjectAliveRequest *request = [EDOObjectAliveRequest requestWithObject:object];
-    EDOObjectAliveResponse *response =
-        (EDOObjectAliveResponse *)[EDOClientService sendSynchronousRequest:request
-                                                                    onPort:object.servicePort.port];
-
-    EDOObject *reponseObject;
-    if ([EDOBlockObject isBlock:response.object]) {
-      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
-    } else {
-      reponseObject = response.object;
-    }
-    return (__bridge id)(void *)reponseObject.remoteAddress;
-  } @catch (NSException *e) {
-    // In case of the service is dead or error, ignore the exception and reset to nil.
-    return nil;
-  }
-}
-
-+ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request onPort:(UInt16)port {
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
+                                        onPort:(EDOHostPort *)port {
   // TODO(b/119416282): We still run the executor even for the other requests before the deadlock
   //                    isuse is fixed.
   EDOHostService *service = [EDOHostService serviceForCurrentQueue];
@@ -161,7 +176,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 }
 
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
-                                        onPort:(UInt16)port
+                                        onPort:(EDOHostPort *)port
                                   withExecutor:(EDOExecutor *)executor {
   EDOClientServiceStatsCollector *stats = EDOClientServiceStatsCollector.sharedServiceStats;
 
@@ -169,14 +184,15 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   while (attempts > 0) {
     NSError *error;
     uint64_t connectionStartTime = mach_absolute_time();
-    id<EDOChannel> channel = [self connectPort:port error:&error];
+    id<EDOChannel> channel =
+        [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port error:&error];
     [stats reportConnectionDuration:EDOGetMillisecondsSinceMachTime(connectionStartTime)];
 
     // Raise an exception if the connection fails.
     if (error) {
       [stats reportError];
       NSString *reason =
-          [NSString stringWithFormat:@"Failed to connect the service %d for %@.", port, request];
+          [NSString stringWithFormat:@"Failed to connect the service %@ for %@.", port, request];
       [[self exceptionWithReason:reason port:port error:error] raise];
     }
 
@@ -227,8 +243,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         return response;
       } else {
         // Cleanup broken channels before retry.
-        [EDOChannelPool.sharedChannelPool
-            removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:port]];
+        [EDOChannelPool.sharedChannelPool removeChannelsWithPort:port];
         attempts -= 1;
       }
     }
@@ -238,35 +253,42 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   return nil;
 }
 
-+ (NSException *)exceptionWithReason:(NSString *)reason port:(UInt16)port error:(NSError *)error {
-  NSDictionary *userInfo = @{@"port" : @(port), @"error" : error ?: NSNull.null};
+#pragma mark - Private
+
+/**
+ *  Sends EDOObjectAliveRequest to the service that the given object belongs to in the current
+ *  process and check it is still alive.
+ *
+ *  @param object The remote object to check if it is alive.
+ *  @return The underlying object if it is still alive, otherwise @c nil.
+ */
++ (id)resolveInstanceFromEDOObject:(EDOObject *)object {
+  @try {
+    EDOObjectAliveRequest *request = [EDOObjectAliveRequest requestWithObject:object];
+    EDOObjectAliveResponse *response = (EDOObjectAliveResponse *)[EDOClientService
+        sendSynchronousRequest:request
+                        onPort:object.servicePort.hostPort];
+
+    EDOObject *reponseObject;
+    if ([EDOBlockObject isBlock:response.object]) {
+      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
+    } else {
+      reponseObject = response.object;
+    }
+    return (__bridge id)(void *)reponseObject.remoteAddress;
+  } @catch (NSException *e) {
+    // In case of the service is dead or error, ignore the exception and reset to nil.
+    return nil;
+  }
+}
+
++ (NSException *)exceptionWithReason:(NSString *)reason
+                                port:(EDOHostPort *)port
+                               error:(NSError *)error {
+  NSDictionary *userInfo = @{@"port" : port, @"error" : error ?: NSNull.null};
   return [NSException exceptionWithName:NSDestinationInvalidException
                                  reason:reason
                                userInfo:userInfo];
-}
-
-+ (id)cachedEDOFromObjectUpdateIfNeeded:(id)object {
-  EDOObject *edoObject =
-      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
-  Class objClass = object_getClass(edoObject);
-  if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
-    id localObject = [self distantObjectReferenceForRemoteAddress:edoObject.remoteAddress];
-    EDOObject *localEDO = localObject;
-    if ([EDOBlockObject isBlock:localObject]) {
-      localEDO = [EDOBlockObject EDOBlockObjectFromBlock:localEDO];
-    }
-    // Verify the service in case the old address is overwritten by a new service.
-    if ([edoObject.servicePort match:localEDO.servicePort]) {
-      // Since we already have the EDOObject in the cache, the new decoded EDOObject is
-      // taken as a temporary local object, which does not send release message.
-      edoObject.local = YES;
-      return localObject;
-    } else {
-      // Track the new remote object.
-      [self addDistantObjectReference:object];
-    }
-  }
-  return object;
 }
 
 /** Connects to the host service on the given @c port. */
@@ -311,13 +333,12 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   return responseData;
 }
 
-+ (NSData *)pingMessageData {
-  static NSData *_pingMessageData;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    _pingMessageData = [@"ping" dataUsingEncoding:NSUTF8StringEncoding];
-  });
-  return _pingMessageData;
++ (EDOObject *)responseObjectWithRequest:(EDOServiceRequest *)request onPort:(EDOHostPort *)port {
+  EDOServiceResponse *response = [self sendSynchronousRequest:request onPort:port];
+  EDOObject *remoteObject = ((EDOObjectResponse *)response).object;
+  remoteObject = [EDOClientService unwrappedObjectFromObject:remoteObject];
+  remoteObject = [self cachedEDOFromObjectUpdateIfNeeded:remoteObject];
+  return remoteObject;
 }
 
 @end

@@ -18,6 +18,7 @@
 
 #import <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClassMessage.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
@@ -529,7 +530,7 @@
   EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:dummyLocal queue:queue];
 
   [EDOTestDummy enumerateSelector:^(SEL sel) {
-    EDOTestDummy *object = [EDOClientService rootObjectWithPort:service.port.port];
+    EDOTestDummy *object = [EDOClientService rootObjectWithPort:service.port.hostPort.port];
     NSMethodSignature *sig1 = [object methodSignatureForSelector:sel];
     NSMethodSignature *sig2 = [dummyLocal methodSignatureForSelector:sel];
     XCTAssertEqualObjects(sig1, sig2, @"The remote signature is not matched %@.",
@@ -537,7 +538,7 @@
   }];
 
   {
-    EDOTestDummy *object = [EDOClientService rootObjectWithPort:service.port.port];
+    EDOTestDummy *object = [EDOClientService rootObjectWithPort:service.port.hostPort.port];
     NSMethodSignature *sig1 = [object methodSignatureForSelector:@selector(nonExistMethod)];
     NSMethodSignature *sig2 = [dummyLocal methodSignatureForSelector:@selector(nonExistMethod)];
     XCTAssertEqual(sig1, sig2);

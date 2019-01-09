@@ -16,8 +16,10 @@
 
 #import "Service/Sources/EDOServicePort.h"
 
+#import "Channel/Sources/EDOHostPort.h"
+
 static NSString *const EDOServicePortCoderPortKey = @"port";
-static NSString *const EDOServicePortCoderNameKey = @"serviceName";
+static NSString *const EDOServiceHostPortCoderPortKey = @"hostPort";
 static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
 
 @implementation EDOServicePort {
@@ -45,7 +47,7 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   self = [self init];
   if (self) {
     _port = port;
-    _serviceName = serviceName;
+    _hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
   }
   return self;
 }
@@ -54,8 +56,8 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   self = [super init];
   if (self) {
     _port = (UInt16)[aDecoder decodeIntForKey:EDOServicePortCoderPortKey];
-    _serviceName = [aDecoder decodeObjectOfClass:[NSString class]
-                                          forKey:EDOServicePortCoderNameKey];
+    _hostPort = [aDecoder decodeObjectOfClass:[EDOHostPort class]
+                                       forKey:EDOServiceHostPortCoderPortKey];
     uuid_copy(_serviceKey, [aDecoder decodeBytesForKey:EDOServicePortCoderUUIDKey
                                         returnedLength:NULL]);
   }
@@ -64,12 +66,12 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [aCoder encodeInteger:self.port forKey:EDOServicePortCoderPortKey];
-  [aCoder encodeObject:self.serviceName forKey:EDOServicePortCoderNameKey];
+  [aCoder encodeObject:self.hostPort forKey:EDOServiceHostPortCoderPortKey];
   [aCoder encodeBytes:_serviceKey length:sizeof(_serviceKey) forKey:EDOServicePortCoderUUIDKey];
 }
 
 - (BOOL)match:(EDOServicePort *)otherPort {
-  return self.port == otherPort.port && [self.serviceName isEqualToString:otherPort.serviceName] &&
+  return [self.hostPort isEqual:otherPort.hostPort] &&
          uuid_compare(_serviceKey, otherPort->_serviceKey) == 0;
 }
 

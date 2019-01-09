@@ -70,10 +70,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 }
 
 + (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue {
-  return [[self alloc] initWithPort:port
-                         rootObject:object
-                        serviceName:NSUUID.UUID.UUIDString
-                              queue:queue];
+  return [[self alloc] initWithPort:port rootObject:object serviceName:nil queue:queue];
 }
 
 + (instancetype)serviceWithRegisteredName:(NSString *)name
@@ -105,7 +102,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
       _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port
                                       serviceName:serviceName];
       [EDOHostNamingService.sharedService addServicePort:_port];
-      NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.port);
+      NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.hostPort.port);
     }
 
     if (object) {
@@ -130,14 +127,14 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   if (!self.listenSocket.valid) {
     return;
   }
-  [EDOHostNamingService.sharedService removeServicePortWithName:_port.serviceName];
+  [EDOHostNamingService.sharedService removeServicePort:_port];
   [self.listenSocket invalidate];
   // Retain the strong reference first to make sure atomicity.
   dispatch_queue_t executionQueue = self.executionQueue;
   if (executionQueue) {
     dispatch_queue_set_specific(executionQueue, gServiceKey, NULL, NULL);
   }
-  NSLog(@"The EDOHostService (%p) is invalidated on port %d", self, _port.port);
+  NSLog(@"The EDOHostService (%p) is invalidated on port %d", self, _port.hostPort.port);
 }
 
 - (EDOServicePort *)port {
@@ -145,9 +142,9 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   // first time and the auto-assigned zero port is used. This is useful for the temporary services.
   if (!_port) {
     _listenSocket = [self edo_createListenSocket:0];
-    _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port
-                                    serviceName:NSUUID.UUID.UUIDString];
-    NSLog(@"The EDOHostService (%p) is created lazily and listening on %d", self, _port.port);
+    _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port serviceName:nil];
+    NSLog(@"The EDOHostService (%p) is created lazily and listening on %d", self,
+          _port.hostPort.port);
   }
   return _port;
 }
@@ -211,10 +208,12 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     EDOHostService *strongSelf = weakSelf;
     NSException *exception;
     // TODO(haowoo): Add the proper error handler.
-    NSAssert(error == nil, @"Failed to receive the data (%d) for %@.", strongSelf.port.port, error);
+    NSAssert(error == nil, @"Failed to receive the data (%d) for %@.",
+             strongSelf.port.hostPort.port, error);
     if (data == nil) {
       // the client socket is closed.
-      NSLog(@"The channel (%p) with port %d is closed", targetChannel, strongSelf.port.port);
+      NSLog(@"The channel (%p) with port %d is closed", targetChannel,
+            strongSelf.port.hostPort.port);
       dispatch_sync(strongSelf.handlerSyncQueue, ^{
         [strongSelf.handlerSet removeObject:strongHandlerBlock];
       });

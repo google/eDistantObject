@@ -16,6 +16,7 @@
 
 #import "Service/Sources/EDOObject.h"
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOInvocationMessage.h"
@@ -52,9 +53,9 @@
   EDOServiceRequest *request = [EDOMethodSignatureRequest requestWithObject:self.remoteAddress
                                                                        port:self.servicePort
                                                                    selector:selector];
-  EDOMethodSignatureResponse *response =
-      (EDOMethodSignatureResponse *)[EDOClientService sendSynchronousRequest:request
-                                                                      onPort:self.servicePort.port];
+  EDOMethodSignatureResponse *response = (EDOMethodSignatureResponse *)[EDOClientService
+      sendSynchronousRequest:request
+                      onPort:self.servicePort.hostPort];
   NSString *signature = response.signature;
   return signature ? [NSMethodSignature signatureWithObjCTypes:signature.UTF8String] : nil;
 }
@@ -84,7 +85,7 @@
                                                                       service:service];
   EDOInvocationResponse *response =
       (EDOInvocationResponse *)[EDOClientService sendSynchronousRequest:request
-                                                                 onPort:self.servicePort.port
+                                                                 onPort:self.servicePort.hostPort
                                                            withExecutor:service.executor];
 
   if (response.exception) {

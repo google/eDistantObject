@@ -17,6 +17,7 @@
 #import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
@@ -102,7 +103,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 }
 
 - (void)testClassMethodsAndInit {
-  Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.port);
+  Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port);
 
   EDOTestDummy *dummy;
   @autoreleasepool {
@@ -156,7 +157,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testReturnUniqueEDOForSameUnderlyingObjects {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.port);
+  Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port);
 
   XCTAssertEqual([dummyOnBackground returnClass], [dummyOnBackground returnClass]);
   XCTAssertEqual([dummyOnBackground returnClass], remoteClass);
@@ -166,12 +167,13 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertEqual([self class], [dummyOnBackground classsWithClass:[self class]]);
   XCTAssertEqual(remoteClass, [dummyOnBackground classsWithClass:remoteClass]);
 
-  XCTAssertEqual(remoteClass, EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.port));
+  XCTAssertEqual(remoteClass,
+                 EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port));
   [self resetBackgroundService];
   // Even the underlying objects are the same, it should return a different remote object because
   // the old service is gone, and the local cache should be invalidated.
   XCTAssertNotEqual(remoteClass,
-                    EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.port));
+                    EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port));
 
   // Update the background object after resetting the service.
   dummyOnBackground = self.rootObjectOnBackground;
@@ -418,7 +420,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   OCMVerify([objectMock voidWithInt:10]);
 
   Class helperClass =
-      EDO_REMOTE_CLASS(EDOProtocolMockTestHelper, self.serviceOnBackground.port.port);
+      EDO_REMOTE_CLASS(EDOProtocolMockTestHelper, self.serviceOnBackground.port.hostPort.port);
 
   id testProtocol = [helperClass createTestProtocol];
   [helperClass invokeMethodsWithProtocol:testProtocol];
@@ -557,7 +559,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 #pragma mark - Helper methods
 
 - (EDOTestDummy *)rootObjectOnBackground {
-  return [EDOClientService rootObjectWithPort:self.serviceOnBackground.port.port];
+  return [EDOClientService rootObjectWithPort:self.serviceOnBackground.port.hostPort.port];
 }
 
 - (NSArray<NSString *> *)fastEnumerateDictionary:(EDOTestDummy *)dummy {

@@ -28,19 +28,21 @@ static const UInt16 kDummyServicePort = 1234;
 @interface EDOHostNamingServiceTest : XCTestCase
 @end
 
-@implementation EDOHostNamingServiceTest
+@implementation EDOHostNamingServiceTest {
+  EDOServicePort *_dummyServicePort;
+}
 
 - (void)setUp {
   [super setUp];
   EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
-  EDOServicePort *dummyServicePort = [EDOServicePort servicePortWithPort:kDummyServicePort
-                                                             serviceName:kDummyServiceName];
-  [namingService addServicePort:dummyServicePort];
+  _dummyServicePort = [EDOServicePort servicePortWithPort:kDummyServicePort
+                                              serviceName:kDummyServiceName];
+  [namingService addServicePort:_dummyServicePort];
 }
 
 - (void)tearDown {
   EDOHostNamingService *serviceObject = EDOHostNamingService.sharedService;
-  [serviceObject removeServicePortWithName:kDummyServiceName];
+  [serviceObject removeServicePort:_dummyServicePort];
   [super tearDown];
 }
 
@@ -90,7 +92,7 @@ static const UInt16 kDummyServicePort = 1234;
   [namingService addServicePort:dummyPort];
   XCTAssertFalse([namingService addServicePort:dummyPort]);
   // Clean up.
-  [namingService removeServicePortWithName:serviceName];
+  [namingService removeServicePort:dummyPort];
 }
 
 /** Verifies no side effect when removing the same service multiple times. */
@@ -100,8 +102,8 @@ static const UInt16 kDummyServicePort = 1234;
   EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:12346 serviceName:serviceName];
   [namingService addServicePort:dummyPort];
 
-  [namingService removeServicePortWithName:serviceName];
-  [namingService removeServicePortWithName:serviceName];
+  [namingService removeServicePort:dummyPort];
+  [namingService removeServicePort:dummyPort];
 
   XCTAssertTrue([namingService portForServiceWithName:serviceName] == 0);
 }
@@ -116,7 +118,7 @@ static const UInt16 kDummyServicePort = 1234;
   [namingService addServicePort:dummyPort];
   XCTAssertEqual([namingService portForServiceWithName:serviceName], port);
   // Clean up.
-  [namingService removeServicePortWithName:serviceName];
+  [namingService removeServicePort:dummyPort];
 }
 
 /**
@@ -144,10 +146,10 @@ static const UInt16 kDummyServicePort = 1234;
     XCTAssertEqual([namingService portForServiceWithName:serviceName2], port2);
   });
   dispatch_async(concurrentQueue, ^{
-    [namingService removeServicePortWithName:serviceName1];
+    [namingService removeServicePort:dummyPort1];
   });
   dispatch_async(concurrentQueue, ^{
-    [namingService removeServicePortWithName:serviceName2];
+    [namingService removeServicePort:dummyPort2];
   });
   dispatch_barrier_sync(concurrentQueue, ^{
     XCTAssertTrue([namingService portForServiceWithName:serviceName1] == 0);

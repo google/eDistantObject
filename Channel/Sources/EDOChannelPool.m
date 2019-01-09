@@ -159,7 +159,8 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
                    } else {
                      channel = [EDOSocketChannel
                          channelWithSocket:socket
-                                  hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
+                                  hostPort:[EDOHostPort hostPortWithLocalPort:listenPort
+                                                                  serviceName:port.name]];
                      handler(channel, nil);
                    }
                  }];

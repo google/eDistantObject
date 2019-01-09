@@ -57,26 +57,27 @@ NS_ASSUME_NONNULL_BEGIN
  *        invocations.
  *
  *  @param request  The request to be sent.
- *  @param port     The service port number.
+ *  @param port     The service host port.
  *  @param executor The executor to run and process the incoming requests.
  *  @throw NSInternalInconsistencyException if it fails to communicate with the service.
  *
  *  @return The response from the service.
  */
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
-                                        onPort:(UInt16)port
+                                        onPort:(EDOHostPort *)port
                                   withExecutor:(EDOExecutor *)executor;
 
 /**
  *  Synchronously sends the request and waits for the response.
  *
  *  @param request The request to be sent.
- *  @param port    The service port number.
+ *  @param port    The service host port.
  *  @throw NSInternalInconsistencyException if it fails to communicate with the service.
  *
  *  @return The response from the service.
  */
-+ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request onPort:(UInt16)port;
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
+                                        onPort:(EDOHostPort *)port;
 
 /**
  *  Unwraps an @c object to a local object if it comes from the local process.

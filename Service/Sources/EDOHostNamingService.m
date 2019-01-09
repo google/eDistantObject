@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOHostNamingService.h"
 
 #import "Channel/Sources/EDOChannelPool.h"
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOServicePort.h"
@@ -73,7 +74,7 @@
   dispatch_sync(_namingServicePortQueue, ^{
     portInfo = self->_servicePortsInfo[name];
   });
-  return portInfo ? portInfo.port : 0;
+  return portInfo ? portInfo.hostPort.port : 0;
 }
 
 - (BOOL)start {
@@ -86,7 +87,7 @@
     self->_service = [EDOHostService serviceWithPort:EDOHostNamingService.namingServerPort
                                           rootObject:self
                                                queue:self->_namingServiceEventQueue];
-    result = self->_service.port.port != 0;
+    result = self->_service.port.hostPort.port != 0;
   });
   return result;
 }
@@ -101,22 +102,29 @@
 #pragma mark - Private category
 
 - (BOOL)addServicePort:(EDOServicePort *)servicePort {
+  if (!servicePort.hostPort.name) {
+    return NO;
+  }
   __block BOOL result;
   dispatch_sync(_namingServicePortQueue, ^{
-    if ([self->_servicePortsInfo objectForKey:servicePort.serviceName]) {
+    if ([self->_servicePortsInfo objectForKey:servicePort.hostPort.name]) {
       result = NO;
     } else {
-      [self->_servicePortsInfo setObject:servicePort forKey:servicePort.serviceName];
+      [self->_servicePortsInfo setObject:servicePort forKey:servicePort.hostPort.name];
       result = YES;
     }
   });
   return result;
 }
 
-- (void)removeServicePortWithName:(NSString *)name {
+- (BOOL)removeServicePort:(EDOServicePort *)servicePort {
+  if (!servicePort.hostPort.name) {
+    return NO;
+  }
   dispatch_sync(_namingServicePortQueue, ^{
-    [self->_servicePortsInfo removeObjectForKey:name];
+    [self->_servicePortsInfo removeObjectForKey:servicePort.hostPort.name];
   });
+  return YES;
 }
 
 @end

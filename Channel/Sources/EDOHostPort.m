@@ -16,14 +16,22 @@
 
 #import "Channel/Sources/EDOHostPort.h"
 
+static NSString *const kEDOHostPortCoderPortKey = @"port";
+static NSString *const kEDOHostPortCoderNameKey = @"serviceName";
+static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
+
 @implementation EDOHostPort
 
 + (instancetype)hostPortWithLocalPort:(UInt16)port {
   return [[EDOHostPort alloc] initWithPort:port name:nil deviceSerialNumber:nil];
 }
 
-+ (instancetype)hostPortWithLocalPort:(UInt16)port
-                   deviceSerialNumber:(NSString *)deviceSerialNumber {
++ (instancetype)hostPortWithLocalPort:(UInt16)port serviceName:(NSString *)name {
+  return [[EDOHostPort alloc] initWithPort:port name:name deviceSerialNumber:nil];
+}
+
++ (instancetype)hostPortWithDevicePort:(UInt16)port
+                    deviceSerialNumber:(NSString *)deviceSerialNumber {
   return [[EDOHostPort alloc] initWithPort:port name:nil deviceSerialNumber:deviceSerialNumber];
 }
 
@@ -67,6 +75,29 @@
 
 - (id)copyWithZone:(nullable NSZone *)zone {
   return [[EDOHostPort alloc] initWithPort:_port name:_name deviceSerialNumber:_deviceSerialNumber];
+}
+
+#pragma mark - NSSecureCoding
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super init];
+  if (self) {
+    _port = (UInt16)[aDecoder decodeIntForKey:kEDOHostPortCoderPortKey];
+    _name = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOHostPortCoderNameKey];
+    _deviceSerialNumber = [aDecoder decodeObjectOfClass:[NSString class]
+                                                 forKey:kEDOHostPortCoderDeviceSerialKey];
+  }
+  return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [aCoder encodeInteger:self.port forKey:kEDOHostPortCoderPortKey];
+  [aCoder encodeObject:self.name forKey:kEDOHostPortCoderNameKey];
+  [aCoder encodeObject:self.deviceSerialNumber forKey:kEDOHostPortCoderDeviceSerialKey];
 }
 
 @end
