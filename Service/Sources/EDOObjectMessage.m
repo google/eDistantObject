@@ -16,28 +16,63 @@
 
 #import "Service/Sources/EDOObjectMessage.h"
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
 
-static NSString *const EDOObjectCoderObjectKey = @"object";
+static NSString *const kEDOObjectCoderObjectKey = @"object";
+static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 
 #pragma mark -
+
+@interface EDOObjectRequest ()
+
+@property(readonly) EDOHostPort *hostPort;
+
+@end
 
 @implementation EDOObjectRequest
 
 // Only the type placeholder, don't need to override the [initWithCoder:] and [encodeWithCoder:]
 
++ (EDORequestHandler)requestHandler {
+  return ^(EDOServiceRequest *request, EDOHostService *service) {
+    EDOObject *object =
+        [service distantObjectForLocalObject:service.rootLocalObject
+                                    hostPort:((EDOObjectRequest *)request).hostPort];
+    return [EDOObjectResponse responseWithObject:object forRequest:request];
+  };
+}
+
++ (instancetype)requestWithHostPort:(EDOHostPort *)hostPort {
+  return [[self alloc] initWithHostPort:hostPort];
+}
+
+- (instancetype)initWithHostPort:(EDOHostPort *)hostPort {
+  self = [super init];
+  if (self) {
+    _hostPort = hostPort;
+  }
+  return self;
+}
+
+#pragma mark - NSSecureCoding
+
 + (BOOL)supportsSecureCoding {
   return YES;
 }
 
-+ (EDORequestHandler)requestHandler {
-  return ^(EDOServiceRequest *request, EDOHostService *service) {
-    return [EDOObjectResponse responseWithObject:service.rootObject forRequest:request];
-  };
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super initWithCoder:aDecoder];
+  if (self) {
+    _hostPort = [aDecoder decodeObjectOfClass:[EDOHostPort class]
+                                       forKey:kEDOObjectCoderHostPortKey];
+  }
+  return self;
 }
 
-+ (instancetype)request {
-  return [[self alloc] init];
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [super encodeWithCoder:aCoder];
+  [aCoder encodeObject:self.hostPort forKey:kEDOObjectCoderHostPortKey];
 }
 
 @end
@@ -61,14 +96,14 @@ static NSString *const EDOObjectCoderObjectKey = @"object";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _object = [aDecoder decodeObjectOfClass:[EDOObject class] forKey:EDOObjectCoderObjectKey];
+    _object = [aDecoder decodeObjectOfClass:[EDOObject class] forKey:kEDOObjectCoderObjectKey];
   }
   return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeObject:self.object forKey:EDOObjectCoderObjectKey];
+  [aCoder encodeObject:self.object forKey:kEDOObjectCoderObjectKey];
 }
 
 + (EDOServiceResponse *)responseWithObject:(EDOObject *)object

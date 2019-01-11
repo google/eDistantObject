@@ -21,11 +21,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostPort;
+
 /** The class request to retrieve the class object. */
 @interface EDOClassRequest : EDOServiceRequest
 
-/** Create a request with the class name. */
-+ (instancetype)requestWithClassName:(NSString *)className;
+/** Create a request with the class name and device serial. */
++ (instancetype)requestWithClassName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
 
 - (instancetype)init NS_UNAVAILABLE;
 

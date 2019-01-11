@@ -23,20 +23,21 @@ static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
 @implementation EDOHostPort
 
 + (instancetype)hostPortWithLocalPort:(UInt16)port {
-  return [[EDOHostPort alloc] initWithPort:port name:nil deviceSerialNumber:nil];
+  return [self hostPortWithPort:port name:nil deviceSerialNumber:nil];
 }
 
 + (instancetype)hostPortWithLocalPort:(UInt16)port serviceName:(NSString *)name {
-  return [[EDOHostPort alloc] initWithPort:port name:name deviceSerialNumber:nil];
-}
-
-+ (instancetype)hostPortWithDevicePort:(UInt16)port
-                    deviceSerialNumber:(NSString *)deviceSerialNumber {
-  return [[EDOHostPort alloc] initWithPort:port name:nil deviceSerialNumber:deviceSerialNumber];
+  return [self hostPortWithPort:port name:name deviceSerialNumber:nil];
 }
 
 + (instancetype)hostPortWithName:(NSString *)name {
-  return [[EDOHostPort alloc] initWithPort:0 name:name deviceSerialNumber:nil];
+  return [self hostPortWithPort:0 name:name deviceSerialNumber:nil];
+}
+
++ (instancetype)hostPortWithPort:(UInt16)port
+                            name:(NSString *_Nullable)name
+              deviceSerialNumber:(NSString *_Nullable)deviceSerialNumber {
+  return [[self alloc] initWithPort:port name:name deviceSerialNumber:deviceSerialNumber];
 }
 
 - (instancetype)initWithPort:(UInt16)port

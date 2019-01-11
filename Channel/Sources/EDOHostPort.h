@@ -40,24 +40,22 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)hostPortWithLocalPort:(UInt16)port;
 
 /**
- *  Creates a host port instance with local port number and optional service name. This is used for
- *  host ports on a local machine.
- */
-+ (instancetype)hostPortWithLocalPort:(UInt16)port serviceName:(NSString *_Nullable)name;
-
-/**
- *  Creates a host port instance with device port number and device serial number. This is used on
- *  the Mac side for host ports on an iOS physical device.
- */
-+ (instancetype)hostPortWithDevicePort:(UInt16)port
-                    deviceSerialNumber:(NSString *)deviceSerialNumber;
-
-/**
  *  Creates a host port instance with a unique name which is to identify the host port when
  *  communicate with a service on Mac from an iOS physical device.
  *  In this case the @c port is always 0 and @c deviceSerialNumber is always @c nil.
  */
 + (instancetype)hostPortWithName:(NSString *)name;
+
+/**
+ *  Creates a host port instance with local port number and optional service name. This is used for
+ *  host ports on a local machine.
+ */
++ (instancetype)hostPortWithLocalPort:(UInt16)port serviceName:(NSString *_Nullable)name;
+
+/* Creates a host port instance with port number and optional name and device serial number. */
++ (instancetype)hostPortWithPort:(UInt16)port
+                            name:(NSString *_Nullable)name
+              deviceSerialNumber:(NSString *_Nullable)deviceSerialNumber;
 
 - (instancetype)init NS_UNAVAILABLE;
 

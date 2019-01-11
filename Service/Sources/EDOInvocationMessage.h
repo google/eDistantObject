@@ -20,6 +20,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostPort;
 @class EDOHostService;
 @class EDOParameter;
 typedef EDOParameter EDOBoxedValueType;
@@ -37,6 +38,7 @@ typedef EDOParameter EDOBoxedValueType;
  *  @param selector      The selector that is sent to the @c target. @c nil if the target is a
  *                       block.
  *  @param arguments     The array of arguments to send.
+ *  @param hostPort      The host port the request is sent to.
  *  @param returnByValue @c YES if the invocation should return the object by value instead of by
  *                       reference (for value-types that are already return-by-value by default,
  *                       this will be a no-op).
@@ -44,6 +46,7 @@ typedef EDOParameter EDOBoxedValueType;
 + (instancetype)requestWithTarget:(EDOPointerType)target
                          selector:(SEL _Nullable)selector
                         arguments:(NSArray *)arguments
+                         hostPort:(EDOHostPort *)hostPort
                     returnByValue:(BOOL)returnByValue;
 
 /**

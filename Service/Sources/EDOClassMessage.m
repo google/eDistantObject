@@ -16,15 +16,19 @@
 
 #import "Service/Sources/EDOClassMessage.h"
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
 
 static NSString *const kEDOObjectCoderClassNameKey = @"className";
+static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 
 #pragma mark -
 
 @interface EDOClassRequest ()
 /** The class name. */
 @property(readonly) NSString *className;
+/** The host port. */
+@property(readonly) EDOHostPort *hostPort;
 @end
 
 #pragma mark -
@@ -39,19 +43,21 @@ static NSString *const kEDOObjectCoderClassNameKey = @"className";
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOClassRequest *classRequest = (EDOClassRequest *)request;
     Class clz = NSClassFromString(classRequest.className);
-    EDOObject *object = clz ? [service distantObjectForLocalObject:clz] : nil;
+    EDOObject *object =
+        clz ? [service distantObjectForLocalObject:clz hostPort:classRequest.hostPort] : nil;
     return [EDOClassResponse responseWithObject:object forRequest:request];
   };
 }
 
-+ (instancetype)requestWithClassName:(NSString *)className {
-  return [[self alloc] initWithClassName:className];
++ (instancetype)requestWithClassName:(NSString *)className hostPort:(EDOHostPort *)hostPort {
+  return [[self alloc] initWithClassName:className hostPort:hostPort];
 }
 
-- (instancetype)initWithClassName:(NSString *)className {
+- (instancetype)initWithClassName:(NSString *)className hostPort:(EDOHostPort *)hostPort {
   self = [super init];
   if (self) {
     _className = className;
+    _hostPort = hostPort;
   }
   return self;
 }
@@ -60,6 +66,8 @@ static NSString *const kEDOObjectCoderClassNameKey = @"className";
   self = [super initWithCoder:aDecoder];
   if (self) {
     _className = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOObjectCoderClassNameKey];
+    _hostPort = [aDecoder decodeObjectOfClass:[EDOHostPort class]
+                                       forKey:kEDOObjectCoderHostPortKey];
   }
   return self;
 }
@@ -67,6 +75,7 @@ static NSString *const kEDOObjectCoderClassNameKey = @"className";
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
   [aCoder encodeObject:self.className forKey:kEDOObjectCoderClassNameKey];
+  [aCoder encodeObject:self.hostPort forKey:kEDOObjectCoderHostPortKey];
 }
 
 - (NSString *)description {

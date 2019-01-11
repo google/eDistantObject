@@ -53,8 +53,6 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 @property(readonly) dispatch_queue_t localObjectsSyncQueue;
 /** The underlying root object. */
 @property(readonly) id rootLocalObject;
-/** The root object. */
-@property(readonly) EDOObject *rootObject;
 @end
 
 @implementation EDOHostService
@@ -107,7 +105,6 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
     if (object) {
       _rootLocalObject = object;
-      _rootObject = [EDOObject objectWithTarget:object port:_port];
     }
 
     // Save itself to the queue.
@@ -151,7 +148,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
 #pragma mark - Private
 
-- (EDOObject *)distantObjectForLocalObject:(id)object {
+- (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(EDOHostPort *)hostPort {
   // TODO(haowoo): The edoObject shouldn't be shared across different services, currently there is
   //               only one edoObject associated with the underlying object. We need to have a
   //               edoObject for each service per object.
@@ -174,10 +171,12 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     });
   }
 
+  EDOServicePort *port = [EDOServicePort servicePortWithPort:self.port hostPort:hostPort];
+
   if (isObjectBlock) {
-    return [EDOBlockObject edo_remoteProxyFromUnderlyingObject:object withPort:self.port];
+    return [EDOBlockObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
   } else {
-    return [EDOObject edo_remoteProxyFromUnderlyingObject:object withPort:self.port];
+    return [EDOObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
   }
 }
 

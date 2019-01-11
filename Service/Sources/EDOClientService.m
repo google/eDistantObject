@@ -40,28 +40,30 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 @implementation EDOClientService
 
 + (id)rootObjectWithPort:(UInt16)port {
-  EDOObjectRequest *objectRequest = [EDOObjectRequest request];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
+  EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
   return [self responseObjectWithRequest:objectRequest onPort:hostPort];
 }
 
 + (id)rootObjectWithPort:(UInt16)port serviceName:(NSString *)serviceName {
-  EDOObjectRequest *objectRequest = [EDOObjectRequest request];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
+  EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
   return [self responseObjectWithRequest:objectRequest onPort:hostPort];
 }
 
 + (Class)classObjectWithName:(NSString *)className port:(UInt16)port {
-  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
+  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
+                                                                 hostPort:hostPort];
   return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
 }
 
 + (Class)classObjectWithName:(NSString *)className
                         port:(UInt16)port
                  serviceName:(NSString *)serviceName {
-  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
+  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
+                                                                 hostPort:hostPort];
   return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
 }
 

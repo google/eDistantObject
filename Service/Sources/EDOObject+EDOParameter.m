@@ -17,17 +17,19 @@
 #import "Service/Sources/EDOParameter.h"
 
 @class EDOHostService;
+@class EDOHostPort;
 
 @implementation EDOObject (EDOParameter)
 
 /**
  * Box the instance of @c EDOObject into a @c EDOParameter.
  *
- * @see -[NSObject edo_parameterForService:]
+ * @see -[NSObject edo_parameterForService:hostPort:]
  * @note Because EDOObject is an NSProxy, it doesn't inherit category methods from NSObject and
  *       needs to implement it.
  */
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service {
+- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
+                                 hostPort:(EDOHostPort *)hostPort {
   return [EDOParameter parameterWithValue:self objCType:@"@"];
 }
 

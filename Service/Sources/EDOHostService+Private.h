@@ -25,13 +25,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** The internal use for sending and receiving EDOObject. */
 @interface EDOHostService (Private)
-/** The root object. */
-@property(readonly) EDOObject *rootObject;
+/** The underlying root object. */
+@property(readonly) id rootLocalObject;
 /** The executor to handle the request. */
 @property(readonly) EDOExecutor *executor;
 
-/** Wrap a distant object for the given local object. */
-- (EDOObject *)distantObjectForLocalObject:(id)object;
+/**
+ *  Wrap a distant object for the given local object and host port.
+ */
+- (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(EDOHostPort *)hostPort;
 
 /**
  *  Checks if the underlying object for the given @c EDOObject is still alive.

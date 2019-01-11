@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
@@ -25,12 +26,14 @@
 #import "Service/Sources/NSObject+EDOParameter.h"
 
 // Box the value type directly into NSValue, the other types into a EDOObject, and the nil value.
-#define BOX_VALUE(value, service) \
-  ([(value) edo_parameterForService:(service)] ?: [EDOBoxedValueType parameterForNilValue])
+#define BOX_VALUE(__value, __service, __hostPort)                        \
+  ([(__value) edo_parameterForService:(__service) hostPort:(__hostPort)] \
+       ?: [EDOBoxedValueType parameterForNilValue])
 
 static NSString *const kEDOInvocationCoderTargetKey = @"target";
 static NSString *const kEDOInvocationCoderSelNameKey = @"selName";
 static NSString *const kEDOInvocationCoderArgumentsKey = @"arguments";
+static NSString *const kEDOInvocationCoderHostPortKey = @"hostPort";
 static NSString *const kEDOInvocationReturnByValueKey = @"returnByValue";
 
 static NSString *const kEDOInvocationCoderReturnValueKey = @"returnValue";
@@ -113,6 +116,8 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 @property(readonly) NSArray<EDOBoxedValueType *> *arguments;
 /** The flag indicationg return-by-value. */
 @property(readonly, assign) BOOL returnByValue;
+/** The host port. */
+@property(readonly) EDOHostPort *hostPort;
 @end
 
 @implementation EDOInvocationRequest
@@ -124,10 +129,12 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 + (instancetype)requestWithTarget:(EDOPointerType)target
                          selector:(SEL)selector
                         arguments:(NSArray *)arguments
+                         hostPort:(EDOHostPort *)hostPort
                     returnByValue:(BOOL)returnByValue {
   return [[self alloc] initWithTarget:target
                              selector:selector
                             arguments:arguments
+                             hostPort:hostPort
                         returnByValue:returnByValue];
 }
 
@@ -151,13 +158,13 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
       id __unsafe_unretained obj;
       [invocation getArgument:&obj atIndex:i];
-      value = BOX_VALUE(obj, service);
+      value = BOX_VALUE(obj, service, service.port.hostPort);
     } else if (EDO_IS_OBJPOINTER(ctype)) {
       id __unsafe_unretained *objRef;
       [invocation getArgument:&objRef atIndex:i];
 
       // Convert and pass the value as an object and decode it on remote side.
-      value = objRef ? BOX_VALUE(*objRef, service)
+      value = objRef ? BOX_VALUE(*objRef, service, service.port.hostPort)
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
       // TODO(haowoo): Add the proper error and/or exception handler.
@@ -177,6 +184,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
   return [self requestWithTarget:target.remoteAddress
                         selector:selector
                        arguments:arguments
+                        hostPort:target.servicePort.hostPort
                    returnByValue:returnByValue];
 }
 
@@ -185,6 +193,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     EDOInvocationRequest *request = (EDOInvocationRequest *)originalRequest;
     NSAssert([request isKindOfClass:[EDOInvocationRequest class]],
              @"EDOInvocationRequest is expected.");
+    EDOHostPort *hostPort = request.hostPort;
     id target = (__bridge id)(void *)request.target;
     SEL sel = NSSelectorFromString(request.selName);
 
@@ -275,7 +284,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
           id __unsafe_unretained obj;
           [invocation getReturnValue:&obj];
           returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
-                                              : BOX_VALUE(obj, service);
+                                              : BOX_VALUE(obj, service, hostPort);
         } else if (EDO_IS_POINTER(returnType)) {
           // TODO(haowoo): Handle this early and populate the exception.
 
@@ -296,8 +305,8 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
         if (!EDO_IS_OBJPOINTER(ctype)) {
           continue;
         }
-
-        [outValues addObject:BOX_VALUE(outObjects[curArgIdx], service)];
+        // TODO(ynzhang): add device serial info.
+        [outValues addObject:BOX_VALUE(outObjects[curArgIdx], service, hostPort)];
       }
     } @catch (NSException *e) {
       // TODO(haowoo): Add more error info for non-user exception errors.
@@ -314,12 +323,14 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (instancetype)initWithTarget:(EDOPointerType)target
                       selector:(SEL)selector
                      arguments:(NSArray *)arguments
+                      hostPort:(EDOHostPort *)hostPort
                  returnByValue:(BOOL)returnByValue {
   self = [super init];
   if (self) {
     _target = target;
     _selName = selector ? NSStringFromSelector(selector) : nil;
     _arguments = arguments;
+    _hostPort = hostPort;
     _returnByValue = returnByValue;
   }
   return self;
@@ -333,6 +344,8 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     _target = [aDecoder decodeInt64ForKey:kEDOInvocationCoderTargetKey];
     _selName = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOInvocationCoderSelNameKey];
     _arguments = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOInvocationCoderArgumentsKey];
+    _hostPort = [aDecoder decodeObjectOfClass:[EDOHostPort class]
+                                       forKey:kEDOInvocationCoderHostPortKey];
     _returnByValue = [aDecoder decodeBoolForKey:kEDOInvocationReturnByValueKey];
   }
   return self;
@@ -343,6 +356,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
   [aCoder encodeInt64:self.target forKey:kEDOInvocationCoderTargetKey];
   [aCoder encodeObject:self.selName forKey:kEDOInvocationCoderSelNameKey];
   [aCoder encodeObject:self.arguments forKey:kEDOInvocationCoderArgumentsKey];
+  [aCoder encodeObject:self.hostPort forKey:kEDOInvocationCoderHostPortKey];
   [aCoder encodeBool:self.returnByValue forKey:kEDOInvocationReturnByValueKey];
 }
 

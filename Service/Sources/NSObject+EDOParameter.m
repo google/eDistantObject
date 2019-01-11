@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOProtocolObject.h"
@@ -36,7 +37,8 @@ static Class GetProtocolClass() {
 
 @implementation NSObject (EDOParameter)
 
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service {
+- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
+                                 hostPort:(EDOHostPort *)hostPort {
   id boxedObject = self;
 
   if ([boxedObject class] == GetProtocolClass()) {
@@ -46,7 +48,7 @@ static Class GetProtocolClass() {
     NSAssert(service, @"The service isn't set up to create the remote object.");
 
     // Wrap it with EDOObject from the service associated with the execution queue.
-    boxedObject = [service distantObjectForLocalObject:self];
+    boxedObject = [service distantObjectForLocalObject:self hostPort:hostPort];
   }
   return [EDOParameter parameterWithObject:boxedObject];
 }

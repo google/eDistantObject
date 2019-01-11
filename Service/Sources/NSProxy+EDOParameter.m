@@ -16,17 +16,19 @@
 
 #import "Service/Sources/NSProxy+EDOParameter.h"
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
 
 @implementation NSProxy (EDOParameter)
 
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service {
+- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
+                                 hostPort:(EDOHostPort *)hostPort {
   // TODO(haowoo): Add the proper handler.
   NSAssert(service, @"The service isn't set up to create the remote object.");
 
   // Wrap it with EDOObject from the service associated with the execution queue.
-  id boxedObject = [service distantObjectForLocalObject:self];
+  id boxedObject = [service distantObjectForLocalObject:self hostPort:hostPort];
   return [EDOParameter parameterWithObject:boxedObject];
 }
 

@@ -18,13 +18,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOHostPort;
 @class EDOObject;
 
 /** The object request to retrieve the root object associated with the service. */
 @interface EDOObjectRequest : EDOServiceRequest
 
-/** Create an object request. */
-+ (instancetype)request;
+/** Creates an object request with @c hostPort. */
++ (instancetype)requestWithHostPort:(EDOHostPort *)hostPort;
 
 @end
 

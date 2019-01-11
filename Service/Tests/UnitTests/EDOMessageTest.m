@@ -103,7 +103,9 @@
                                         block:^(EDOHostService *service) {
                                           EDOObjectResponse *response =
                                               (EDOObjectResponse *)EDOObjectRequest.requestHandler(
-                                                  [EDOObjectRequest request], service);
+                                                  [EDOObjectRequest
+                                                      requestWithHostPort:service.port.hostPort],
+                                                  service);
                                           XCTAssertEqualObjects([response class],
                                                                 [EDOObjectResponse class]);
                                           EDOObject *object = response.object;
@@ -125,7 +127,8 @@
                                         block:^(EDOHostService *service) {
                                           {
                                             EDOServiceRequest *request = [EDOClassRequest
-                                                requestWithClassName:@"EDOTestDummy"];
+                                                requestWithClassName:@"EDOTestDummy"
+                                                            hostPort:service.port.hostPort];
                                             EDOClassResponse *response =
                                                 (EDOClassResponse *)EDOClassRequest.requestHandler(
                                                     request, service);
@@ -140,7 +143,8 @@
 
                                           {
                                             EDOServiceRequest *request = [EDOClassRequest
-                                                requestWithClassName:@"NonExistTestClass"];
+                                                requestWithClassName:@"NonExistTestClass"
+                                                            hostPort:service.port.hostPort];
                                             EDOClassResponse *response =
                                                 (EDOClassResponse *)EDOClassRequest.requestHandler(
                                                     request, service);
@@ -546,7 +550,8 @@
   }
 
   {
-    id dummyClazz = [service distantObjectForLocalObject:[dummyLocal class]];
+    id dummyClazz = [service distantObjectForLocalObject:[dummyLocal class]
+                                                hostPort:service.port.hostPort];
     NSMethodSignature *sig1 =
         [dummyClazz methodSignatureForSelector:@selector(classMethodWithNumber:)];
     NSMethodSignature *sig2 =
@@ -577,6 +582,7 @@
   EDOInvocationRequest *request = [EDOInvocationRequest requestWithTarget:targetPointer
                                                                  selector:selector
                                                                 arguments:arguments
+                                                                 hostPort:service.port.hostPort
                                                             returnByValue:NO];
   return (EDOInvocationResponse *)EDOInvocationRequest.requestHandler(request, service);
 }

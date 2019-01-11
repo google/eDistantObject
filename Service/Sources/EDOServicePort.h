@@ -25,11 +25,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface EDOServicePort : NSObject <NSSecureCoding>
 
-/** The port that the service listens on. */
+/** The port that the service listens on. This API will be deprecated. */
+// TODO(ynzhang): remove this property and update external codes that uses it.
 @property(nonatomic, readonly) UInt16 port;
 
 /** The port information to recognize the service. */
 @property(nonatomic, readonly) EDOHostPort *hostPort;
+
+/** Creates a service port with the information from given service port and host port. */
++ (EDOServicePort *)servicePortWithPort:(EDOServicePort *)port hostPort:(EDOHostPort *)hostPort;
 
 /** Checks if the two @c EDOServicePort have the same identity. */
 - (BOOL)match:(EDOServicePort *)otherPort;

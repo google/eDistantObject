@@ -34,6 +34,12 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   return [[self alloc] initWithPort:port serviceName:serviceName];
 }
 
++ (instancetype)servicePortWithPort:(EDOServicePort *)port hostPort:(EDOHostPort *)hostPort {
+  EDOServicePort *newPort = [[EDOServicePort alloc] initWithHostPort:hostPort
+                                                          serviceKey:port->_serviceKey];
+  return newPort;
+}
+
 - (instancetype)init {
   self = [super init];
   if (self) {
@@ -48,6 +54,16 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
   if (self) {
     _port = port;
     _hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
+  }
+  return self;
+}
+
+- (instancetype)initWithHostPort:(EDOHostPort *)hostPort serviceKey:(uuid_t)serviceKey {
+  self = [super init];
+  if (self) {
+    _port = hostPort.port;
+    _hostPort = hostPort;
+    uuid_copy(_serviceKey, serviceKey);
   }
   return self;
 }
@@ -71,7 +87,10 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
 }
 
 - (BOOL)match:(EDOServicePort *)otherPort {
-  return [self.hostPort isEqual:otherPort.hostPort] &&
+  // Ignore deviceSerial since it is not saved in the host side.
+  BOOL isNameEqual = self.hostPort.name == otherPort.hostPort.name ||
+                     [self.hostPort.name isEqualToString:otherPort.hostPort.name];
+  return self.hostPort.port == otherPort.hostPort.port && isNameEqual &&
          uuid_compare(_serviceKey, otherPort->_serviceKey) == 0;
 }
 
