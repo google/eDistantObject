@@ -457,6 +457,13 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   OCMVerify([testProtocol returnWithObject:[OCMArg isNotNil]]);
 }
 
+- (void)testEDODescription {
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  // Assign an arbitrary non-zero number to avoid test flakiness.
+  dummyOnBackground.value = 19;
+  XCTAssertEqualObjects(dummyOnBackground.description, @"Test Dummy 19");
+}
+
 - (void)testEDOEqual {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
   NSSet<NSNumber *> *returnSetA = [dummyOnBackground returnSet];

@@ -44,6 +44,10 @@ static const NSInteger kLargeArraySize = 1000;
   return self;
 }
 
+- (NSString *)description {
+  return [NSString stringWithFormat:@"Test Dummy %d", self.value];
+}
+
 - (void)voidWithValuePlusOne {
   ++_value;
 }

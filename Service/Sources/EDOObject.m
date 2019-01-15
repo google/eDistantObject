@@ -107,7 +107,8 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
  *  @note The stubbed class has already handled this in +[alloc] locally.
  */
 - (instancetype)alloc {
-  return [self edo_forwardInvocationAndRetainResultForSelector:_cmd];
+  // Extra retain to balance ARC inserting -autorelease.
+  return [self edo_forwardInvocationForSelector:_cmd retainReturn:YES];
 }
 
 - (instancetype)allocWithZone:(NSZone *)zone {
@@ -136,12 +137,13 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
  *        implies to own the object like -initWithXxx.
  */
 - (instancetype)copy {
-  return [self edo_forwardInvocationAndRetainResultForSelector:_cmd];
+  // Extra retain to balance ARC inserting -autorelease.
+  return [self edo_forwardInvocationForSelector:_cmd retainReturn:YES];
 }
 
 // Same as -[copy] but for the -[mutableCopy].
 - (instancetype)mutableCopy {
-  return [self edo_forwardInvocationAndRetainResultForSelector:_cmd];
+  return [self edo_forwardInvocationForSelector:_cmd retainReturn:YES];
 }
 
 - (void)dealloc {
@@ -202,6 +204,10 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   [self forwardInvocation:invocation];
   [invocation getReturnValue:&remoteHash];
   return remoteHash;
+}
+
+- (NSString *)description {
+  return [self edo_forwardInvocationForSelector:_cmd retainReturn:NO];
 }
 
 #pragma mark - NSFastEnumeration
@@ -315,16 +321,46 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   return [[self alloc] edo_initWithLocalObject:underlyingObject port:port];
 }
 
-- (instancetype)edo_forwardInvocationAndRetainResultForSelector:(SEL)selector {
+/**
+ *  Forwards the @c selector to the remote underlying object.
+ *
+ *  With ARC, -retain and -release or -autorelease will be inserted at compile time to assure the
+ *  correct behavior, according to Objective-C memory conventions, however it doesn't guarantee that
+ *  the retain count will always balance, for example, NS_RETURNS_RETAINED will annotate the ARC to
+ *  explicitly transfer the ownership without extra -retain. ARC reserves the right to remove any
+ *  -retain/-release if safe in the context of source file. However, eDO builds the remote
+ *  invocation using @c NSInvocation, where this context will be lost and ARC treats the memory
+ *  as what @c NSInvocation states, that is, the caller needs to do -retain to balance the retain
+ *  count. In this case, for -alloc and -copy, we need to explicitly rebalance the retain count to
+ *  counter the -retain ARC inserts.
+ *
+ *  For more see ARC in
+ * [details](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html),
+ *  and more here [the method
+ * families](http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families).
+ *
+ *  @note ARC would insert -release or -autorelease on the object returned from -alloc and -copy,
+ *        but the remote invocation eDO builds from @c NSInvocation already balances the retain
+ *        count, so here eDO does what ARC would do to -retain the returned object.
+ *
+ *  @param selector      The selector to forward to the underlying remote object.
+ *  @param retainReturn  Whether to retain the returned object.
+ *  @return The object returned by the remote invocation.
+ */
+- (id)edo_forwardInvocationForSelector:(SEL)selector retainReturn:(BOOL)retainReturn {
   NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:selector];
   NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
   invocation.target = self;
   invocation.selector = selector;
   [self forwardInvocation:invocation];
 
-  EDOObject *returnObject;
+  id __unsafe_unretained returnObject;
   [invocation getReturnValue:&returnObject];
-  return (__bridge id)CFBridgingRetain(returnObject);
+  if (retainReturn) {
+    return (__bridge id)CFBridgingRetain(returnObject);
+  } else {
+    return returnObject;
+  }
 }
 
 @end
