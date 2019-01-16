@@ -324,7 +324,7 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 /**
  *  Forwards the @c selector to the remote underlying object.
  *
- *  With ARC, -retain and -release or -autorelease will be inserted at compile time to assure the
+ *  With ARC, -retain and -release or -autorelease will be inserted at compile time to ensure the
  *  correct behavior, according to Objective-C memory conventions, however it doesn't guarantee that
  *  the retain count will always balance, for example, NS_RETURNS_RETAINED will annotate the ARC to
  *  explicitly transfer the ownership without extra -retain. ARC reserves the right to remove any

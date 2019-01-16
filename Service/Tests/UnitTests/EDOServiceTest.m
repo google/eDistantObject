@@ -222,19 +222,6 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testResolveToSameUnderlyingObjectInArgument {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  id localObject = self;
-  // When the first statement comes back, the remote reference to the localObject should already
-  // be released, so the two addresses won't be the same as there will be two remote references
-  // created.
-  UInt64 localAddress = [dummyOnBackground memoryAddressFromObject:localObject];
-  // Extra statement to trigger the autorelease the remote reference.
-  [dummyOnBackground memoryAddressFromObject:localObject];
-  XCTAssertNotEqual(localAddress, [dummyOnBackground memoryAddressFromObject:localObject]);
-
-  UInt64 localRefAddress = [dummyOnBackground memoryAddressFromObjectRef:&localObject];
-  // Extra statement to trigger the autorelease the remote reference.
-  [dummyOnBackground memoryAddressFromObjectRef:&localObject];
-  XCTAssertNotEqual(localRefAddress, [dummyOnBackground memoryAddressFromObjectRef:&localObject]);
 
   // The argument dummyOnBackground should be resolved to the same remote object.
   XCTAssertEqual([dummyOnBackground memoryAddressFromObject:dummyOnBackground],
