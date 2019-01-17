@@ -57,6 +57,11 @@
   return [[self alloc] initWithSocket:socket hostPort:hostPort];
 }
 
++ (instancetype)channelWithDispatchChannel:(dispatch_io_t)dispatchChannel
+                                  hostPort:(EDOHostPort *)hostPort {
+  return [[self alloc] initWithDispatchChannel:dispatchChannel hostPort:hostPort];
+}
+
 - (instancetype)initWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
   self = [self initInternal];
   if (self) {
@@ -81,6 +86,17 @@
         _hostPort = hostPort;
       }
     }
+  }
+  return self;
+}
+
+- (instancetype)initWithDispatchChannel:(dispatch_io_t)dispatchChannel
+                               hostPort:(EDOHostPort *)hostPort {
+  self = [self initInternal];
+  if (self) {
+    _socket = dispatch_io_get_descriptor(dispatchChannel);
+    _channel = dispatchChannel;
+    _hostPort = hostPort;
   }
   return self;
 }
