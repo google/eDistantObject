@@ -25,6 +25,7 @@
 #import "Service/Sources/EDOClassMessage.h"
 #import "Service/Sources/EDOClientServiceStatsCollector.h"
 #import "Service/Sources/EDOExecutor.h"
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectAliveMessage.h"
@@ -89,6 +90,64 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   }
 
   return object;
+}
+
++ (EDOHostNamingService *)namingServiceWithDeivceSerial:(NSString *)serial error:(NSError **)error {
+  __block NSError *connectError;
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithPort:EDOHostNamingService.namingServerPort
+                                                   name:nil
+                                     deviceSerialNumber:serial];
+  id<EDOChannel> channel =
+      [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:hostPort error:&connectError];
+  if (connectError) {
+    if (error) {
+      *error = connectError;
+    }
+    return nil;
+  }
+
+  EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
+  NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:objectRequest];
+  dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+  [channel sendData:requestData
+      withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
+        if (error) {
+          connectError = error;
+        }
+        dispatch_semaphore_signal(lock);
+      }];
+  dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+  __block EDOObjectResponse *resposne = nil;
+  if (!connectError) {
+    [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
+      if (error) {
+        connectError = error;
+      } else {
+        // Continue to receive the response if the ping is received.
+        if ([data isEqualToData:EDOClientService.pingMessageData]) {
+          [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *responseData,
+                                            NSError *error) {
+            if (error) {
+              connectError = error;
+            } else {
+              resposne = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+            }
+            dispatch_semaphore_signal(lock);
+          }];
+        } else {
+          // TODO(ynzhang): add better error handling with proper error info.
+          connectError = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
+          dispatch_semaphore_signal(lock);
+        }
+        [EDOChannelPool.sharedChannelPool addChannel:channel];
+      }
+    }];
+    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+  }
+  if (error) {
+    *error = connectError;
+  }
+  return resposne.object;
 }
 
 #pragma mark - Private Category

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C506891621F1D19600A809F1 /* EDODeviceDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891121F1D19100A809F1 /* EDODeviceDetector.m */; };
+		C506891721F1D19600A809F1 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891221F1D19200A809F1 /* EDODeviceConnector.m */; };
+		C506891821F1D19600A809F1 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891421F1D19300A809F1 /* EDODeviceChannel.m */; };
+		C506891B21F1E16200A809F1 /* EDOUSBMuxUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */; };
 		C532ABF32136054B00162011 /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C532ABFA2136142300162011 /* libTestsBundle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C84503C620DDB07A00D7350F /* libTestsBundle.a */; };
 		C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0382134D50600421D72 /* EDOTestDummy.m */; };
@@ -193,6 +197,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C506890E21F1D13600A809F1 /* EDOHostService+Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EDOHostService+Device.h"; path = "Service/Sources/EDOHostService+Device.h"; sourceTree = "<group>"; };
+		C506890F21F1D13600A809F1 /* EDOClientService+Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EDOClientService+Device.h"; path = "Service/Sources/EDOClientService+Device.h"; sourceTree = "<group>"; };
+		C506891021F1D19000A809F1 /* EDODeviceDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceDetector.h; sourceTree = "<group>"; };
+		C506891121F1D19100A809F1 /* EDODeviceDetector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDODeviceDetector.m; sourceTree = "<group>"; };
+		C506891221F1D19200A809F1 /* EDODeviceConnector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDODeviceConnector.m; sourceTree = "<group>"; };
+		C506891321F1D19300A809F1 /* EDODeviceConnector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceConnector.h; sourceTree = "<group>"; };
+		C506891421F1D19300A809F1 /* EDODeviceChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDODeviceChannel.m; sourceTree = "<group>"; };
+		C506891521F1D19400A809F1 /* EDODeviceChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceChannel.h; sourceTree = "<group>"; };
+		C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOUSBMuxUtil.m; sourceTree = "<group>"; };
+		C506891A21F1E16100A809F1 /* EDOUSBMuxUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOUSBMuxUtil.h; sourceTree = "<group>"; };
 		C535B59721D3077100BAE558 /* EDOHostNamingService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOHostNamingService.h; path = Service/Sources/EDOHostNamingService.h; sourceTree = "<group>"; };
 		C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "EDOHostNamingService+Private.h"; path = "Service/Sources/EDOHostNamingService+Private.h"; sourceTree = "<group>"; };
 		C535B59921D3077200BAE558 /* EDOHostNamingService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOHostNamingService.m; path = Service/Sources/EDOHostNamingService.m; sourceTree = "<group>"; };
@@ -431,6 +445,8 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C506890F21F1D13600A809F1 /* EDOClientService+Device.h */,
+				C506890E21F1D13600A809F1 /* EDOHostService+Device.h */,
 				C535B59721D3077100BAE558 /* EDOHostNamingService.h */,
 				C535B59921D3077200BAE558 /* EDOHostNamingService.m */,
 				C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */,
@@ -658,6 +674,14 @@
 		C845027C20DD9D8800D7350F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C506891A21F1E16100A809F1 /* EDOUSBMuxUtil.h */,
+				C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */,
+				C506891521F1D19400A809F1 /* EDODeviceChannel.h */,
+				C506891421F1D19300A809F1 /* EDODeviceChannel.m */,
+				C506891321F1D19300A809F1 /* EDODeviceConnector.h */,
+				C506891221F1D19200A809F1 /* EDODeviceConnector.m */,
+				C506891021F1D19000A809F1 /* EDODeviceDetector.h */,
+				C506891121F1D19100A809F1 /* EDODeviceDetector.m */,
 				C5D03FDF21D77160003DC06A /* EDOChannelUtil.h */,
 				C5D03FE021D77161003DC06A /* EDOChannelUtil.m */,
 				C5791DAC21B61099003EBC59 /* EDOChannelPool.h */,
@@ -1004,10 +1028,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C506891621F1D19600A809F1 /* EDODeviceDetector.m in Sources */,
 				C5791D8421AF7A67003EBC59 /* EDOHostPort.m in Sources */,
+				C506891721F1D19600A809F1 /* EDODeviceConnector.m in Sources */,
 				C845028E20DD9D8800D7350F /* EDOSocketPort.m in Sources */,
+				C506891B21F1E16200A809F1 /* EDOUSBMuxUtil.m in Sources */,
 				C845028D20DD9D8800D7350F /* EDOSocketChannel.m in Sources */,
 				C845028C20DD9D8800D7350F /* EDOListenSocket.m in Sources */,
+				C506891821F1D19600A809F1 /* EDODeviceChannel.m in Sources */,
 				C5D03FE121D77161003DC06A /* EDOChannelUtil.m in Sources */,
 				C5791DAD21B6109A003EBC59 /* EDOChannelPool.m in Sources */,
 				C845028A20DD9D8800D7350F /* EDOSocket.m in Sources */,

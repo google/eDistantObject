@@ -16,6 +16,7 @@
 
 #import "Channel/Sources/EDOChannelPool.h"
 
+#import "Channel/Sources/EDODeviceConnector.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
@@ -89,13 +90,10 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
     // TODO(ynzhang): Should request connection channel from the service side and add it to channel
     // pool. Now it is done in the unit test.
   } else {
-    [self edo_createChannelWithPort:port
-              withCompletionHandler:^(id<EDOChannel> socketChannel, NSError *createChannelError) {
-                resultError = createChannelError;
-                if (socketChannel) {
-                  [self addChannel:socketChannel];
-                }
-              }];
+    id<EDOChannel> createdChannel = [self edo_createChannelWithPort:port error:&resultError];
+    if (createdChannel) {
+      [self addChannel:createdChannel];
+    }
   }
   channel = [self edo_popChannelFromChannelMapWithPort:port waitUntilTimeout:YES];
   if (error) {
@@ -147,23 +145,31 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 
 #pragma mark - private
 
-- (void)edo_createChannelWithPort:(EDOHostPort *)port
-            withCompletionHandler:(EDOFetchChannelHandler)handler {
-  __block EDOSocketChannel *channel = nil;
-  [EDOSocket connectWithTCPPort:port.port
-                          queue:nil
-                 connectedBlock:^(EDOSocket *_Nullable socket, UInt16 listenPort,
-                                  NSError *_Nullable error) {
-                   if (error) {
-                     handler(nil, error);
-                   } else {
-                     channel = [EDOSocketChannel
-                         channelWithSocket:socket
-                                  hostPort:[EDOHostPort hostPortWithLocalPort:listenPort
-                                                                  serviceName:port.name]];
-                     handler(channel, nil);
-                   }
-                 }];
+- (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
+  __block id<EDOChannel> channel = nil;
+  __block NSError *connectionError;
+  if (port.deviceSerialNumber) {
+    channel = [EDODeviceConnector.sharedConnector connectToDevicePort:port error:&connectionError];
+  } else {
+    dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+    [EDOSocket connectWithTCPPort:port.port
+                            queue:nil
+                   connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *socketError) {
+                     if (socket) {
+                       channel = [EDOSocketChannel
+                           channelWithSocket:socket
+                                    hostPort:[EDOHostPort hostPortWithLocalPort:listenPort
+                                                                    serviceName:port.name]];
+                     }
+                     connectionError = socketError;
+                     dispatch_semaphore_signal(lock);
+                   }];
+    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+  }
+  if (error) {
+    *error = connectionError;
+  }
+  return channel;
 }
 
 /**

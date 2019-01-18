@@ -18,11 +18,13 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDODeviceConnector.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 #import "Service/Sources/EDOBlockObject.h"
+#import "Service/Sources/EDOClientService+Device.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
@@ -75,6 +77,23 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                                rootObject:(id)object
                                     queue:(dispatch_queue_t)queue {
   return [[self alloc] initWithPort:0 rootObject:object serviceName:name queue:queue];
+}
+
++ (instancetype)serviceWithName:(NSString *)name
+               registerToDevice:(NSString *)deviceSerial
+                     rootObject:(id)object
+                          queue:(dispatch_queue_t)queue {
+  EDOHostService *service = [[self alloc] initWithPort:0
+                                            rootObject:object
+                                           serviceName:name
+                                                 queue:queue];
+  NSError *error;
+  [service edo_registerServiceOnDevice:deviceSerial withName:name error:&error];
+  if (error) {
+    return nil;
+  }
+  service->_port = [EDOServicePort servicePortWithPort:0 serviceName:name];
+  return service;
 }
 
 - (instancetype)initWithPort:(UInt16)port
@@ -260,7 +279,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
         NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
         [targetChannel sendData:responseData withCompletionHandler:nil];
       }
-      if (targetChannel.isValid && strongSelf.listenSocket.valid) {
+      if ([strongSelf edo_shouldReceiveData:channel]) {
         [targetChannel receiveDataWithHandler:strongHandlerBlock];
       }
     }
@@ -296,6 +315,47 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                                           hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
            [self startReceivingRequestsForChannel:clientChannel];
          }];
+}
+
+- (void)edo_registerServiceOnDevice:(NSString *)deviceSerial
+                           withName:(NSString *)name
+                              error:(NSError **)error {
+  __block NSError *connectionError;
+  EDOHostNamingService *namingService =
+      [EDOClientService namingServiceWithDeivceSerial:deviceSerial error:&connectionError];
+  if (!connectionError) {
+    UInt16 port = namingService.serviceConnectionPort;
+    EDOHostPort *devicePort = [EDOHostPort hostPortWithPort:port
+                                                       name:name
+                                         deviceSerialNumber:deviceSerial];
+    id<EDOChannel> channel =
+        [EDODeviceConnector.sharedConnector connectToDevicePort:devicePort error:&connectionError];
+    if (!connectionError) {
+      NSData *data = [name dataUsingEncoding:kCFStringEncodingUTF8];
+      dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+      [channel sendData:data
+          withCompletionHandler:^(id<EDOChannel> channel, NSError *channelError) {
+            if (channelError) {
+              connectionError = channelError;
+            } else {
+              [self startReceivingRequestsForChannel:channel];
+            }
+            dispatch_semaphore_signal(lock);
+          }];
+      dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+    }
+  }
+  if (error) {
+    *error = connectionError;
+  }
+}
+
+- (BOOL)edo_shouldReceiveData:(id<EDOChannel>)channel {
+  // If listenSocket is nil and port number is 0, it indicates a service on Mac for iOS device.
+  if (!_listenSocket && _port.port == 0) {
+    return channel.isValid;
+  }
+  return channel.isValid && _listenSocket.valid;
 }
 
 @end
