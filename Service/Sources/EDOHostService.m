@@ -70,13 +70,17 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 }
 
 + (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue {
-  return [[self alloc] initWithPort:port rootObject:object serviceName:nil queue:queue];
+  return [[self alloc] initWithPort:port
+                         rootObject:object
+                        serviceName:nil
+                              queue:queue
+                         isToDevice:NO];
 }
 
 + (instancetype)serviceWithRegisteredName:(NSString *)name
                                rootObject:(id)object
                                     queue:(dispatch_queue_t)queue {
-  return [[self alloc] initWithPort:0 rootObject:object serviceName:name queue:queue];
+  return [[self alloc] initWithPort:0 rootObject:object serviceName:name queue:queue isToDevice:NO];
 }
 
 + (instancetype)serviceWithName:(NSString *)name
@@ -86,20 +90,23 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   EDOHostService *service = [[self alloc] initWithPort:0
                                             rootObject:object
                                            serviceName:name
-                                                 queue:queue];
+                                                 queue:queue
+                                            isToDevice:YES];
   NSError *error;
   [service edo_registerServiceOnDevice:deviceSerial withName:name error:&error];
   if (error) {
     return nil;
   }
   service->_port = [EDOServicePort servicePortWithPort:0 serviceName:name];
+  NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
   return service;
 }
 
 - (instancetype)initWithPort:(UInt16)port
                   rootObject:(id)object
                  serviceName:(NSString *)serviceName
-                       queue:(dispatch_queue_t)queue {
+                       queue:(dispatch_queue_t)queue
+                  isToDevice:(BOOL)isToDevice {
   self = [super init];
   if (self) {
     _localObjects = [[NSMutableDictionary alloc] init];
@@ -114,7 +121,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
     // Only creates the listen socket when the port is given or the root object is given so we need
     // to serve them at launch.
-    if (port != 0 || object) {
+    if (!isToDevice && (port != 0 || object)) {
       _listenSocket = [self edo_createListenSocket:port];
       _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port
                                       serviceName:serviceName];
