@@ -207,6 +207,7 @@
 		C506891521F1D19400A809F1 /* EDODeviceChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceChannel.h; sourceTree = "<group>"; };
 		C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOUSBMuxUtil.m; sourceTree = "<group>"; };
 		C506891A21F1E16100A809F1 /* EDOUSBMuxUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOUSBMuxUtil.h; sourceTree = "<group>"; };
+		C506892721F86DC100A809F1 /* EDODeviceConnector+Channel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EDODeviceConnector+Channel.h"; sourceTree = "<group>"; };
 		C535B59721D3077100BAE558 /* EDOHostNamingService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOHostNamingService.h; path = Service/Sources/EDOHostNamingService.h; sourceTree = "<group>"; };
 		C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "EDOHostNamingService+Private.h"; path = "Service/Sources/EDOHostNamingService+Private.h"; sourceTree = "<group>"; };
 		C535B59921D3077200BAE558 /* EDOHostNamingService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOHostNamingService.m; path = Service/Sources/EDOHostNamingService.m; sourceTree = "<group>"; };
@@ -674,6 +675,7 @@
 		C845027C20DD9D8800D7350F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C506892721F86DC100A809F1 /* EDODeviceConnector+Channel.h */,
 				C506891A21F1E16100A809F1 /* EDOUSBMuxUtil.h */,
 				C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */,
 				C506891521F1D19400A809F1 /* EDODeviceChannel.h */,

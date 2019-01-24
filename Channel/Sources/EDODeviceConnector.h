@@ -18,9 +18,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class EDOHostPort;
-@protocol EDOChannel;
-
 /** The notification when an iOS device is attached to MacOS. */
 extern NSString *const EDODeviceDidAttachNotification;
 /** The notification when an iOS device is dettached to MacOS. */
@@ -48,12 +45,6 @@ extern NSString *const EDODeviceDidDetachNotification;
 
 /** Stops listening to the broadcast of device events. */
 - (void)stopListening;
-
-/**
- *  Synchronously connects to a given @c hostPort that contains the device serial and a port number
- *  listening on the connected device of that device serial.
- */
-- (id<EDOChannel>)connectToDevicePort:(EDOHostPort *)hostPort error:(NSError **)error;
 
 @end
 

@@ -16,7 +16,7 @@
 
 #import "Channel/Sources/EDOChannelPool.h"
 
-#import "Channel/Sources/EDODeviceConnector.h"
+#import "Channel/Sources/EDODeviceConnector+Channel.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
