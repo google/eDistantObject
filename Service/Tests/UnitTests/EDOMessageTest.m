@@ -525,6 +525,8 @@
   EDOMethodSignatureResponse *response =
       (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(request, service);
   XCTAssertNil(response.signature, @"the non-exist signature should be nil.");
+
+  [service invalidate];
 }
 
 - (void)testMethodSignatureForward {
