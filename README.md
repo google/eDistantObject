@@ -19,8 +19,8 @@ works in [Details Doc](docs/detail.md).
 
 ## How to use
 
-Consider a typical use case, where a Client needs to communication with a Host. The usage steps
-for eDO are broken into three main steps:
+Consider a typical use case, where a Client needs to communicate with a Host.
+The usage steps for eDO are broken into three main steps:
 
 ### 1.  [Host](docs/terminology.md#hostremote-process)
 
