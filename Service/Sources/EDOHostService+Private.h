@@ -31,9 +31,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly) EDOExecutor *executor;
 
 /**
- *  Wrap a distant object for the given local object and host port.
+ *  Wraps a distant object for the given local object and host port.
+ *
+ *  @param object   The object to be wrapped as a remote object.
+ *  @param hostPort The port that the remote object connects to. If nil, the default host port from
+ *                  the service will be used.
+ *  @return The remote object that proxies the given object.
  */
-- (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(EDOHostPort *)hostPort;
+- (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(nullable EDOHostPort *)hostPort;
 
 /**
  *  Checks if the underlying object for the given @c EDOObject is still alive.

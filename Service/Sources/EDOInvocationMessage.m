@@ -158,13 +158,13 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
       id __unsafe_unretained obj;
       [invocation getArgument:&obj atIndex:i];
-      value = BOX_VALUE(obj, service, service.port.hostPort);
+      value = BOX_VALUE(obj, service, nil);
     } else if (EDO_IS_OBJPOINTER(ctype)) {
       id __unsafe_unretained *objRef;
       [invocation getArgument:&objRef atIndex:i];
 
       // Convert and pass the value as an object and decode it on remote side.
-      value = objRef ? BOX_VALUE(*objRef, service, service.port.hostPort)
+      value = objRef ? BOX_VALUE(*objRef, service, nil)
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
       // TODO(haowoo): Add the proper error and/or exception handler.

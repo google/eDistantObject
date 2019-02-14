@@ -102,6 +102,54 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   [self waitForExpectations:@[ expectServiceNil, expectQueueNil ] timeout:10];
 }
 
+- (void)testTemporaryServiceLazilyCreatedIfNoServiceAvailable {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  id serviceMock = OCMPartialMock(service);
+  [serviceMock setExpectationOrderMatters:YES];
+  OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
+      .andReturn(serviceMock);
+  OCMExpect([serviceMock distantObjectForLocalObject:OCMOCK_ANY hostPort:[OCMArg isNil]])
+      .andForwardToRealObject();
+  OCMExpect([(EDOHostService *)serviceMock port]).andForwardToRealObject();
+
+  dispatch_sync(testQueue, ^{
+    XCTAssertNil([EDOHostService serviceForCurrentQueue]);
+    // eDO will wrap the block into a remote object which would create a temporary service.
+    // The service shouldn't initialize the listen socket (by calling -port), until it is later to
+    // wrap the block object (by calling -distantObjectForLocalObject:hostPort:), in the
+    // respective order.
+    [dummyOnBackground voidWithBlock:^{
+    }];
+  });
+
+  OCMVerifyAll(serviceMock);
+  [serviceMock stopMocking];
+}
+
+- (void)testTemporaryServiceNotListenedIfNoRemoteObject {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  id serviceMock = OCMPartialMock(service);
+  OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
+      .andReturn(serviceMock);
+  OCMReject([(EDOHostService *)serviceMock port]);
+
+  dispatch_sync(testQueue, ^{
+    XCTAssertNil([EDOHostService serviceForCurrentQueue]);
+    // Whether eDO creates a temporary service or not, it shouldn't initialize the listen socket by
+    // calling -port.
+    [dummyOnBackground voidWithInt:0];
+  });
+
+  OCMVerifyAll(serviceMock);
+  [serviceMock stopMocking];
+}
+
 - (void)testClassMethodsAndInit {
   Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port);
 

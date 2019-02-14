@@ -26,11 +26,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSProxy (EDOParameter)
 
 /**
- *  Box the @c NSProxy into a EDOParameter. The optional host port info will be added to the boxed
- *  object if not @c nil.
+ *  Boxes the @c NSProxy into an EDOParameter.
+ *
+ *  @see -[NSObject edo_parameterForService:hostPort:].
  */
 - (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(EDOHostPort *)hostPort;
+                                 hostPort:(nullable EDOHostPort *)hostPort;
 
 @end
 

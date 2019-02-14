@@ -197,6 +197,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     });
   }
 
+  hostPort = hostPort ?: self.port.hostPort;
   EDOServicePort *port = [EDOServicePort servicePortWithPort:self.port hostPort:hostPort];
 
   if (isObjectBlock) {

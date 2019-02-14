@@ -26,11 +26,14 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSObject (EDOParameter)
 
 /**
- *  Box an object into a EDOParameter. The optional host port info will be added to the boxed
- *  object if not @c nil.
+ *  Boxes an object into a EDOParameter that converts the object into an remote object if needed.
+ *
+ *  @param service  The host service that the remote object will belong to.
+ *  @param hostPort The port that the remote object will connect back to. If @c nil is given, the
+ *                  hostPort will be generated from the given @c service.
  */
 - (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(EDOHostPort *)hostPort;
+                                 hostPort:(nullable EDOHostPort *)hostPort;
 
 @end
 
