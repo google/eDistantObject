@@ -309,8 +309,11 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       }
     }
   }
-  NSAssert(NO, @"Retry creating channel failed. This failure should happen at connection time "
-               @"instead of reaching here.");
+  NSAssert(NO,
+           @"Retry creating channel failed when sending request (%@) on port (%@). The remote "
+           @"service or the process may be unresponsive due to crashes or deadlocks. Check the "
+           @"other generated logs for more information about the issue.",
+           request, port);
   return nil;
 }
 

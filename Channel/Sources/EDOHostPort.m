@@ -52,6 +52,12 @@ static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
   return self;
 }
 
+- (NSString *)description {
+  return [NSString stringWithFormat:@"EDOHostPort (%@) with port (%d) and serial number (%@)",
+                                    self.name ?: @"no name", self.port,
+                                    self.deviceSerialNumber ?: @"no serial"];
+}
+
 #pragma mark - Object Equality
 
 - (BOOL)isEqual:(id)other {

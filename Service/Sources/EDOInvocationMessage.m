@@ -168,7 +168,8 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
       // TODO(haowoo): Add the proper error and/or exception handler.
-      NSAssert(NO, @"Not supported.");
+      NSAssert(NO, @"Not supported type (%s) in the argument for selector (%@).", ctype,
+               selector ? NSStringFromSelector(selector) : @"(block)");
     } else {
       NSUInteger typeSize = 0L;
       NSGetSizeAndAlignment(ctype, &typeSize, NULL);
