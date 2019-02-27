@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C506891621F1D19600A809F1 /* EDODeviceDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891121F1D19100A809F1 /* EDODeviceDetector.m */; };
-		C506891721F1D19600A809F1 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891221F1D19200A809F1 /* EDODeviceConnector.m */; };
-		C506891821F1D19600A809F1 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891421F1D19300A809F1 /* EDODeviceChannel.m */; };
-		C506891B21F1E16200A809F1 /* EDOUSBMuxUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */; };
+		C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */; };
+		C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */; };
+		C52D859A2220C4AB00E86E60 /* EDODeviceDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */; };
+		C52D859C2220C4AB00E86E60 /* EDOUSBMuxUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */; };
+		C52D859D2220C4F800E86E60 /* libDeviceLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C52D85942220C44300E86E60 /* libDeviceLib.a */; };
 		C532ABF32136054B00162011 /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C532ABFA2136142300162011 /* libTestsBundle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C84503C620DDB07A00D7350F /* libTestsBundle.a */; };
 		C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0382134D50600421D72 /* EDOTestDummy.m */; };
@@ -148,6 +149,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		C52D85902220C44300E86E60 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C845026320DD9D2E00D7350F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -199,15 +209,15 @@
 /* Begin PBXFileReference section */
 		C506890E21F1D13600A809F1 /* EDOHostService+Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EDOHostService+Device.h"; path = "Service/Sources/EDOHostService+Device.h"; sourceTree = "<group>"; };
 		C506890F21F1D13600A809F1 /* EDOClientService+Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EDOClientService+Device.h"; path = "Service/Sources/EDOClientService+Device.h"; sourceTree = "<group>"; };
-		C506891021F1D19000A809F1 /* EDODeviceDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceDetector.h; sourceTree = "<group>"; };
-		C506891121F1D19100A809F1 /* EDODeviceDetector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDODeviceDetector.m; sourceTree = "<group>"; };
-		C506891221F1D19200A809F1 /* EDODeviceConnector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDODeviceConnector.m; sourceTree = "<group>"; };
-		C506891321F1D19300A809F1 /* EDODeviceConnector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceConnector.h; sourceTree = "<group>"; };
-		C506891421F1D19300A809F1 /* EDODeviceChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDODeviceChannel.m; sourceTree = "<group>"; };
-		C506891521F1D19400A809F1 /* EDODeviceChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDODeviceChannel.h; sourceTree = "<group>"; };
-		C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOUSBMuxUtil.m; sourceTree = "<group>"; };
-		C506891A21F1E16100A809F1 /* EDOUSBMuxUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOUSBMuxUtil.h; sourceTree = "<group>"; };
-		C506892721F86DC100A809F1 /* EDODeviceConnector+Channel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EDODeviceConnector+Channel.h"; sourceTree = "<group>"; };
+		C52D85772220ADBB00E86E60 /* EDODeviceDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceDetector.h; path = Device/Sources/EDODeviceDetector.h; sourceTree = "<group>"; };
+		C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceDetector.m; path = Device/Sources/EDODeviceDetector.m; sourceTree = "<group>"; };
+		C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDOUSBMuxUtil.m; path = Device/Sources/EDOUSBMuxUtil.m; sourceTree = "<group>"; };
+		C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceChannel.m; path = Device/Sources/EDODeviceChannel.m; sourceTree = "<group>"; };
+		C52D857B2220ADBD00E86E60 /* EDODeviceChannel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceChannel.h; path = Device/Sources/EDODeviceChannel.h; sourceTree = "<group>"; };
+		C52D857C2220ADBE00E86E60 /* EDODeviceConnector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceConnector.h; path = Device/Sources/EDODeviceConnector.h; sourceTree = "<group>"; };
+		C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceConnector.m; path = Device/Sources/EDODeviceConnector.m; sourceTree = "<group>"; };
+		C52D857E2220ADBF00E86E60 /* EDOUSBMuxUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDOUSBMuxUtil.h; path = Device/Sources/EDOUSBMuxUtil.h; sourceTree = "<group>"; };
+		C52D85942220C44300E86E60 /* libDeviceLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libDeviceLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C535B59721D3077100BAE558 /* EDOHostNamingService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOHostNamingService.h; path = Service/Sources/EDOHostNamingService.h; sourceTree = "<group>"; };
 		C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "EDOHostNamingService+Private.h"; path = "Service/Sources/EDOHostNamingService+Private.h"; sourceTree = "<group>"; };
 		C535B59921D3077200BAE558 /* EDOHostNamingService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOHostNamingService.m; path = Service/Sources/EDOHostNamingService.m; sourceTree = "<group>"; };
@@ -352,10 +362,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C52D858F2220C44300E86E60 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C845026220DD9D2E00D7350F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C52D859D2220C4F800E86E60 /* libDeviceLib.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -434,6 +452,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C52D85752220AD9D00E86E60 /* Device */ = {
+			isa = PBXGroup;
+			children = (
+				C52D85762220ADA800E86E60 /* Sources */,
+			);
+			name = Device;
+			sourceTree = "<group>";
+		};
+		C52D85762220ADA800E86E60 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				C52D857B2220ADBD00E86E60 /* EDODeviceChannel.h */,
+				C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */,
+				C52D857C2220ADBE00E86E60 /* EDODeviceConnector.h */,
+				C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */,
+				C52D85772220ADBB00E86E60 /* EDODeviceDetector.h */,
+				C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */,
+				C52D857E2220ADBF00E86E60 /* EDOUSBMuxUtil.h */,
+				C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
 		C5A2EFD02134D3D500421D72 /* Service */ = {
 			isa = PBXGroup;
 			children = (
@@ -627,11 +668,11 @@
 		C845024C20DD9CB900D7350F = {
 			isa = PBXGroup;
 			children = (
+				C52D85752220AD9D00E86E60 /* Device */,
 				C88B8A5B21ADD38400DDE607 /* Measure */,
 				C5A2EFD02134D3D500421D72 /* Service */,
 				C845027820DD9D8800D7350F /* Channel */,
 				C845025620DD9CB900D7350F /* Products */,
-				C88B8A8B21ADD43400DDE607 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -648,6 +689,7 @@
 				C84503C620DDB07A00D7350F /* libTestsBundle.a */,
 				C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */,
 				C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */,
+				C52D85942220C44300E86E60 /* libDeviceLib.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -675,15 +717,6 @@
 		C845027C20DD9D8800D7350F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C506892721F86DC100A809F1 /* EDODeviceConnector+Channel.h */,
-				C506891A21F1E16100A809F1 /* EDOUSBMuxUtil.h */,
-				C506891921F1E16000A809F1 /* EDOUSBMuxUtil.m */,
-				C506891521F1D19400A809F1 /* EDODeviceChannel.h */,
-				C506891421F1D19300A809F1 /* EDODeviceChannel.m */,
-				C506891321F1D19300A809F1 /* EDODeviceConnector.h */,
-				C506891221F1D19200A809F1 /* EDODeviceConnector.m */,
-				C506891021F1D19000A809F1 /* EDODeviceDetector.h */,
-				C506891121F1D19100A809F1 /* EDODeviceDetector.m */,
 				C5D03FDF21D77160003DC06A /* EDOChannelUtil.h */,
 				C5D03FE021D77161003DC06A /* EDOChannelUtil.m */,
 				C5791DAC21B61099003EBC59 /* EDOChannelPool.h */,
@@ -729,16 +762,26 @@
 			path = Tests;
 			sourceTree = "<group>";
 		};
-		C88B8A8B21ADD43400DDE607 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		C52D858C2220C44300E86E60 /* DeviceLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C52D85912220C44300E86E60 /* Build configuration list for PBXNativeTarget "DeviceLib" */;
+			buildPhases = (
+				C52D858D2220C44300E86E60 /* Sources */,
+				C52D858F2220C44300E86E60 /* Frameworks */,
+				C52D85902220C44300E86E60 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DeviceLib;
+			productName = Channel;
+			productReference = C52D85942220C44300E86E60 /* libDeviceLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		C845026420DD9D2E00D7350F /* ChannelLib */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C845026B20DD9D2E00D7350F /* Build configuration list for PBXNativeTarget "ChannelLib" */;
@@ -974,6 +1017,7 @@
 				C84503A120DDAEF500D7350F /* ServiceTests */,
 				C84503B520DDB03E00D7350F /* ServicePerfTests */,
 				C84503C520DDB07A00D7350F /* TestsBundle */,
+				C52D858C2220C44300E86E60 /* DeviceLib */,
 			);
 		};
 /* End PBXProject section */
@@ -1026,18 +1070,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		C52D858D2220C44300E86E60 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */,
+				C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */,
+				C52D859A2220C4AB00E86E60 /* EDODeviceDetector.m in Sources */,
+				C52D859C2220C4AB00E86E60 /* EDOUSBMuxUtil.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C845026120DD9D2E00D7350F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C506891621F1D19600A809F1 /* EDODeviceDetector.m in Sources */,
 				C5791D8421AF7A67003EBC59 /* EDOHostPort.m in Sources */,
-				C506891721F1D19600A809F1 /* EDODeviceConnector.m in Sources */,
 				C845028E20DD9D8800D7350F /* EDOSocketPort.m in Sources */,
-				C506891B21F1E16200A809F1 /* EDOUSBMuxUtil.m in Sources */,
 				C845028D20DD9D8800D7350F /* EDOSocketChannel.m in Sources */,
 				C845028C20DD9D8800D7350F /* EDOListenSocket.m in Sources */,
-				C506891821F1D19600A809F1 /* EDODeviceChannel.m in Sources */,
 				C5D03FE121D77161003DC06A /* EDOChannelUtil.m in Sources */,
 				C5791DAD21B6109A003EBC59 /* EDOChannelPool.m in Sources */,
 				C845028A20DD9D8800D7350F /* EDOSocket.m in Sources */,
@@ -1214,6 +1265,43 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		C52D85922220C44300E86E60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Debug;
+		};
+		C52D85932220C44300E86E60 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Release;
+		};
 		C845025C20DD9CB900D7350F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1661,6 +1749,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C52D85912220C44300E86E60 /* Build configuration list for PBXNativeTarget "DeviceLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C52D85922220C44300E86E60 /* Debug */,
+				C52D85932220C44300E86E60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C845025020DD9CB900D7350F /* Build configuration list for PBXProject "eDistantObject" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -46,6 +46,14 @@ extern NSString *const EDODeviceDidDetachNotification;
 /** Stops listening to the broadcast of device events. */
 - (void)stopListening;
 
+/**
+ *  Synchronously connects to a given @c deviceSerial and @c port listening on the connected device
+ *  of that device serial.
+ */
+- (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
+                          onPort:(UInt16)port
+                           error:(NSError **)error;
+
 @end
 
 NS_ASSUME_NONNULL_END

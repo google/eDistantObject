@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#import "Channel/Sources/EDOUSBMuxUtil.h"
+#import "Device/Sources/EDOUSBMuxUtil.h"
 
 // The types of usbmux message.
 NSString *const kEDOPlistPacketTypeListen = @"Listen";

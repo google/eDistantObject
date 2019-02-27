@@ -16,11 +16,11 @@
 
 #import "Channel/Sources/EDOChannelPool.h"
 
-#import "Channel/Sources/EDODeviceConnector+Channel.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
+#import "Device/Sources/EDODeviceConnector.h"
 
 /** Timeout for channel fetch. */
 static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
@@ -149,7 +149,13 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   __block id<EDOChannel> channel = nil;
   __block NSError *connectionError;
   if (port.deviceSerialNumber) {
-    channel = [EDODeviceConnector.sharedConnector connectToDevicePort:port error:&connectionError];
+    dispatch_io_t dispatchChannel =
+        [EDODeviceConnector.sharedConnector connectToDevice:port.deviceSerialNumber
+                                                     onPort:port.port
+                                                      error:&connectionError];
+    if (!connectionError) {
+      channel = [EDOSocketChannel channelWithDispatchChannel:dispatchChannel hostPort:port];
+    }
   } else {
     dispatch_semaphore_t lock = dispatch_semaphore_create(0);
     [EDOSocket connectWithTCPPort:port.port

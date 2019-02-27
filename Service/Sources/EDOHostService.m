@@ -18,11 +18,11 @@
 
 #include <objc/runtime.h>
 
-#import "Channel/Sources/EDODeviceConnector+Channel.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
+#import "Device/Sources/EDODeviceConnector.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClientService+Device.h"
 #import "Service/Sources/EDOClientService+Private.h"
@@ -336,9 +336,13 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     EDOHostPort *devicePort = [EDOHostPort hostPortWithPort:port
                                                        name:name
                                          deviceSerialNumber:deviceSerial];
-    id<EDOChannel> channel =
-        [EDODeviceConnector.sharedConnector connectToDevicePort:devicePort error:&connectionError];
+    dispatch_io_t dispatchChannel =
+        [EDODeviceConnector.sharedConnector connectToDevice:devicePort.deviceSerialNumber
+                                                     onPort:devicePort.port
+                                                      error:&connectionError];
     if (!connectionError) {
+      id<EDOChannel> channel = [EDOSocketChannel channelWithDispatchChannel:dispatchChannel
+                                                                   hostPort:devicePort];
       NSData *data = [name dataUsingEncoding:kCFStringEncodingUTF8];
       dispatch_semaphore_t lock = dispatch_semaphore_create(0);
       [channel sendData:data

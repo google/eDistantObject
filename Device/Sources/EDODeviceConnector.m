@@ -14,13 +14,11 @@
 // limitations under the License.
 //
 
-#import "Channel/Sources/EDODeviceConnector.h"
+#import "Device/Sources/EDODeviceConnector.h"
 
-#import "Channel/Sources/EDODeviceChannel.h"
-#import "Channel/Sources/EDODeviceDetector.h"
-#import "Channel/Sources/EDOHostPort.h"
-#import "Channel/Sources/EDOSocketChannel.h"
-#import "Channel/Sources/EDOUSBMuxUtil.h"
+#import "Device/Sources/EDODeviceChannel.h"
+#import "Device/Sources/EDODeviceDetector.h"
+#import "Device/Sources/EDOUSBMuxUtil.h"
 
 NSString *const EDODeviceDidAttachNotification = @"EDODeviceDidAttachNotification";
 NSString *const EDODeviceDidDetachNotification = @"EDODeviceDidDetachNotification";
@@ -81,12 +79,13 @@ static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
   return [_deviceInfo.allKeys copy];
 }
 
-- (id<EDOChannel>)connectToDevicePort:(EDOHostPort *)port error:(NSError **)error {
-  NSAssert(port.deviceSerialNumber != nil, @"No device serial is found in the host port.");
-  NSNumber *deviceID = _deviceInfo[port.deviceSerialNumber];
-  NSAssert(deviceID != nil, @"Device %@ is not detected.", port.deviceSerialNumber);
+- (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
+                          onPort:(UInt16)port
+                           error:(NSError **)error {
+  NSNumber *deviceID = _deviceInfo[deviceSerial];
+  NSAssert(deviceID != nil, @"Device %@ is not detected.", deviceSerial);
 
-  NSDictionary *packet = [EDOUSBMuxUtil connectPacketWithDeviceID:deviceID port:port.port];
+  NSDictionary *packet = [EDOUSBMuxUtil connectPacketWithDeviceID:deviceID port:port];
   __block NSError *connectError;
   EDODeviceChannel *channel = [EDODeviceChannel channelWithError:&connectError];
   dispatch_semaphore_t lock = dispatch_semaphore_create(0);
@@ -112,8 +111,7 @@ static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
   if (error) {
     *error = connectError;
   }
-  return connectError ? nil
-                      : [EDOSocketChannel channelWithDispatchChannel:dispatchChannel hostPort:port];
+  return connectError ? nil : dispatchChannel;
 }
 
 #pragma mark - Private

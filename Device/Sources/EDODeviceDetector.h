@@ -15,8 +15,6 @@
 //
 #import <Foundation/Foundation.h>
 
-@class EDODeviceChannel;
-
 NS_ASSUME_NONNULL_BEGIN
 
 /** The class to detect device attachment/detachment events with a handler. */

@@ -14,10 +14,10 @@
 // limitations under the License.
 //
 
-#import "Channel/Sources/EDODeviceDetector.h"
+#import "Device/Sources/EDODeviceDetector.h"
 
-#import "Channel/Sources/EDODeviceChannel.h"
-#import "Channel/Sources/EDOUSBMuxUtil.h"
+#import "Device/Sources/EDODeviceChannel.h"
+#import "Device/Sources/EDOUSBMuxUtil.h"
 
 @implementation EDODeviceDetector {
   EDODeviceChannel *_channel;
