@@ -40,6 +40,10 @@ extern NSString *const EDODeviceDidDetachNotification;
  *  started. When device is connected/disconnected,
  *  EDODeviceDidAttachNotification/EDODeviceDidDetachNotification will be sent out accordingly after
  *  the event is detected.
+ *
+ *  @param completion The completion handler when successfully starts listening to broadcast
+ *                    messages from usbmuxd. Any error happens will be passed to the completion
+ *                    block.
  */
 - (void)startListeningWithCompletion:(nullable void (^)(NSError *))completion;
 
@@ -49,6 +53,13 @@ extern NSString *const EDODeviceDidDetachNotification;
 /**
  *  Synchronously connects to a given @c deviceSerial and @c port listening on the connected device
  *  of that device serial.
+ *
+ *  @param deviceSerial The device serial string of the device to connect.
+ *  @param port         The listen port number running on the target device.
+ *  @param error        The out error indicating failures of connect to the listen port.
+ *
+ *  @return The dispatch_io_t to communicate with connected socket in the target device. @c nil if
+ *          any error occurred during the connection.
  */
 - (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
                           onPort:(UInt16)port
