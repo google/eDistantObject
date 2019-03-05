@@ -23,6 +23,10 @@ extern NSString *const EDODeviceDidAttachNotification;
 /** The notification when an iOS device is dettached to MacOS. */
 extern NSString *const EDODeviceDidDetachNotification;
 
+/** The key to extract info from notifications of device attachment/detachment events. */
+extern NSString *const EDODeviceSerialKey;
+extern NSString *const EDODeviceIDKey;
+
 /**
  *  The class to connect listen port on physical iOS device from Mac. All connected devices are
  *  stored in the singleton instance and identified by device serial number.

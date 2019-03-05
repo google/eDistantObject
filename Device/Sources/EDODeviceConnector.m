@@ -23,6 +23,9 @@
 NSString *const EDODeviceDidAttachNotification = @"EDODeviceDidAttachNotification";
 NSString *const EDODeviceDidDetachNotification = @"EDODeviceDidDetachNotification";
 
+NSString *const EDODeviceSerialKey = @"EDODeviceSerialKey";
+NSString *const EDODeviceIDKey = @"EDODeviceIDKey";
+
 /** Timeout for connecting to device. */
 static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
 
@@ -122,10 +125,11 @@ static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
   if ([messageType isEqualToString:kEDOMessageTypeAttachedKey]) {
     NSNumber *deviceID = packet[kEDOMessageDeviceIDKey];
     NSString *serialNumber = packet[kEDOMessagePropertiesKey][kEDOMessageSerialNumberKey];
+    NSDictionary *userInfo = @{EDODeviceIDKey : deviceID, EDODeviceSerialKey : serialNumber};
     [_deviceInfo setObject:deviceID forKey:serialNumber];
     [[NSNotificationCenter defaultCenter] postNotificationName:EDODeviceDidAttachNotification
                                                         object:self
-                                                      userInfo:packet];
+                                                      userInfo:userInfo];
   } else if ([messageType isEqualToString:kEDOMessageTypeDetachedKey]) {
     NSNumber *deviceID = packet[kEDOMessageDeviceIDKey];
     for (NSString *serialNumberString in _deviceInfo) {
@@ -133,9 +137,10 @@ static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
         [_deviceInfo removeObjectForKey:serialNumberString];
       }
     }
+    NSDictionary *userInfo = @{EDODeviceIDKey : deviceID};
     [[NSNotificationCenter defaultCenter] postNotificationName:EDODeviceDidDetachNotification
                                                         object:self
-                                                      userInfo:packet];
+                                                      userInfo:userInfo];
   } else {
     NSLog(@"Warning: Unhandled broadcast message: %@", packet);
   }
