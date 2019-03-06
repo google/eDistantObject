@@ -86,19 +86,33 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 + (instancetype)serviceWithName:(NSString *)name
                registerToDevice:(NSString *)deviceSerial
                      rootObject:(id)object
-                          queue:(dispatch_queue_t)queue {
+                          queue:(dispatch_queue_t)queue
+                        timeout:(NSInteger)seconds {
   EDOHostService *service = [[self alloc] initWithPort:0
                                             rootObject:object
                                            serviceName:name
                                                  queue:queue
                                             isToDevice:YES];
-  NSError *error;
-  [service edo_registerServiceOnDevice:deviceSerial withName:name error:&error];
-  if (error) {
-    return nil;
-  }
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+    BOOL success = NO;
+    NSInteger secondsLeft = seconds;
+    while (!success && secondsLeft > 0) {
+      NSError *error;
+      success = [service edo_registerServiceOnDevice:deviceSerial withName:name error:&error];
+      if (!success) {
+        NSLog(@"Unable to register service on device %@ for %@. Retrying...", deviceSerial, error);
+        NSInteger timeInterval = 1;
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, timeInterval, false);
+        secondsLeft -= timeInterval;
+      }
+    }
+    if (success) {
+      NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
+    } else {
+      NSLog(@"Timeout: unable to register service (%p) on device %@.", self, deviceSerial);
+    }
+  });
   service->_port = [EDOServicePort servicePortWithPort:0 serviceName:name];
-  NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
   return service;
 }
 
@@ -325,7 +339,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
          }];
 }
 
-- (void)edo_registerServiceOnDevice:(NSString *)deviceSerial
+- (BOOL)edo_registerServiceOnDevice:(NSString *)deviceSerial
                            withName:(NSString *)name
                               error:(NSError **)error {
   __block NSError *connectionError;
@@ -359,7 +373,9 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   }
   if (error) {
     *error = connectionError;
+    return NO;
   }
+  return YES;
 }
 
 - (BOOL)edo_shouldReceiveData:(id<EDOChannel>)channel {

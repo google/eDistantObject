@@ -28,31 +28,21 @@ extern NSString *const EDODeviceSerialKey;
 extern NSString *const EDODeviceIDKey;
 
 /**
- *  The class to connect listen port on physical iOS device from Mac. All connected devices are
- *  stored in the singleton instance and identified by device serial number.
+ *  This singleton class connects to the listen port of @c EDOHostService on physical iOS device
+ *  from Mac.
+ *
+ *  When fetching @c connectedDevices, the connector will implicitly connect to usbmuxd, and then
+ *  return all connected device. Listening to
+ *  @c EDODeviceDidAttachNotification/EDODeviceDidDetachNotification
+ *  will work after connector starts listening. By calling connectToDevice:onPort:error:, a channel
+ *  connected to the host service in the iOS device will be created.
  */
 @interface EDODeviceConnector : NSObject
 
-/** The serial number strings of connected device IDs. */
-@property(readonly) NSArray<NSString *> *devicesSerials;
-
+/** The serial numbers of connected devices. */
+@property(readonly) NSArray<NSString *> *connectedDevices;
 /** Shared device connector. */
-+ (EDODeviceConnector *)sharedConnector;
-
-/**
- *  Starts listening to devices attachment/detachment events and invoke @c completion after it is
- *  started. When device is connected/disconnected,
- *  EDODeviceDidAttachNotification/EDODeviceDidDetachNotification will be sent out accordingly after
- *  the event is detected.
- *
- *  @param completion The completion handler when successfully starts listening to broadcast
- *                    messages from usbmuxd. Any error happens will be passed to the completion
- *                    block.
- */
-- (void)startListeningWithCompletion:(nullable void (^)(NSError *))completion;
-
-/** Stops listening to the broadcast of device events. */
-- (void)stopListening;
+@property(readonly, class) EDODeviceConnector *sharedConnector;
 
 /**
  *  Synchronously connects to a given @c deviceSerial and @c port listening on the connected device
