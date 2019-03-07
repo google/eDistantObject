@@ -77,8 +77,14 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
 - (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
                           onPort:(UInt16)port
                            error:(NSError **)error {
-  BOOL deviceDetected = [self.connectedDevices containsObject:deviceSerial];
-  NSAssert(deviceDetected, @"Device %@ is not detected.", deviceSerial);
+  if (![self.connectedDevices containsObject:deviceSerial]) {
+    if (error) {
+      // TODO(ynzhang): add proper error code for better error handling.
+      *error = [NSError errorWithDomain:EDODeviceErrorDomain code:0 userInfo:nil];
+    }
+    NSLog(@"Device %@ is not detected.", deviceSerial);
+    return nil;
+  }
   NSNumber *deviceID = _deviceInfo[deviceSerial];
 
   NSDictionary *packet = [EDOUSBMuxUtil connectPacketWithDeviceID:deviceID port:port];
