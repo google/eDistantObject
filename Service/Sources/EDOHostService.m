@@ -373,9 +373,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   }
   if (error) {
     *error = connectionError;
-    return NO;
   }
-  return YES;
+  return connectionError == nil;
 }
 
 - (BOOL)edo_shouldReceiveData:(id<EDOChannel>)channel {
