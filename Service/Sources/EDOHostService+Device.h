@@ -21,6 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 /** The device support methods for @c EDOHostService. */
 @interface EDOHostService (Device)
 
+/** The flag indicating whether the host is successfully registered to the device. */
+@property(readonly) BOOL registeredToDevice;
+
 /**
  *  Creates a @c EDOHostService on Mac and registers the service name to the connected iOS device of
  *  the given device serial.

@@ -28,6 +28,7 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
+#import "Service/Sources/EDOHostService+Device.h"
 #import "Service/Sources/EDOHostService+Handlers.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
@@ -55,6 +56,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 @property(readonly) dispatch_queue_t localObjectsSyncQueue;
 /** The underlying root object. */
 @property(readonly) id rootLocalObject;
+/** Internal property of the read-only flag of device registration. */
+@property(readwrite) BOOL registeredToDevice;
 @end
 
 @implementation EDOHostService
@@ -93,26 +96,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                                            serviceName:name
                                                  queue:queue
                                             isToDevice:YES];
-  dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
-    BOOL success = NO;
-    NSInteger secondsLeft = seconds;
-    while (!success && secondsLeft > 0) {
-      NSError *error;
-      success = [service edo_registerServiceOnDevice:deviceSerial withName:name error:&error];
-      if (!success) {
-        NSLog(@"Unable to register service on device %@ for %@. Retrying...", deviceSerial, error);
-        NSInteger timeInterval = 1;
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, timeInterval, false);
-        secondsLeft -= timeInterval;
-      }
-    }
-    if (success) {
-      NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
-    } else {
-      NSLog(@"Timeout: unable to register service (%p) on device %@.", self, deviceSerial);
-    }
-  });
-  service->_port = [EDOServicePort servicePortWithPort:0 serviceName:name];
+  [service edo_registerServiceAsyncOnDevice:deviceSerial timeout:seconds];
   return service;
 }
 
@@ -123,6 +107,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                   isToDevice:(BOOL)isToDevice {
   self = [super init];
   if (self) {
+    _registeredToDevice = NO;
     _localObjects = [[NSMutableDictionary alloc] init];
     _localObjectsSyncQueue =
         dispatch_queue_create("com.google.edo.service.localObjects", DISPATCH_QUEUE_SERIAL);
@@ -141,6 +126,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                                       serviceName:serviceName];
       [EDOHostNamingService.sharedService addServicePort:_port];
       NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.hostPort.port);
+    } else if (isToDevice) {
+      _port = [EDOServicePort servicePortWithPort:0 serviceName:serviceName];
     }
 
     if (object) {
@@ -339,22 +326,52 @@ static const char *gServiceKey = "com.google.edo.servicekey";
          }];
 }
 
+- (void)edo_registerServiceAsyncOnDevice:(NSString *)deviceSerial timeout:(NSInteger)seconds {
+  __block NSInteger secondsLeft = seconds;
+  NSInteger timeInterval = 1;
+  dispatch_queue_t backgroundQueue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
+
+  __block void (^weakServiceRegistrationBlock)(void);
+  void (^serviceRegistrationBlock)(void);
+  weakServiceRegistrationBlock = serviceRegistrationBlock = ^void(void) {
+    NSError *error;
+    BOOL success = [self edo_registerServiceOnDevice:deviceSerial error:&error];
+    if (!success && secondsLeft > 0) {
+      NSLog(@"Unable to register service on device %@ for %@. Retrying...", deviceSerial, error);
+      secondsLeft -= timeInterval;
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeInterval * NSEC_PER_SEC), backgroundQueue,
+                     weakServiceRegistrationBlock);
+    } else {
+      if (success) {
+        NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
+        self.registeredToDevice = YES;
+      } else {
+        NSLog(@"Timeout: unable to register service (%p) on device %@.", self, deviceSerial);
+      }
+    }
+  };
+  dispatch_async(backgroundQueue, serviceRegistrationBlock);
+}
+
 - (BOOL)edo_registerServiceOnDevice:(NSString *)deviceSerial
-                           withName:(NSString *)name
                               error:(NSError **)error {
   __block NSError *connectionError;
   EDOHostNamingService *namingService =
       [EDOClientService namingServiceWithDeivceSerial:deviceSerial error:&connectionError];
   if (!connectionError) {
     UInt16 port = namingService.serviceConnectionPort;
+    // dispatch channel connected to the registration service on device.
+    dispatch_io_t dispatchChannel =
+        [EDODeviceConnector.sharedConnector connectToDevice:deviceSerial
+                                                     onPort:port
+                                                      error:&connectionError];
+    NSString *name = _port.hostPort.name;
     EDOHostPort *devicePort = [EDOHostPort hostPortWithPort:port
                                                        name:name
                                          deviceSerialNumber:deviceSerial];
-    dispatch_io_t dispatchChannel =
-        [EDODeviceConnector.sharedConnector connectToDevice:devicePort.deviceSerialNumber
-                                                     onPort:devicePort.port
-                                                      error:&connectionError];
+
     if (!connectionError) {
+      // Channel in the host side to receive requests.
       id<EDOChannel> channel = [EDOSocketChannel channelWithDispatchChannel:dispatchChannel
                                                                    hostPort:devicePort];
       NSData *data = [name dataUsingEncoding:kCFStringEncodingUTF8];
