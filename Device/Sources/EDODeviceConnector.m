@@ -64,7 +64,11 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
   if (!_isListening) {
     if ([self startListening]) {
       // Wait for a short time to detect all connected devices when listening just starts.
-      CFRunLoopRunInMode(kCFRunLoopDefaultMode, kDeviceDetectTime, false);
+      dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, kDeviceDetectTime),
+                     dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+                       dispatch_semaphore_signal(lock);
+                     });
     }
   }
   __block NSArray *result;

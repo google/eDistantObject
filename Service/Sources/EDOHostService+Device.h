@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  @param name         The name of the service.
  *  @param deviceSerial The device serial of the connected device. After registration, the channel
  *                      to communicate with the service will be available on the device.
- *  @param rootObject   The root object of the service.
+ *  @param rootObject   The root object of the service. @c nil for temporary services.
  *  @param queue        The dispatch queue that the invocation will be executed on.
  *  @param seconds      The seconds to wait to successfully register the service name to the device.
  *
@@ -46,7 +46,7 @@ NS_ASSUME_NONNULL_BEGIN
                registerToDevice:(NSString *)deviceSerial
                      rootObject:(nullable id)object
                           queue:(dispatch_queue_t)queue
-                        timeout:(NSInteger)seconds;
+                        timeout:(NSTimeInterval)seconds;
 
 // TODO(ynzhang): in the future we will move the EDOObject generation process from host side to
 // client side. Then we will be able to register multiple devices for a single host service.

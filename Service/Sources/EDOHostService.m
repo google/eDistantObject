@@ -90,7 +90,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                registerToDevice:(NSString *)deviceSerial
                      rootObject:(id)object
                           queue:(dispatch_queue_t)queue
-                        timeout:(NSInteger)seconds {
+                        timeout:(NSTimeInterval)seconds {
   EDOHostService *service = [[self alloc] initWithPort:0
                                             rootObject:object
                                            serviceName:name
@@ -120,20 +120,17 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
     // Only creates the listen socket when the port is given or the root object is given so we need
     // to serve them at launch.
-    if (!isToDevice && (port != 0 || object)) {
+    if (isToDevice) {
+      _port = [EDOServicePort servicePortWithPort:0 serviceName:serviceName];
+    } else if (port != 0 || object) {
       _listenSocket = [self edo_createListenSocket:port];
       _port = [EDOServicePort servicePortWithPort:_listenSocket.socketPort.port
                                       serviceName:serviceName];
       [EDOHostNamingService.sharedService addServicePort:_port];
       NSLog(@"The EDOHostService (%p) is created and listening on %d", self, _port.hostPort.port);
-    } else if (isToDevice) {
-      _port = [EDOServicePort servicePortWithPort:0 serviceName:serviceName];
     }
 
-    if (object) {
-      _rootLocalObject = object;
-    }
-
+    _rootLocalObject = object;
     // Save itself to the queue.
     if (queue) {
       dispatch_queue_set_specific(queue, gServiceKey, (void *)CFBridgingRetain(self),
@@ -326,21 +323,23 @@ static const char *gServiceKey = "com.google.edo.servicekey";
          }];
 }
 
-- (void)edo_registerServiceAsyncOnDevice:(NSString *)deviceSerial timeout:(NSInteger)seconds {
-  __block NSInteger secondsLeft = seconds;
-  NSInteger timeInterval = 1;
+- (void)edo_registerServiceAsyncOnDevice:(NSString *)deviceSerial timeout:(NSTimeInterval)seconds {
+  __block NSTimeInterval secondsLeft = seconds;
+  // The time interval of registration retry interval.
+  NSTimeInterval retryInterval = 1;
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
 
-  __block void (^weakServiceRegistrationBlock)(void);
-  void (^serviceRegistrationBlock)(void);
-  weakServiceRegistrationBlock = serviceRegistrationBlock = ^void(void) {
+  // Keep trying to register the service before timeout. Using dispatch_after instead of CFRunloop
+  // since there is no source/timer by default for runloop of a backgroud thread.
+  __block __weak void (^weakServiceRegistrationBlock)(void);
+  void (^serviceRegistrationBlock)(void) = serviceRegistrationBlock = ^void(void) {
     NSError *error;
     BOOL success = [self edo_registerServiceOnDevice:deviceSerial error:&error];
     if (!success && secondsLeft > 0) {
       NSLog(@"Unable to register service on device %@ for %@. Retrying...", deviceSerial, error);
-      secondsLeft -= timeInterval;
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeInterval * NSEC_PER_SEC), backgroundQueue,
-                     weakServiceRegistrationBlock);
+      secondsLeft -= retryInterval;
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, retryInterval * NSEC_PER_SEC),
+                     backgroundQueue, weakServiceRegistrationBlock);
     } else {
       if (success) {
         NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
@@ -350,6 +349,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
       }
     }
   };
+  weakServiceRegistrationBlock = serviceRegistrationBlock;
   dispatch_async(backgroundQueue, serviceRegistrationBlock);
 }
 
