@@ -69,6 +69,7 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
                      dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
                        dispatch_semaphore_signal(lock);
                      });
+      dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
     }
   }
   __block NSArray *result;
