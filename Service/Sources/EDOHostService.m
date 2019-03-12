@@ -336,7 +336,6 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     NSError *error;
     BOOL success = [self edo_registerServiceOnDevice:deviceSerial error:&error];
     if (!success && secondsLeft > 0) {
-      NSLog(@"Unable to register service on device %@ for %@. Retrying...", deviceSerial, error);
       secondsLeft -= retryInterval;
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, retryInterval * NSEC_PER_SEC),
                      backgroundQueue, weakServiceRegistrationBlock);
