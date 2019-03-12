@@ -80,15 +80,21 @@
   EDOExecutor *executor = [self executorWithQueue:queue context:nil];
 
   XCTestExpectation *expectRun = [self expectationWithDescription:@"The executor is running."];
+  XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
+  __block EDOMessageQueue *executorMessageQueue;
   dispatch_async(queue, ^{
     [executor
         runUsingMessageQueueCloseHandler:^(EDOMessageQueue<EDOExecutorMessage *> *messageQueue) {
+          executorMessageQueue = messageQueue;
           [expectRun fulfill];
         }];
+    [expectFinish fulfill];
   });
 
-  [self waitForExpectationsWithTimeout:1 handler:nil];
+  [self waitForExpectations:@[ expectRun ] timeout:1];
   [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
+  XCTAssertTrue([executorMessageQueue closeQueue]);
+  [self waitForExpectations:@[ expectFinish ] timeout:1];
 }
 
 - (void)testExecutorHandleMessageAfterClosingQueue {
