@@ -292,6 +292,11 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     // Channel will be released and invalidated if service becomes invalid. So the
     // recursive block will eventually finish after service is invalid.
   };
+  // Move the receiveHandler block to the heap by explicitly copying before assigning it to the
+  // weak pointer as in the latest clang compiler, it's possible the weak pointer can be invalid if
+  // the block hasn't been moved to the heap in time.
+  // https://reviews.llvm.org/D58514
+  receiveHandler = [receiveHandler copy];
   weakHandlerBlock = receiveHandler;
 
   // The channel is strongly referenced in receiveHandler until the channel or the host service is
@@ -348,6 +353,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
       }
     }
   };
+  // See the comment above about https://reviews.llvm.org/D58514.
+  serviceRegistrationBlock = [serviceRegistrationBlock copy];
   weakServiceRegistrationBlock = serviceRegistrationBlock;
   dispatch_async(backgroundQueue, serviceRegistrationBlock);
 }
