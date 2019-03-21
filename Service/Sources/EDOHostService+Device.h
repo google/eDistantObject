@@ -25,13 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly) BOOL registeredToDevice;
 
 /**
- *  Creates a @c EDOHostService on Mac and registers the service name to the connected iOS device of
- *  the given device serial.
+ *  Creates an @c EDOHostService on host machine and registers the service @c name to the connected
+ *  iOS device with the provided @c deviceSerial.
  *
  *  Only the process on the device with naming service started is reachable by this method. If the
  *  naming service is not started yet, this method will still return a service and keep trying to
- *  register the name until timeout. The naming registration process is asynchronous in a
- *  background queue.
+ *  register the name until it times out. The naming registration process happens asynchronously in
+ *  a background queue.
  *
  *  @param name         The name of the service.
  *  @param deviceSerial The device serial of the connected device. After registration, the channel
@@ -41,15 +41,15 @@ NS_ASSUME_NONNULL_BEGIN
  *  @param seconds      The seconds to wait to successfully register the service name to the device.
  *
  *  @return An instance of EDOHostService that starts listening on the given port.
+ *
+ *  TODO(ynzhang): In the future we will move the EDOObject generation process from host side to
+ *  client side. Then we will be able to register multiple devices for a single host service.
  */
 + (instancetype)serviceWithName:(NSString *)name
                registerToDevice:(NSString *)deviceSerial
-                     rootObject:(nullable id)object
+                     rootObject:(nullable id)rootObject
                           queue:(dispatch_queue_t)queue
                         timeout:(NSTimeInterval)seconds;
-
-// TODO(ynzhang): in the future we will move the EDOObject generation process from host side to
-// client side. Then we will be able to register multiple devices for a single host service.
 
 @end
 
