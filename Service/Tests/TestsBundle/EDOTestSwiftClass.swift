@@ -26,9 +26,16 @@ public class EDOTestSwiftClass : NSObject, EDOTestSwiftProtocol {
     return block("Block").returnString().appending("Block") as NSString
   }
 
+  public func returnWithDictionarySum(data: NSDictionary) -> Int {
+    var sum = 0
+    for key in data.allKeys {
+      sum += (data.object(forKey: key) as! NSNumber).intValue
+    }
+    return sum;
+  }
 }
 
-extension EDOTestClassDummy : EDOTestDummyExtension{
+extension EDOTestClassDummy : EDOTestDummyExtension {
   open func returnProtocol() -> EDOTestSwiftProtocol {
     return EDOTestSwiftClass()
   }

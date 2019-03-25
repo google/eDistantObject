@@ -21,6 +21,7 @@ import Foundation
 public protocol EDOTestSwiftProtocol {
   func returnString() -> NSString
   func returnWithBlock(block: @escaping (NSString) -> EDOTestSwiftProtocol) -> NSString
+  func returnWithDictionarySum(data: NSDictionary) -> Int
 }
 
 @objc
