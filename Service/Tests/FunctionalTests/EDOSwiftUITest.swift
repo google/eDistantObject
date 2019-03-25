@@ -41,7 +41,16 @@ class EDOSwiftUITest: XCTestCase {
       XCTAssertEqual(str, "Block")
       return swiftClass
     }, "Swift StringBlock")
-
     service.invalidate()
+  }
+
+  func testRemoteInvocationWithParameter() {
+    launchAppWithPort(port:1234, value:10)
+    let dummyClass = EDOTestClassDummy(value:20)
+    let testDummy = unsafeBitCast(dummyClass, to: EDOTestDummyExtension.self)
+    let swiftClass = testDummy.returnProtocol()
+    let data = ["a": 1, "b": 2] as NSDictionary
+    XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data.passByValue()), 3)
+    XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data), 3)
   }
 }

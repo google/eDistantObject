@@ -15,4 +15,5 @@
 //
 
 #import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
