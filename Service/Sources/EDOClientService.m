@@ -117,7 +117,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         dispatch_semaphore_signal(lock);
       }];
   dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-  __block EDOObjectResponse *resposne = nil;
+  __block EDOObjectResponse *response = nil;
   if (!connectError) {
     [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
       if (error) {
@@ -130,7 +130,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
             if (error) {
               connectError = error;
             } else {
-              resposne = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+              response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
             }
             dispatch_semaphore_signal(lock);
           }];
@@ -147,7 +147,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   if (error) {
     *error = connectError;
   }
-  return resposne.object;
+  return response.object;
 }
 
 #pragma mark - Private Category
@@ -333,13 +333,13 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         sendSynchronousRequest:request
                         onPort:object.servicePort.hostPort];
 
-    EDOObject *reponseObject;
+    EDOObject *responseObject;
     if ([EDOBlockObject isBlock:response.object]) {
-      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
+      responseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
     } else {
-      reponseObject = response.object;
+      responseObject = response.object;
     }
-    return (__bridge id)(void *)reponseObject.remoteAddress;
+    return (__bridge id)(void *)responseObject.remoteAddress;
   } @catch (NSException *e) {
     // In case of the service is dead or error, ignore the exception and reset to nil.
     return nil;
@@ -362,7 +362,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
                               error:error];
 }
 
-/** Sends the reqeust data through the given @c channel and waits for the response synchronously. */
+/** Sends the request data through the given @c channel and waits for the response synchronously. */
 + (NSData *)sendRequestData:(NSData *)requestData withChannel:(id<EDOChannel>)channel {
   __block NSData *responseData;
   // The channel is asynchronous and not I/O re-entrant so we chain the sending and receiving,
