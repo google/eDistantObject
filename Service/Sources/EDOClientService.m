@@ -231,7 +231,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(EDOHostPort *)port {
   // TODO(b/119416282): We still run the executor even for the other requests before the deadlock
-  //                    isuse is fixed.
+  //                    issue is fixed.
   EDOHostService *service = [EDOHostService serviceForCurrentQueue];
   return [self sendSynchronousRequest:request onPort:port withExecutor:service.executor];
 }
@@ -241,8 +241,9 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
                                   withExecutor:(EDOExecutor *)executor {
   EDOClientServiceStatsCollector *stats = EDOClientServiceStatsCollector.sharedServiceStats;
 
-  int attempts = 2;
-  while (attempts > 0) {
+  int maxAttempts = 2;
+  int currentAttempt = 0;
+  while (currentAttempt < maxAttempts) {
     NSError *error;
     uint64_t connectionStartTime = mach_absolute_time();
     id<EDOChannel> channel =
@@ -305,15 +306,14 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       } else {
         // Cleanup broken channels before retry.
         [EDOChannelPool.sharedChannelPool removeChannelsWithPort:port];
-        attempts -= 1;
+        currentAttempt += 1;
       }
     }
   }
   NSAssert(NO,
-           @"Retry creating channel failed when sending request (%@) on port (%@). The remote "
-           @"service or the process may be unresponsive due to crashes or deadlocks. Check the "
-           @"other generated logs for more information about the issue.",
-           request, port);
+           @"Failed to send request (%@) on port (%@) after %d attempts. The remote service may be "
+           @"unresponsive due to a crash or hang. Check full logs for more information.",
+           request, port, maxAttempts);
   return nil;
 }
 
