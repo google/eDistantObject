@@ -204,6 +204,16 @@
                ReferencedContainer = "container:eDistantObject.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C55B85D822419D0800B568FA"
+               BuildableName = "DeviceUnitTests.xctest"
+               BlueprintName = "DeviceUnitTests"
+               ReferencedContainer = "container:eDistantObject.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

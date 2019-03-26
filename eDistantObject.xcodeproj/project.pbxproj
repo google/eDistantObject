@@ -19,6 +19,8 @@
 		C532ABFD2136180A00162011 /* EDOTestDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0382134D50600421D72 /* EDOTestDummy.m */; };
 		C535B59B21D3079000BAE558 /* EDOHostNamingService.m in Sources */ = {isa = PBXBuildFile; fileRef = C535B59921D3077200BAE558 /* EDOHostNamingService.m */; };
 		C535B59D21D307FF00BAE558 /* EDOHostNamingServiceTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */; };
+		C55B85F72241AEDA00B568FA /* EDODeviceConnectorTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C55B85D422419CB000B568FA /* EDODeviceConnectorTest.m */; };
+		C55B85F82241AEE600B568FA /* libDeviceLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C52D85942220C44300E86E60 /* libDeviceLib.a */; };
 		C55F8B472183AC3100E8E75A /* EDOTestValueType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B432183AC2100E8E75A /* EDOTestValueType.m */; };
 		C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B432183AC2100E8E75A /* EDOTestValueType.m */; };
 		C55F8B4A2183AC4200E8E75A /* EDOTestNonNSCodingType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */; };
@@ -104,6 +106,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		C55B85F92241AEEF00B568FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C845024D20DD9CB900D7350F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C52D858C2220C44300E86E60;
+			remoteInfo = DeviceLib;
+		};
 		C845033A20DDA11D00D7350F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C845024D20DD9CB900D7350F /* Project object */;
@@ -222,6 +231,8 @@
 		C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "EDOHostNamingService+Private.h"; path = "Service/Sources/EDOHostNamingService+Private.h"; sourceTree = "<group>"; };
 		C535B59921D3077200BAE558 /* EDOHostNamingService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOHostNamingService.m; path = Service/Sources/EDOHostNamingService.m; sourceTree = "<group>"; };
 		C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOHostNamingServiceTest.m; path = Service/Tests/UnitTests/EDOHostNamingServiceTest.m; sourceTree = "<group>"; };
+		C55B85D422419CB000B568FA /* EDODeviceConnectorTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceConnectorTest.m; path = Device/Tests/EDODeviceConnectorTest.m; sourceTree = "<group>"; };
+		C55B85F62241AEAC00B568FA /* DeviceUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DeviceUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C55F8B412183AC2000E8E75A /* EDOTestValueType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOTestValueType.h; path = Service/Tests/TestsBundle/EDOTestValueType.h; sourceTree = "<group>"; };
 		C55F8B422183AC2100E8E75A /* EDOTestNonNSCodingType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOTestNonNSCodingType.h; path = Service/Tests/TestsBundle/EDOTestNonNSCodingType.h; sourceTree = "<group>"; };
 		C55F8B432183AC2100E8E75A /* EDOTestValueType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOTestValueType.m; path = Service/Tests/TestsBundle/EDOTestValueType.m; sourceTree = "<group>"; };
@@ -369,6 +380,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C55B85F02241AEAC00B568FA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C55B85F82241AEE600B568FA /* libDeviceLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C845026220DD9D2E00D7350F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -455,6 +474,7 @@
 		C52D85752220AD9D00E86E60 /* Device */ = {
 			isa = PBXGroup;
 			children = (
+				C55B85D322419C9900B568FA /* Tests */,
 				C52D85762220ADA800E86E60 /* Sources */,
 			);
 			name = Device;
@@ -473,6 +493,21 @@
 				C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */,
 			);
 			name = Sources;
+			sourceTree = "<group>";
+		};
+		C55B85D322419C9900B568FA /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				C55B85D422419CB000B568FA /* EDODeviceConnectorTest.m */,
+			);
+			name = Tests;
+			sourceTree = "<group>";
+		};
+		C55B85E422419D7C00B568FA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		C5A2EFD02134D3D500421D72 /* Service */ = {
@@ -673,6 +708,7 @@
 				C5A2EFD02134D3D500421D72 /* Service */,
 				C845027820DD9D8800D7350F /* Channel */,
 				C845025620DD9CB900D7350F /* Products */,
+				C55B85E422419D7C00B568FA /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -690,6 +726,7 @@
 				C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */,
 				C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */,
 				C52D85942220C44300E86E60 /* libDeviceLib.a */,
+				C55B85F62241AEAC00B568FA /* DeviceUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -781,6 +818,24 @@
 			productName = Channel;
 			productReference = C52D85942220C44300E86E60 /* libDeviceLib.a */;
 			productType = "com.apple.product-type.library.static";
+		};
+		C55B85E82241AEAC00B568FA /* DeviceUnitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C55B85F32241AEAC00B568FA /* Build configuration list for PBXNativeTarget "DeviceUnitTests" */;
+			buildPhases = (
+				C55B85EB2241AEAC00B568FA /* Sources */,
+				C55B85F02241AEAC00B568FA /* Frameworks */,
+				C55B85F22241AEAC00B568FA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C55B85FA2241AEEF00B568FA /* PBXTargetDependency */,
+			);
+			name = DeviceUnitTests;
+			productName = ChannelTests;
+			productReference = C55B85F62241AEAC00B568FA /* DeviceUnitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		C845026420DD9D2E00D7350F /* ChannelLib */ = {
 			isa = PBXNativeTarget;
@@ -1018,11 +1073,19 @@
 				C84503B520DDB03E00D7350F /* ServicePerfTests */,
 				C84503C520DDB07A00D7350F /* TestsBundle */,
 				C52D858C2220C44300E86E60 /* DeviceLib */,
+				C55B85E82241AEAC00B568FA /* DeviceUnitTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		C55B85F22241AEAC00B568FA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C845033220DDA11D00D7350F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1078,6 +1141,14 @@
 				C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */,
 				C52D859A2220C4AB00E86E60 /* EDODeviceDetector.m in Sources */,
 				C52D859C2220C4AB00E86E60 /* EDOUSBMuxUtil.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C55B85EB2241AEAC00B568FA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C55B85F72241AEDA00B568FA /* EDODeviceConnectorTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1232,6 +1303,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		C55B85FA2241AEEF00B568FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C52D858C2220C44300E86E60 /* DeviceLib */;
+			targetProxy = C55B85F92241AEEF00B568FA /* PBXContainerItemProxy */;
+		};
 		C845033B20DDA11D00D7350F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C845026420DD9D2E00D7350F /* ChannelLib */;
@@ -1299,6 +1375,36 @@
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Release;
+		};
+		C55B85F42241AEAC00B568FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.google.DeviceUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C55B85F52241AEAC00B568FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.google.DeviceUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1755,6 +1861,15 @@
 			buildConfigurations = (
 				C52D85922220C44300E86E60 /* Debug */,
 				C52D85932220C44300E86E60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C55B85F32241AEAC00B568FA /* Build configuration list for PBXNativeTarget "DeviceUnitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C55B85F42241AEAC00B568FA /* Debug */,
+				C55B85F52241AEAC00B568FA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

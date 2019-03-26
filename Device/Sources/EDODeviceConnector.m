@@ -31,22 +31,25 @@ static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
 /** Time to detect connected devices when connector starts. */
 static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
 
+@interface EDODeviceConnector ()
+/** The detector to detect iOS device attachment/detachment events. */
+@property(nonatomic) EDODeviceDetector *detector;
+/** The connected device info of mappings from device serial strings to auto-assigned device IDs. */
+@property(nonatomic) NSMutableDictionary *deviceInfo;
+@end
+
 @implementation EDODeviceConnector {
-  // @c YES if the connector is listening to device events.
-  BOOL _isListening;
-  // Mappings from device serial strings to auto-assigned device IDs.
-  NSMutableDictionary<NSString *, NSNumber *> *_deviceInfo;
-  // The dispatch queue to guarantee thread-safety of the connector. @c _isListening and
-  // @c _deviceInfo should be guarded by this queue.
+  // The dispatch queue to guarantee thread-safety of the connector. @c deviceInfo should be guarded
+  // by this queue.
   dispatch_queue_t _syncQueue;
 }
 
-- (instancetype)init {
+- (instancetype)initInternal {
   self = [super init];
   if (self) {
-    _isListening = NO;
     _deviceInfo = [[NSMutableDictionary alloc] init];
     _syncQueue = dispatch_queue_create("com.google.edo.connectorSync", DISPATCH_QUEUE_SERIAL);
+    _detector = [[EDODeviceDetector alloc] init];
   }
   return self;
 }
@@ -55,26 +58,25 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
   static EDODeviceConnector *sharedConnector;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    sharedConnector = [[EDODeviceConnector alloc] init];
+    sharedConnector = [[EDODeviceConnector alloc] initInternal];
   });
   return sharedConnector;
 }
 
 - (NSArray<NSString *> *)connectedDevices {
-  if (!_isListening) {
-    if ([self startListening]) {
-      // Wait for a short time to detect all connected devices when listening just starts.
-      dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, kDeviceDetectTime),
-                     dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
-                       dispatch_semaphore_signal(lock);
-                     });
-      dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-    }
+  BOOL started = [self startListening];
+  if (started) {
+    // Wait for a short time to detect all connected devices when listening just starts.
+    dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, kDeviceDetectTime),
+                   dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+                     dispatch_semaphore_signal(lock);
+                   });
+    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
   }
   __block NSArray *result;
   dispatch_sync(_syncQueue, ^{
-    result = [self->_deviceInfo.allKeys copy];
+    result = [self.deviceInfo.allKeys copy];
   });
   return result;
 }
@@ -124,25 +126,15 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
 #pragma mark - Private
 
 - (BOOL)startListening {
-  __block BOOL success;
-  dispatch_sync(_syncQueue, ^{
-    // Already connected to usbmuxd.
-    if (self->_isListening) {
-      success = YES;
-    } else {
-      EDODeviceDetector *detector = [EDODeviceDetector sharedInstance];
-      self->_isListening =
-          [detector listenWithBroadcastHandler:^(NSDictionary *packet, NSError *error) {
-            if (error) {
-              [detector cancel];
-              NSLog(@"Failed to listen to broadcast from usbmuxd: %@", error);
-            }
-            [self handleBroadcastPacket:packet];
-          }];
-      success = self->_isListening;
-    }
-  });
-  return success;
+  return [self.detector
+      listenToBroadcastWithError:nil
+                  receiveHandler:^(NSDictionary *packet, NSError *error) {
+                    if (error) {
+                      [self.detector cancel];
+                      NSLog(@"Stopped listening to broadcast from usbmuxd: %@", error);
+                    }
+                    [self handleBroadcastPacket:packet];
+                  }];
 }
 
 - (void)handleBroadcastPacket:(NSDictionary *)packet {
@@ -152,7 +144,7 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
     NSNumber *deviceID = packet[kEDOMessageDeviceIDKey];
     NSString *serialNumber = packet[kEDOMessagePropertiesKey][kEDOMessageSerialNumberKey];
     dispatch_sync(_syncQueue, ^{
-      [self->_deviceInfo setObject:deviceID forKey:serialNumber];
+      [self.deviceInfo setObject:deviceID forKey:serialNumber];
     });
     NSDictionary *userInfo = @{EDODeviceIDKey : deviceID, EDODeviceSerialKey : serialNumber};
     [[NSNotificationCenter defaultCenter] postNotificationName:EDODeviceDidAttachNotification
@@ -160,12 +152,14 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
                                                       userInfo:userInfo];
   } else if ([messageType isEqualToString:kEDOMessageTypeDetachedKey]) {
     NSNumber *deviceID = packet[kEDOMessageDeviceIDKey];
+    NSMutableArray *keysToRemove = [[NSMutableArray alloc] init];
     dispatch_sync(_syncQueue, ^{
-      for (NSString *serialNumberString in self->_deviceInfo) {
-        if ([self->_deviceInfo[serialNumberString] isEqualToNumber:deviceID]) {
-          [self->_deviceInfo removeObjectForKey:serialNumberString];
+      for (NSString *serialNumberString in self.deviceInfo) {
+        if ([self.deviceInfo[serialNumberString] isEqualToNumber:deviceID]) {
+          [keysToRemove addObject:serialNumberString];
         }
       }
+      [self.deviceInfo removeObjectsForKeys:keysToRemove];
     });
     NSDictionary *userInfo = @{EDODeviceIDKey : deviceID};
     [[NSNotificationCenter defaultCenter] postNotificationName:EDODeviceDidDetachNotification

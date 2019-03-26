@@ -17,18 +17,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef void (^BroadcastHandler)(NSDictionary*, NSError* _Nullable);
+
 /** The class to detect device attachment/detachment events with a handler. */
 @interface EDODeviceDetector : NSObject
-
-/** The shared detector instance. */
-+ (instancetype)sharedInstance;
 
 /**
  *  Starts listening the broadcast of device events with a callback handler. Returns @YES if
  *  connects to usbmuxd successfully.
  */
-- (BOOL)listenWithBroadcastHandler:(void (^)(NSDictionary* _Nullable packet,
-                                             NSError* _Nullable error))broadcastHandler;
+- (BOOL)listenToBroadcastWithError:(NSError* _Nullable* _Nullable)error
+                    receiveHandler:(BroadcastHandler)receiveHandler;
 
 /** Stops listening the broadcast of device events. */
 - (void)cancel;
