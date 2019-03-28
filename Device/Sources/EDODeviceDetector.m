@@ -19,55 +19,67 @@
 #import "Device/Sources/EDODeviceChannel.h"
 #import "Device/Sources/EDOUSBMuxUtil.h"
 
-@implementation EDODeviceDetector {
-  EDODeviceChannel *_channel;
-}
+@interface EDODeviceDetector ()
+/**
+ *  The channel to communicate with usbmuxd. It is lazily loaded when listenWithBroadcastHandler:
+ *  is called.
+ */
+@property EDODeviceChannel *channel;
 
-+ (instancetype)sharedInstance {
-  static EDODeviceDetector *sharedDetector;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    sharedDetector = [[EDODeviceDetector alloc] init];
-  });
-  return sharedDetector;
-}
+@end
 
-- (BOOL)listenWithBroadcastHandler:(void (^)(NSDictionary *packet,
-                                             NSError *error))broadcastHandler {
-  if (_channel) {
-    return NO;
-  }
-  __block NSError *channelError;
-  _channel = [EDODeviceChannel channelWithError:&channelError];
-  if (channelError) {
-    return NO;
-  }
+@implementation EDODeviceDetector
 
-  NSDictionary *packet = [EDOUSBMuxUtil listenPacket];
-  // Synchronously send the listen packet and read response.
-  dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-  [_channel sendPacket:packet
-            completion:^(NSError *error) {
-              if (error) {
-                NSLog(@"Error sending packet to usbmuxd: %@", error);
-              }
-              [self->_channel receivePacketWithHandler:^(NSDictionary *_Nonnull packet,
-                                                         NSError *_Nonnull error) {
-                NSError *rootError = error ?: [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
-                if (rootError) {
-                  NSLog(@"Error when receiving packet from usbmuxd: %@", rootError);
-                } else {
-                  NSAssert([packet[kEDOMessageTypeKey] isEqualToString:kEDOPlistPacketTypeResult],
-                           @"Invalid result packet type.");
-                }
+- (BOOL)listenToBroadcastWithError:(NSError **)error
+                    receiveHandler:(BroadcastHandler)receiveHandler {
+  __block BOOL success = NO;
+  __block NSError *resultError;
+  @synchronized(self) {
+    if (!self.channel) {
+      NSError *channelError = nil;
+      self.channel = [EDODeviceChannel channelWithError:&channelError];
+      if (channelError) {
+        resultError = channelError;
+      } else {
+        NSDictionary *packet = [EDOUSBMuxUtil listenPacket];
+        // Synchronously send the listen packet and read response.
+        dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+        [self.channel
+            sendPacket:packet
+            completion:^(NSError *packetSendError) {
+              if (packetSendError) {
+                resultError = packetSendError;
                 dispatch_semaphore_signal(lock);
-              }];
+              } else {
+                [self->_channel receivePacketWithHandler:^(NSDictionary *_Nonnull packet,
+                                                           NSError *_Nonnull error) {
+                  NSError *rootError = error ?: [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
+                  if (rootError) {
+                    resultError = rootError;
+                  } else {
+                    NSAssert([packet[kEDOMessageTypeKey] isEqualToString:kEDOPlistPacketTypeResult],
+                             @"Invalid result packet type.");
+                    success = YES;
+                  }
+                  dispatch_semaphore_signal(lock);
+                }];
+              }
             }];
-  dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-
-  // Schedule read recursively to constantly listen to broadcast event.
-  [self scheduleReadBroadcastPacketWithHandler:broadcastHandler];
-  return YES;
+        dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+        if (success) {
+          // Schedule read recursively to constantly listen to broadcast event.
+          [self scheduleReadBroadcastPacketWithHandler:receiveHandler];
+        }
+      }
+    }
+  }
+  if (resultError) {
+    NSLog(@"Failed to listen to broadcast: %@", resultError);
+    if (error) {
+      *error = resultError;
+    }
+  }
+  return success;
 }
 
 - (void)cancel {

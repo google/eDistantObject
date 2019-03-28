@@ -117,7 +117,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         dispatch_semaphore_signal(lock);
       }];
   dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-  __block EDOObjectResponse *resposne = nil;
+  __block EDOObjectResponse *response = nil;
   if (!connectError) {
     [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
       if (error) {
@@ -130,7 +130,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
             if (error) {
               connectError = error;
             } else {
-              resposne = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
+              response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
             }
             dispatch_semaphore_signal(lock);
           }];
@@ -147,7 +147,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
   if (error) {
     *error = connectError;
   }
-  return resposne.object;
+  return response.object;
 }
 
 #pragma mark - Private Category
@@ -231,7 +231,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(EDOHostPort *)port {
   // TODO(b/119416282): We still run the executor even for the other requests before the deadlock
-  //                    isuse is fixed.
+  //                    issue is fixed.
   EDOHostService *service = [EDOHostService serviceForCurrentQueue];
   return [self sendSynchronousRequest:request onPort:port withExecutor:service.executor];
 }
@@ -241,8 +241,9 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
                                   withExecutor:(EDOExecutor *)executor {
   EDOClientServiceStatsCollector *stats = EDOClientServiceStatsCollector.sharedServiceStats;
 
-  int attempts = 2;
-  while (attempts > 0) {
+  int maxAttempts = 2;
+  int currentAttempt = 0;
+  while (currentAttempt < maxAttempts) {
     NSError *error;
     uint64_t connectionStartTime = mach_absolute_time();
     id<EDOChannel> channel =
@@ -305,15 +306,14 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       } else {
         // Cleanup broken channels before retry.
         [EDOChannelPool.sharedChannelPool removeChannelsWithPort:port];
-        attempts -= 1;
+        currentAttempt += 1;
       }
     }
   }
   NSAssert(NO,
-           @"Retry creating channel failed when sending request (%@) on port (%@). The remote "
-           @"service or the process may be unresponsive due to crashes or deadlocks. Check the "
-           @"other generated logs for more information about the issue.",
-           request, port);
+           @"Failed to send request (%@) on port (%@) after %d attempts. The remote service may be "
+           @"unresponsive due to a crash or hang. Check full logs for more information.",
+           request, port, maxAttempts);
   return nil;
 }
 
@@ -333,13 +333,13 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         sendSynchronousRequest:request
                         onPort:object.servicePort.hostPort];
 
-    EDOObject *reponseObject;
+    EDOObject *responseObject;
     if ([EDOBlockObject isBlock:response.object]) {
-      reponseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
+      responseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
     } else {
-      reponseObject = response.object;
+      responseObject = response.object;
     }
-    return (__bridge id)(void *)reponseObject.remoteAddress;
+    return (__bridge id)(void *)responseObject.remoteAddress;
   } @catch (NSException *e) {
     // In case of the service is dead or error, ignore the exception and reset to nil.
     return nil;
@@ -362,7 +362,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
                               error:error];
 }
 
-/** Sends the reqeust data through the given @c channel and waits for the response synchronously. */
+/** Sends the request data through the given @c channel and waits for the response synchronously. */
 + (NSData *)sendRequestData:(NSData *)requestData withChannel:(id<EDOChannel>)channel {
   __block NSData *responseData;
   // The channel is asynchronous and not I/O re-entrant so we chain the sending and receiving,

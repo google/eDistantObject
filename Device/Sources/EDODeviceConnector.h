@@ -35,7 +35,7 @@ extern NSString *const EDODeviceIDKey;
  *  return all connected device. Listening to
  *  @c EDODeviceDidAttachNotification/EDODeviceDidDetachNotification
  *  will work after connector starts listening. By calling connectToDevice:onPort:error:, a channel
- *  connected to the host service in the iOS device will be created.
+ *  connected to the listen port in the iOS device will be created.
  */
 @interface EDODeviceConnector : NSObject
 
@@ -43,6 +43,8 @@ extern NSString *const EDODeviceIDKey;
 @property(readonly) NSArray<NSString *> *connectedDevices;
 /** Shared device connector. */
 @property(readonly, class) EDODeviceConnector *sharedConnector;
+
+- (instancetype)init NS_UNAVAILABLE;
 
 /**
  *  Synchronously connects to a given @c deviceSerial and @c port listening on the connected device
