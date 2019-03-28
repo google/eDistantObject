@@ -462,6 +462,17 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertEqualObjects(self.rootObject.error.domain, errorOut.domain);
 }
 
+- (void)testSelectorParameterAndReturns {
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  XCTAssertEqual([dummyOnBackground selectorFromName:nil], nil);
+  XCTAssertEqual([dummyOnBackground selectorFromName:@"selectorFromName:"],
+                 @selector(selectorFromName:));
+
+  XCTAssertEqualObjects([dummyOnBackground nameFromSelector:@selector(nameFromSelector:)],
+                        @"nameFromSelector:");
+  XCTAssertNil([dummyOnBackground nameFromSelector:nil]);
+}
+
 - (void)testMockAndNSProxyParameters {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 

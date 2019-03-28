@@ -90,6 +90,12 @@ typedef struct EDOTestDummyStruct {
                    blockComplex:(EDOTestDummy * (^)(EDOTestDummyStruct, int, EDOTestDummy *))block;
 - (void)invokeBlock;
 
+/** Returns the name of the given @c selector. */
+- (NSString *)nameFromSelector:(SEL)selector;
+
+/** Returns the selector from the given @c name. */
+- (SEL)selectorFromName:(NSString *)name;
+
 /// throw exceptions
 - (void)selWithThrow;
 

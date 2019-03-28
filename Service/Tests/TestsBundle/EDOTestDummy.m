@@ -235,6 +235,14 @@ static const NSInteger kLargeArraySize = 1000;
   return sameBlock;
 }
 
+- (NSString *)nameFromSelector:(SEL)selector {
+  return NSStringFromSelector(selector);
+}
+
+- (SEL)selectorFromName:(NSString *)name {
+  return NSSelectorFromString(name);
+}
+
 - (void)selWithThrow {
   [[self exceptionWithReason:@"Just Throw"] raise];
 }

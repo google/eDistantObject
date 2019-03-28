@@ -21,6 +21,7 @@
 #import "Service/Sources/EDOObject.h"
 
 static NSString *const kObjCIdType = @"@";
+static NSString *const kObjCSelectorType = @":";
 static NSString *const kEDOParameterCoderValueKey = @"value";
 static NSString *const kEDOParameterCoderTypeKey = @"type";
 
@@ -63,6 +64,9 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
   if (EDO_IS_OBJECT_OR_CLASS(objCType)) {
     id<NSCoding> __strong *value = (id<NSCoding> __strong *)bytes;
     return [self parameterWithValue:*(value) objCType:kObjCIdType];
+  } else if (EDO_IS_SELECTOR(objCType)) {
+    SEL selector = *(SEL *)bytes;
+    return [self parameterWithValue:NSStringFromSelector(selector) objCType:kObjCSelectorType];
   } else {
     NSUInteger typeSize = 0L;
     NSGetSizeAndAlignment(objCType, &typeSize, NULL);
@@ -131,6 +135,9 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
   if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
     NSAssert(sizeof(id) == sizeof(Class), @"The buffer is not suitable for both Id and Class.");
     memcpy(buffer, (void *)&_value, sizeof(id));
+  } else if (EDO_IS_SELECTOR(ctype)) {
+    SEL selector = NSSelectorFromString((NSString *)self.value);
+    memcpy(buffer, (void *)&selector, sizeof(SEL));
   } else {
     NSData *value = (NSData *)self.value;
 

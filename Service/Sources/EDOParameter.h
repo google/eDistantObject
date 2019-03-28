@@ -32,6 +32,8 @@ NS_ASSUME_NONNULL_BEGIN
   ((__type)[0] == _C_PTR && (__type)[1] == _C_ID && (__type)[2] == '\0')
 /** Check if the given C-string type is a pointer type that points to any type. */
 #define EDO_IS_POINTER(__type) ((__type)[0] == _C_PTR)
+/** Check if the given C-string type is a selector type. */
+#define EDO_IS_SELECTOR(__type) ((__type)[0] == _C_SEL)
 
 /** The boxed value to serialize data and objects when transferring invocations. */
 @interface EDOParameter : NSObject <NSSecureCoding>
