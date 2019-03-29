@@ -28,8 +28,8 @@ NSString *const EDODeviceIDKey = @"EDODeviceIDKey";
 
 /** Timeout for connecting to device. */
 static const int64_t kDeviceConnectTimeout = 5 * NSEC_PER_SEC;
-/** Time to detect connected devices when connector starts. */
-static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
+/** Seconds to detect connected devices when connector starts. */
+static const int64_t kDeviceDetectTime = 2;
 
 @interface EDODeviceConnector ()
 /** The detector to detect iOS device attachment/detachment events. */
@@ -67,12 +67,7 @@ static const int64_t kDeviceDetectTime = 2 * NSEC_PER_SEC;
   BOOL started = [self startListening];
   if (started) {
     // Wait for a short time to detect all connected devices when listening just starts.
-    dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, kDeviceDetectTime),
-                   dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
-                     dispatch_semaphore_signal(lock);
-                   });
-    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+    sleep(kDeviceDetectTime);
   }
   __block NSArray *result;
   dispatch_sync(_syncQueue, ^{
