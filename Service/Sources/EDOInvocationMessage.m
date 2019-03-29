@@ -36,9 +36,41 @@ static NSString *const kEDOInvocationCoderArgumentsKey = @"arguments";
 static NSString *const kEDOInvocationCoderHostPortKey = @"hostPort";
 static NSString *const kEDOInvocationReturnByValueKey = @"returnByValue";
 
+static NSString *const kEDOInvocationCoderReturnRetainedKey = @"returnRetained";
 static NSString *const kEDOInvocationCoderReturnValueKey = @"returnValue";
 static NSString *const kEDOInvocationCoderOutValuesKey = @"outValues";
 static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
+
+/**
+ *  Check if the method belongs to the ns_returns_retained family.
+ *
+ *  More info here:
+ *  https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values.
+ */
+static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
+  if (methodName == NULL) {
+    return NO;
+  }
+  // If the method name starts with any of alloc, copy, mutableCopy and new, it would belong to
+  // ns_returns_retained family and will retain the return.
+  return strncmp(methodName, "alloc", 5) == 0 || strncmp(methodName, "copy", 4) == 0 ||
+         strncmp(methodName, "mutableCopy", 11) == 0 || strncmp(methodName, "new", 3) == 0;
+}
+
+#pragma mark - EDOInvocationRequest extension
+
+@interface EDOInvocationRequest ()
+/** The remote target. */
+@property(readonly) EDOPointerType target;
+/** The selector name. */
+@property(readonly) NSString *selName;
+/** The boxed arguments. */
+@property(readonly) NSArray<EDOBoxedValueType *> *arguments;
+/** The flag indicationg return-by-value. */
+@property(readonly, assign) BOOL returnByValue;
+/** The host port. */
+@property(readonly) EDOHostPort *hostPort;
+@end
 
 #pragma mark -
 
@@ -67,6 +99,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     _returnValue = value;
     _exception = exception;
     _outValues = outValues;
+    _returnRetained = CheckIfMethodRetainsReturn(request.selName.UTF8String);
   }
   return self;
 }
@@ -74,6 +107,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
+    _returnRetained = [aDecoder decodeBoolForKey:kEDOInvocationCoderReturnRetainedKey];
     _returnValue = [aDecoder decodeObjectOfClass:[EDOParameter class]
                                           forKey:kEDOInvocationCoderReturnValueKey];
     // TODO(haowoo): The exception doesn't conform to NSSecureCoding, so when NSKeyedUnarchiver
@@ -94,6 +128,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
 
+  [aCoder encodeBool:self.returnRetained forKey:kEDOInvocationCoderReturnRetainedKey];
   [aCoder encodeObject:self.returnValue forKey:kEDOInvocationCoderReturnValueKey];
   [aCoder encodeObject:self.exception forKey:kEDOInvocationCoderExceptionKey];
   [aCoder encodeObject:self.outValues forKey:kEDOInvocationCoderOutValuesKey];
@@ -106,19 +141,6 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 @end
 
 #pragma mark -
-
-@interface EDOInvocationRequest ()
-/** The remote target. */
-@property(readonly) EDOPointerType target;
-/** The selector name. */
-@property(readonly) NSString *selName;
-/** The boxed arguments. */
-@property(readonly) NSArray<EDOBoxedValueType *> *arguments;
-/** The flag indicationg return-by-value. */
-@property(readonly, assign) BOOL returnByValue;
-/** The host port. */
-@property(readonly) EDOHostPort *hostPort;
-@end
 
 @implementation EDOInvocationRequest
 
@@ -286,6 +308,12 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
           [invocation getReturnValue:&obj];
           returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
                                               : BOX_VALUE(obj, service, hostPort);
+          if (CheckIfMethodRetainsReturn(request.selName.UTF8String)) {
+            // We need to do an extra release here because the method return is not autoreleased,
+            // and because the invocation is dynamically created, ARC won't insert an extra release
+            // for us.
+            CFBridgingRelease((__bridge void *)obj);
+          }
         } else if (EDO_IS_POINTER(returnType)) {
           // TODO(haowoo): Handle this early and populate the exception.
 

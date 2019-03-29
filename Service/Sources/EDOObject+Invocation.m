@@ -103,6 +103,13 @@
     obj = [EDOClientService unwrappedObjectFromObject:obj];
     obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:obj];
     [invocation setReturnValue:&obj];
+
+    // ARC will insert a -release on the return if the method retains return, but because we build
+    // the invocation dynamically, the return is not retained, we insert an extra retain here to
+    // compensate ARC.
+    if (response.returnRetained) {
+      CFBridgingRetain(obj);
+    }
   } else if (returnBufSize > 0) {
     char *const returnBuf = calloc(returnBufSize, sizeof(char));
     [response.returnValue getValue:returnBuf];

@@ -22,6 +22,9 @@
 
 - (instancetype)initWithValue:(int)value;
 
+/** A dummy alloc method that makes ARC to release the return. */
++ (instancetype)allocDummy;
+
 + (int)classMethodWithInt:(int)value;
 + (EDOTestClassDummy *)classMethodWithIdReturn:(int)value;
 

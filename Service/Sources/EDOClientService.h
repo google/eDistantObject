@@ -82,13 +82,9 @@ _Pragma("clang diagnostic ignored \"-Wobjc-protocol-property-synthesis\"")      
   return [EDOClientService classObjectWithName:@""#__class port:(__port)];                   \
 }                                                                                            \
 \
-+ (instancetype)alloc {                                                                      \
-  id instance = [self forwardingTargetForSelector:_cmd];                                     \
-  return (__bridge id)CFBridgingRetain([instance alloc]); /* NOLINT */                       \
-}                                                                                            \
-\
 + (instancetype)allocWithZone : (NSZone *)zone {                                             \
-  return [self alloc];                                                                       \
+  id instance = [self forwardingTargetForSelector:@selector(alloc)];                         \
+  return [instance alloc];                                                                   \
 }                                                                                            \
 \
 @end                                                                                         \

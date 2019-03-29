@@ -19,6 +19,7 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
+#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
 // Memory tests to assure the local and remote objects don't leak.
@@ -33,6 +34,30 @@
   [super setUp];
 
   self.application = [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
+}
+
+- (void)testStubClassAllocFamily {
+  // Ensure the -release inserted by ARC wouldn't crash the test.
+  @autoreleasepool {
+    // Stub class forwarding alloc will alloc an instance of EDOObject.
+    XCTAssertEqualObjects([[EDOTestClassDummy alloc] class], NSClassFromString(@"EDOObject"));
+    XCTAssertEqualObjects([[EDOTestClassDummy allocWithZone:nil] class],
+                          NSClassFromString(@"EDOObject"));
+
+    // -alloc should return the same instance as from -init.
+    EDOTestClassDummy *testDummyEqual = [EDOTestClassDummy alloc];
+    XCTAssertEqual(testDummyEqual, [testDummyEqual initWithValue:10]);
+
+    // Ensure accessing the object is still valid.
+    XCTAssertEqual(testDummyEqual.value, 10);
+  }
+
+  EDOTestClassDummy *testDummy;
+  @autoreleasepool {
+    // allocDummy will trigger ARC to insert an extra release.
+    testDummy = [[EDOTestClassDummy allocDummy] initWithValue:20];
+  }
+  XCTAssertEqual(testDummy.value, 20);
 }
 
 // Test that the remote objects are resolved to be local objects if they are coming back to their
