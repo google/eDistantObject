@@ -23,7 +23,7 @@
 
 #import "Channel/Sources/EDOSocketPort.h"
 
-static char const *gListenSocketQueueLabel = "com.google.edo.socket_listen";
+static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
 
 @implementation EDOListenSocket {
   // The dispatch source to listen on for incoming requests.
