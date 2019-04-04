@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,10 +37,6 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 @end
 
 @implementation EDOUITestAppUITests
-
-- (void)setUp {
-  [super setUp];
-}
 
 - (void)tearDown {
   EDOClientService.errorHandler = nil;
