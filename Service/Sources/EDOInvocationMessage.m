@@ -30,15 +30,98 @@
   ([(__value) edo_parameterForService:(__service) hostPort:(__hostPort)] \
        ?: [EDOBoxedValueType parameterForNilValue])
 
+#define CHECK_PREFIX(__string, __prefix) (strncmp(__string, __prefix, sizeof(__prefix) - 1) == 0)
+
 static NSString *const kEDOInvocationCoderTargetKey = @"target";
-static NSString *const kEDOInvocationCoderSelNameKey = @"selName";
+static NSString *const kEDOInvocationCoderSelectorNameKey = @"selName";
 static NSString *const kEDOInvocationCoderArgumentsKey = @"arguments";
 static NSString *const kEDOInvocationCoderHostPortKey = @"hostPort";
 static NSString *const kEDOInvocationReturnByValueKey = @"returnByValue";
 
+static NSString *const kEDOInvocationCoderReturnRetainedKey = @"returnRetained";
 static NSString *const kEDOInvocationCoderReturnValueKey = @"returnValue";
 static NSString *const kEDOInvocationCoderOutValuesKey = @"outValues";
 static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
+
+/** A struct representing an Objective-C method family. */
+typedef struct MethodFamily {
+  /** The prefix identifying the method family. */
+  const char *prefix;
+  /** The length of the prefix of the method family. */
+  size_t length;
+} MethodFamily;
+
+/** The helper macro to define a @c MethodFamily above. */
+#define METHOD_FAMILY(__str) ((MethodFamily){.prefix = (__str), .length = sizeof(__str) - 1})
+
+/** The methods family that should retain the returned object. */
+const MethodFamily kRetainReturnsMethodsFamily[] = {
+    METHOD_FAMILY("alloc"),
+    METHOD_FAMILY("copy"),
+    METHOD_FAMILY("new"),
+    METHOD_FAMILY("mutableCopy"),
+};
+
+/**
+ *  Check if the method belongs to the ns_returns_retained family.
+ *
+ *  More info here:
+ *  https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values.
+ */
+static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
+  if (!methodName) {
+    return NO;
+  }
+
+  /**
+   *  To find out if a selector is in a certain method family:
+   *
+   *  A selector is in a certain selector family if, ignoring any leading underscores, the first
+   *  component of the selector either consists entirely of the name of the method family or it
+   *  begins with that name followed by a character other than a lowercase letter.
+   *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+   */
+
+  // Skip the leading underscore as it is considered to be the same method family.
+  while (*methodName == '_') {
+    ++methodName;
+  }
+
+  // Skip the first component if it begins with a method family that is implicitly annotated with
+  // the ns_returns_retained attribute.
+  BOOL matchesMethodFamily = NO;
+  int familySize = sizeof(kRetainReturnsMethodsFamily) / sizeof(kRetainReturnsMethodsFamily);
+  for (int i = 0; i < familySize; i++) {
+    MethodFamily family = kRetainReturnsMethodsFamily[i];
+    if (strncmp(methodName, family.prefix, family.length) == 0) {
+      methodName += family.length;
+      matchesMethodFamily = YES;
+      break;
+    }
+  }
+
+  if (!matchesMethodFamily) {
+    return NO;
+  }
+
+  // It should end or be followed by a character other than a lowercase letter.
+  return *methodName == '\0' || !islower(*methodName);
+}
+
+#pragma mark - EDOInvocationRequest extension
+
+@interface EDOInvocationRequest ()
+/** The remote target. */
+@property(readonly) EDOPointerType target;
+/** The selector name. */
+@property(readonly) NSString *selectorName;
+/** The boxed arguments. */
+@property(readonly) NSArray<EDOBoxedValueType *> *arguments;
+/** The flag indicationg return-by-value. */
+@property(readonly, assign) BOOL returnByValue;
+/** The host port. */
+@property(readonly) EDOHostPort *hostPort;
+@end
 
 #pragma mark -
 
@@ -67,6 +150,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     _returnValue = value;
     _exception = exception;
     _outValues = outValues;
+    _returnRetained = CheckIfMethodRetainsReturn(request.selectorName.UTF8String);
   }
   return self;
 }
@@ -74,6 +158,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
+    _returnRetained = [aDecoder decodeBoolForKey:kEDOInvocationCoderReturnRetainedKey];
     _returnValue = [aDecoder decodeObjectOfClass:[EDOParameter class]
                                           forKey:kEDOInvocationCoderReturnValueKey];
     // TODO(haowoo): The exception doesn't conform to NSSecureCoding, so when NSKeyedUnarchiver
@@ -94,6 +179,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
 
+  [aCoder encodeBool:self.returnRetained forKey:kEDOInvocationCoderReturnRetainedKey];
   [aCoder encodeObject:self.returnValue forKey:kEDOInvocationCoderReturnValueKey];
   [aCoder encodeObject:self.exception forKey:kEDOInvocationCoderExceptionKey];
   [aCoder encodeObject:self.outValues forKey:kEDOInvocationCoderOutValuesKey];
@@ -106,19 +192,6 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 @end
 
 #pragma mark -
-
-@interface EDOInvocationRequest ()
-/** The remote target. */
-@property(readonly) EDOPointerType target;
-/** The selector name. */
-@property(readonly) NSString *selName;
-/** The boxed arguments. */
-@property(readonly) NSArray<EDOBoxedValueType *> *arguments;
-/** The flag indicationg return-by-value. */
-@property(readonly, assign) BOOL returnByValue;
-/** The host port. */
-@property(readonly) EDOHostPort *hostPort;
-@end
 
 @implementation EDOInvocationRequest
 
@@ -196,7 +269,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
              @"EDOInvocationRequest is expected.");
     EDOHostPort *hostPort = request.hostPort;
     id target = (__bridge id)(void *)request.target;
-    SEL sel = NSSelectorFromString(request.selName);
+    SEL sel = NSSelectorFromString(request.selectorName);
 
     EDOBoxedValueType *returnValue;
     NSException *invocationException;
@@ -286,6 +359,12 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
           [invocation getReturnValue:&obj];
           returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
                                               : BOX_VALUE(obj, service, hostPort);
+          if (CheckIfMethodRetainsReturn(request.selectorName.UTF8String)) {
+            // We need to do an extra release here because the method return is not autoreleased,
+            // and because the invocation is dynamically created, ARC won't insert an extra release
+            // for us.
+            CFBridgingRelease((__bridge void *)obj);
+          }
         } else if (EDO_IS_POINTER(returnType)) {
           // TODO(haowoo): Handle this early and populate the exception.
 
@@ -329,8 +408,8 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
   self = [super init];
   if (self) {
     _target = target;
-    _selName = selector ? NSStringFromSelector(selector) : nil;
-    _arguments = arguments;
+    _selectorName = selector ? NSStringFromSelector(selector) : nil;
+    _arguments = [arguments copy];
     _hostPort = hostPort;
     _returnByValue = returnByValue;
   }
@@ -343,7 +422,8 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
     NSSet *anyClasses =
         [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], [NSObject class], nil];
     _target = [aDecoder decodeInt64ForKey:kEDOInvocationCoderTargetKey];
-    _selName = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOInvocationCoderSelNameKey];
+    _selectorName = [aDecoder decodeObjectOfClass:[NSString class]
+                                           forKey:kEDOInvocationCoderSelectorNameKey];
     _arguments = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOInvocationCoderArgumentsKey];
     _hostPort = [aDecoder decodeObjectOfClass:[EDOHostPort class]
                                        forKey:kEDOInvocationCoderHostPortKey];
@@ -355,7 +435,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
   [aCoder encodeInt64:self.target forKey:kEDOInvocationCoderTargetKey];
-  [aCoder encodeObject:self.selName forKey:kEDOInvocationCoderSelNameKey];
+  [aCoder encodeObject:self.selectorName forKey:kEDOInvocationCoderSelectorNameKey];
   [aCoder encodeObject:self.arguments forKey:kEDOInvocationCoderArgumentsKey];
   [aCoder encodeObject:self.hostPort forKey:kEDOInvocationCoderHostPortKey];
   [aCoder encodeBool:self.returnByValue forKey:kEDOInvocationReturnByValueKey];
@@ -363,7 +443,7 @@ static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"Invocation request (%@) on target (%llx) with selector (%@)",
-                                    self.messageId, self.target, self.selName];
+                                    self.messageId, self.target, self.selectorName];
 }
 
 @end

@@ -19,6 +19,7 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
+#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
 // Memory tests to assure the local and remote objects don't leak.
@@ -33,6 +34,42 @@
   [super setUp];
 
   self.application = [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:6];
+}
+
+- (void)testStubClassAllocReturnsEDOObject {
+  // Stub class forwarding alloc will alloc an instance of EDOObject.
+  XCTAssertEqualObjects([[EDOTestClassDummy alloc] class], NSClassFromString(@"EDOObject"));
+  XCTAssertEqualObjects([[EDOTestClassDummy allocWithZone:nil] class],
+                        NSClassFromString(@"EDOObject"));
+}
+
+- (void)testStubClassAllocEqualsInit {
+  EDOTestClassDummy *testDummy;
+  @autoreleasepool {
+    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
+    // objects if any will be reclaimed.
+    // +alloc should return the same instance as from -init.
+    testDummy = [EDOTestClassDummy alloc];
+    XCTAssertEqual(testDummy, [testDummy initWithValue:10]);
+  }
+  // Ensure the appropriate value is retrieved from the object.
+  XCTAssertEqual(testDummy.value, 10);
+}
+
+- (void)testAllocFamilyRetainsReturn {
+  EDOTestClassDummy *testDummy1, *testDummy2, *testDummy3;
+  @autoreleasepool {
+    // allocDummy will trigger ARC to insert an extra release.
+    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
+    // objects if any will be reclaimed.
+    testDummy1 = [[EDOTestClassDummy allocDummy] initWithValue:10];
+    testDummy2 = [[EDOTestClassDummy _allocDummy] initWithValue:20];
+    testDummy3 = [[EDOTestClassDummy allocateDummy] initWithValue:30];
+  }
+  // Ensure the appropriate value is retrieved from the object.
+  XCTAssertEqual(testDummy1.value, 10);
+  XCTAssertEqual(testDummy2.value, 20);
+  XCTAssertEqual(testDummy3.value, 30);
 }
 
 // Test that the remote objects are resolved to be local objects if they are coming back to their

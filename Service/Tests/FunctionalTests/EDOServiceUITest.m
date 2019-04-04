@@ -225,19 +225,9 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
                                                  rootObject:[[EDOTestDummyInTest alloc] init]
                                                       queue:dispatch_get_main_queue()];
 
-  EDOTestClassDummy *testDummyEqual = [EDOTestClassDummy alloc];
-  XCTAssertEqual(testDummyEqual, [testDummyEqual initWithValue:10]);
-
   // @see EDOTestClassDummyStub.m
   XCTAssertEqual([EDOTestClassDummy classMethodWithInt:7], 16);
   XCTAssertEqual([EDOTestClassDummy classMethodWithIdReturn:8].value, 8);
-
-  // Stub class forwarding alloc will alloc an instance of EDOObject.
-  XCTAssertEqualObjects([[EDOTestClassDummy alloc] class], NSClassFromString(@"EDOObject"));
-  XCTAssertEqualObjects([[EDOTestClassDummy allocWithZone:nil] class],
-                        NSClassFromString(@"EDOObject"));
-
-  // XCTAssertTrue(testDummyEqual == [testDummyEqual initWithValue:10]);
 
   EDOTestClassDummy *dummy = [EDOTestClassDummy classMethodWithIdReturn:8];
   XCTAssertEqualObjects([dummy class], NSClassFromString(@"EDOObject"));

@@ -22,6 +22,31 @@
 
 - (instancetype)initWithValue:(int)value;
 
+/**
+ *  A method with the alloc prefix belonging to the alloc family.
+ *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+ */
++ (instancetype)allocDummy;
+
+/**
+ *  A method with the leading underscore belonging to the alloc family.
+ *
+ *  This method begins with an underscore so that tests can verify behavior of methods in the alloc
+ *  family that begin with leading underscores:
+ *  "A selector is in a certain selector family if, ignoring any leading underscores, the first
+ *  component of the selector either consists entirely of the name of the method family or it begins
+ *  with that name followed by a character other than a lowercase letter."
+ *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+ */
++ (instancetype)_allocDummy;
+
+/**
+ *  A method that has the alloc prefix but followed by a lower case that
+ *  doesn't belong to the alloc family.
+ *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+ */
++ (instancetype)allocateDummy;
+
 + (int)classMethodWithInt:(int)value;
 + (EDOTestClassDummy *)classMethodWithIdReturn:(int)value;
 

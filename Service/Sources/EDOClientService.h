@@ -55,14 +55,18 @@ NS_ASSUME_NONNULL_END
  *  helps to generate the stub implementation where it forwards the class method to the remote
  *  class object.
  *
- *  @note   This is not encouraged because this can resolve many remote invocations and has
- *          different memory implications, but it can provide a workaround to translate your code to
- *          a remote invocation without any modifications. If only the class method is needed, try
- *          to not enable the alloc. Because the local NSZone is passing to +[allocWithZone:], and
- *          NSZone is deprecating (also it's a struct and not supported), +[alloc] is used.
+ *  @note   This is generally not encouraged because this could cause retain/release imbalance
+ *          if not used properly. For example, custom ns_returns_retained will not be
+ *          captured at runtime and may lead to a memory crash. This is useful if only the class
+ *          methods are used and any method from the +alloc, +new, +copy, and mutableCopy methods
+ *          families are not used.
  *
- *  @param  clz The class literal.
- *  @param  p   The port that the service listens on.
+ *  @note   +allocWithZone: is forwarded. +alloc is not forwarded as it calls into the forwarded
+ *          method +allocWithZone: for historical reasons.
+ *          https://developer.apple.com/documentation/objectivec/nsobject/1571958-alloc?language=objc
+ *
+ *  @param  __class  The class literal.
+ *  @param  __port   The port that the service listens on.
  */
 // TODO(haowoo): Cache the class object when we can know when the service is invalid.
 // Refer to https://clang.llvm.org/docs/DiagnosticsReference.html for information about the
@@ -78,17 +82,13 @@ _Pragma("clang diagnostic ignored \"-Wobjc-protocol-property-synthesis\"")      
 \
 @implementation __class                                                                      \
 \
-+ (id) forwardingTargetForSelector : (SEL)sel {                                              \
++ (id)forwardingTargetForSelector:(SEL)sel {                                              \
   return [EDOClientService classObjectWithName:@""#__class port:(__port)];                   \
 }                                                                                            \
 \
-+ (instancetype)alloc {                                                                      \
-  id instance = [self forwardingTargetForSelector:_cmd];                                     \
-  return (__bridge id)CFBridgingRetain([instance alloc]); /* NOLINT */                       \
-}                                                                                            \
-\
-+ (instancetype)allocWithZone : (NSZone *)zone {                                             \
-  return [self alloc];                                                                       \
++ (instancetype)allocWithZone:(NSZone *)zone {                                             \
+  id instance = [self forwardingTargetForSelector:@selector(alloc)];                         \
+  return [instance alloc];                                                                   \
 }                                                                                            \
 \
 @end                                                                                         \
@@ -104,8 +104,8 @@ _Pragma("clang diagnostic pop")
  *  @note   The explicit conversion is used to have the compiler check the spelling because it
  *          converts the class literal into a NSString.
  *
- *  @param  clz The class literal
- *  @param  p   The port that the service listens on.
+ *  @param  __class The class literal
+ *  @param  __port  The port that the service listens on.
  */
 #define EDO_REMOTE_CLASS(__class, __port) \
   ((Class)(__class *)[EDOClientService classObjectWithName:@"" #__class port:(__port)])

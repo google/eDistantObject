@@ -80,6 +80,33 @@ typedef EDOParameter EDOBoxedValueType;
 @property(readonly, nullable) EDOBoxedValueType *returnValue;
 /** The boxed values for out parameter. */
 @property(readonly, nullable) NSArray<EDOBoxedValueType *> *outValues;
+/**
+ *  Whether the returned object is retained.
+ *
+ *  With ARC, -retain, -release, and -autorelease, or equivalent methods will be inserted at
+ *  compile time to ensure the correct ownership, according to Objective-C memory conventions,
+ *  however it doesn't guarantee that the retain count will always balance, for example,
+ *  NS_RETURNS_RETAINED will instruct ARC to explicitly transfer the ownership without adding
+ *  an extra -retain. ARC reserves the right to remove any -retain/-release if safe in the context
+ *  of a source file. As eDO builds the remote invocation using @c NSInvocation, this context will
+ *  be lost and ARC treats the memory as what @c NSInvocation states, that is, the annotation gets
+ *  lost and all the returns are already balanced. However the returned object will still be
+ *  retained if the method family is one of +alloc, +new, -mutableCopy, or -copy. ARC will balance
+ *  this by inserting an extra release on the caller, and the object returned will have an extra
+ *  retain count, thus we need to:
+ *   1) insert an extra retain on the caller;
+ *   2) insert an extra release on the receiver,
+ *  to ensure that the retain count is balanced.
+ *
+ *  For more details see
+ * [ARC
+ * documentation](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html),
+ * [the method
+ * families](http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families), and
+ * [retained return
+ * values](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values).
+ */
+@property(readonly) BOOL returnRetained;
 
 - (instancetype)init NS_UNAVAILABLE;
 

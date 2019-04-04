@@ -18,12 +18,16 @@
 
 @implementation EDOTestClassDummy
 
-- (instancetype)initWithValue:(int)value {
-  self = [super init];
-  if (self) {
-    _value = value;
-  }
-  return self;
++ (instancetype)allocDummy {
+  return [self alloc];
+}
+
++ (instancetype)_allocDummy {
+  return [self alloc];
+}
+
++ (instancetype)allocateDummy {
+  return [self alloc];
 }
 
 + (int)classMethodWithInt:(int)value {
@@ -32,6 +36,14 @@
 
 + (EDOTestClassDummy *)classMethodWithIdReturn:(int)value {
   return [[self alloc] initWithValue:value];
+}
+
+- (instancetype)initWithValue:(int)value {
+  self = [super init];
+  if (self) {
+    _value = value;
+  }
+  return self;
 }
 
 @end

@@ -95,20 +95,8 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 
 #pragma mark - Class method proxy
 
-/**
- *  Forwards +[alloc] to the real class and adds an extra retain to the returned object.
- *
- *  When calling +[RemoteClass alloc], because RemoteClass is now a proxy and an instance of
- *  EDOObject, it will make an invocation of -[alloc] on the proxy EDOObject, forwarding the
- *  selector to the proxy instance; ARC will insert objc_release on the returned object, causing
- *  it to over-release. Therefore, we increasing the reference count manually to compensate for
- *  the over-release.
- *
- *  @note The stubbed class has already handled this in +[alloc] locally.
- */
 - (instancetype)alloc {
-  // Extra retain to balance ARC inserting -autorelease.
-  return [self edo_forwardInvocationForSelector:_cmd retainReturn:YES];
+  return [self edo_forwardInvocationForSelector:_cmd];
 }
 
 - (instancetype)allocWithZone:(NSZone *)zone {
@@ -128,22 +116,12 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   return [self mutableCopy];
 }
 
-/**
- *  -copy returns the object returned by -copyWithZone: but the EDOObject itself doesn't copy and
- *  should forward to its underlying -copy implementation. If the underlying object doesn't support
- *  or implement the proper method, exception will be propagated.
- *
- *  @note Increasing the reference count manually here to compensate the ARC release because -copy
- *        implies to own the object like -initWithXxx.
- */
 - (instancetype)copy {
-  // Extra retain to balance ARC inserting -autorelease.
-  return [self edo_forwardInvocationForSelector:_cmd retainReturn:YES];
+  return [self edo_forwardInvocationForSelector:_cmd];
 }
 
-// Same as -[copy] but for the -[mutableCopy].
 - (instancetype)mutableCopy {
-  return [self edo_forwardInvocationForSelector:_cmd retainReturn:YES];
+  return [self edo_forwardInvocationForSelector:_cmd];
 }
 
 - (void)dealloc {
@@ -207,7 +185,7 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 }
 
 - (NSString *)description {
-  return [self edo_forwardInvocationForSelector:_cmd retainReturn:NO];
+  return [self edo_forwardInvocationForSelector:_cmd];
 }
 
 #pragma mark - NSFastEnumeration
@@ -324,30 +302,10 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 /**
  *  Forwards the @c selector to the remote underlying object.
  *
- *  With ARC, -retain and -release or -autorelease will be inserted at compile time to ensure the
- *  correct behavior, according to Objective-C memory conventions, however it doesn't guarantee that
- *  the retain count will always balance, for example, NS_RETURNS_RETAINED will annotate the ARC to
- *  explicitly transfer the ownership without extra -retain. ARC reserves the right to remove any
- *  -retain/-release if safe in the context of source file. However, eDO builds the remote
- *  invocation using @c NSInvocation, where this context will be lost and ARC treats the memory
- *  as what @c NSInvocation states, that is, the caller needs to do -retain to balance the retain
- *  count. In this case, for -alloc and -copy, we need to explicitly rebalance the retain count to
- *  counter the -retain ARC inserts.
- *
- *  For more see ARC in
- * [details](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html),
- *  and more here [the method
- * families](http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families).
- *
- *  @note ARC would insert -release or -autorelease on the object returned from -alloc and -copy,
- *        but the remote invocation eDO builds from @c NSInvocation already balances the retain
- *        count, so here eDO does what ARC would do to -retain the returned object.
- *
  *  @param selector      The selector to forward to the underlying remote object.
- *  @param retainReturn  Whether to retain the returned object.
  *  @return The object returned by the remote invocation.
  */
-- (id)edo_forwardInvocationForSelector:(SEL)selector retainReturn:(BOOL)retainReturn {
+- (id)edo_forwardInvocationForSelector:(SEL)selector {
   NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:selector];
   NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
   invocation.target = self;
@@ -356,11 +314,7 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 
   id __unsafe_unretained returnObject;
   [invocation getReturnValue:&returnObject];
-  if (retainReturn) {
-    return (__bridge id)CFBridgingRetain(returnObject);
-  } else {
-    return returnObject;
-  }
+  return returnObject;
 }
 
 @end
