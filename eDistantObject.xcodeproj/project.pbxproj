@@ -94,6 +94,8 @@
 		C845038220DDA46400D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C84503A720DDAEF500D7350F /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
 		C849824221BF212E008F0D6F /* EDOClientServiceStatsCollector.m in Sources */ = {isa = PBXBuildFile; fileRef = C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */; };
+		C862C6E32253D70D00EABE99 /* EDOServiceException.m in Sources */ = {isa = PBXBuildFile; fileRef = C862C6DF2253D70C00EABE99 /* EDOServiceException.m */; };
+		C862C6E42253D70D00EABE99 /* EDOServiceError.m in Sources */ = {isa = PBXBuildFile; fileRef = C862C6E22253D70D00EABE99 /* EDOServiceError.m */; };
 		C88B8A7C21ADD3DE00DDE607 /* EDONumericMeasure.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */; };
 		C88B8A8A21ADD42700DDE607 /* EDONumericMeasureTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */; };
 		C88B8A8C21ADD43400DDE607 /* libMeasureLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */; };
@@ -358,6 +360,10 @@
 		C84503C620DDB07A00D7350F /* libTestsBundle.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTestsBundle.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOClientServiceStatsCollector.m; path = Service/Sources/EDOClientServiceStatsCollector.m; sourceTree = "<group>"; };
 		C849824121BF212E008F0D6F /* EDOClientServiceStatsCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOClientServiceStatsCollector.h; path = Service/Sources/EDOClientServiceStatsCollector.h; sourceTree = "<group>"; };
+		C862C6DF2253D70C00EABE99 /* EDOServiceException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceException.m; path = Service/Sources/EDOServiceException.m; sourceTree = "<group>"; };
+		C862C6E02253D70C00EABE99 /* EDOServiceError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOServiceError.h; path = Service/Sources/EDOServiceError.h; sourceTree = "<group>"; };
+		C862C6E12253D70C00EABE99 /* EDOServiceException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOServiceException.h; path = Service/Sources/EDOServiceException.h; sourceTree = "<group>"; };
+		C862C6E22253D70D00EABE99 /* EDOServiceError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceError.m; path = Service/Sources/EDOServiceError.m; sourceTree = "<group>"; };
 		C88B8A5E21ADD38500DDE607 /* EDONumericMeasure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EDONumericMeasure.h; sourceTree = "<group>"; };
 		C88B8A5F21ADD38500DDE607 /* EDONumericMeasure.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EDONumericMeasure.m; sourceTree = "<group>"; };
 		C88B8A6121ADD38500DDE607 /* EDONumericMeasureTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EDONumericMeasureTest.m; sourceTree = "<group>"; };
@@ -570,6 +576,10 @@
 				C5A2EFDB2134D43100421D72 /* EDOProtocolObject.m */,
 				C5A2EFD92134D43100421D72 /* EDORemoteVariable.h */,
 				C5A2EFEA2134D43200421D72 /* EDORemoteVariable.m */,
+				C862C6E02253D70C00EABE99 /* EDOServiceError.h */,
+				C862C6E22253D70D00EABE99 /* EDOServiceError.m */,
+				C862C6E12253D70C00EABE99 /* EDOServiceException.h */,
+				C862C6DF2253D70C00EABE99 /* EDOServiceException.m */,
 				C5A2EFD72134D43100421D72 /* EDOServicePort.h */,
 				C5A2EFE72134D43200421D72 /* EDOServicePort.m */,
 				C5A2EFFC2134D43400421D72 /* EDOServiceRequest.h */,
@@ -1178,6 +1188,7 @@
 				C5A2F0712134D6C100421D72 /* EDOObject.m in Sources */,
 				C5A2F07B2134D6C100421D72 /* EDOServiceRequest.m in Sources */,
 				C8ED2AE421B7504F00118999 /* EDOTimingFunctions.m in Sources */,
+				C862C6E32253D70D00EABE99 /* EDOServiceException.m in Sources */,
 				C5A2F06A2134D6A000421D72 /* EDOExecutor.m in Sources */,
 				C5A2F07C2134D6C100421D72 /* EDOValueObject.m in Sources */,
 				C5A2F0782134D6C100421D72 /* EDOProtocolObject.m in Sources */,
@@ -1202,6 +1213,7 @@
 				C5A2F06F2134D6C100421D72 /* EDOMessageQueue.m in Sources */,
 				C896A5DB217A601B00CA5610 /* EDOExecutorMessage.m in Sources */,
 				C5A2F0802134D6C100421D72 /* NSObject+EDOValue.m in Sources */,
+				C862C6E42253D70D00EABE99 /* EDOServiceError.m in Sources */,
 				C5A2F0722134D6C100421D72 /* EDOObject+EDOParameter.m in Sources */,
 				C5A2F06C2134D6A000421D72 /* EDOHostService+Handlers.m in Sources */,
 				C5A2F0762134D6C100421D72 /* EDOObjectReleaseMessage.m in Sources */,

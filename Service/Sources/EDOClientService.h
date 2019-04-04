@@ -20,6 +20,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/** The error handler for handling errors generated when sending client requests. */
+typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
+
 /**
  *  The EDOClientService manages the communication to the remote objects in remote process.
  *
@@ -28,7 +31,14 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface EDOClientService : NSObject
 
-- (instancetype)init NS_UNAVAILABLE;
+/**
+ *  The error handler for the client.
+ *
+ *  The handler will be invoked if there is an error when sending a request. The default handler
+ *  throws an EDOServiceGenericException for any reported error. The exception's user info contains
+ *  the entry EDOUnderlyingErrorKey that embeds the @c NSError object.
+ */
+@property(class, atomic, null_resettable) EDOClientErrorHandler errorHandler;
 
 /** Retrieve the root object from the given host port of a service. */
 + (id)rootObjectWithPort:(UInt16)port;
@@ -43,6 +53,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (Class)classObjectWithName:(NSString *)className
                         port:(UInt16)port
                  serviceName:(NSString *)serviceName;
+
+- (instancetype)init NS_UNAVAILABLE;
 
 @end
 

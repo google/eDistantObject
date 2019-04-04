@@ -31,6 +31,8 @@
 #import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOServiceError.h"
+#import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOTimingFunctions.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
@@ -38,7 +40,29 @@
 /** Timeout for ping health check. */
 static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
 
+/** The default error handler that throws an exception with an embedded error object. */
+static const EDOClientErrorHandler kEDOClientDefaultErrorHandler = ^(NSError *error) {
+  [[NSException exceptionWithName:EDOServiceGenericException
+                           reason:error.description
+                         userInfo:@{EDOExceptionUnderlyingErrorKey : error}] raise];
+};
+
+/** The global error handler for the client. */
+static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHandler;
+
 @implementation EDOClientService
+
++ (void)setErrorHandler:(EDOClientErrorHandler)errorHandler {
+  @synchronized(self) {
+    gEDOClientErrorHandler = errorHandler ?: kEDOClientDefaultErrorHandler;
+  }
+}
+
++ (EDOClientErrorHandler)errorHandler {
+  @synchronized(self) {
+    return gEDOClientErrorHandler;
+  }
+}
 
 + (id)rootObjectWithPort:(UInt16)port {
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
@@ -250,12 +274,16 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
         [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port error:&error];
     [stats reportConnectionDuration:EDOGetMillisecondsSinceMachTime(connectionStartTime)];
 
-    // Raise an exception if the connection fails.
     if (error) {
       [stats reportError];
-      NSString *reason =
-          [NSString stringWithFormat:@"Failed to connect the service %@ for %@.", port, request];
-      [[self exceptionWithReason:reason port:port error:error] raise];
+      NSError *error = [NSError errorWithDomain:EDOClientServiceErrorDomain
+                                           code:EDOClientErrorCannotConnect
+                                       userInfo:@{
+                                         EDOErrorPortKey : port,
+                                         EDOErrorRequestKey : request.description,
+                                         EDOErrorConnectAttemptKey : @(currentAttempt)
+                                       }];
+      self.errorHandler(error);
     }
 
     // If the request is of type ObjectReleaseRequest then don't perform any of the
@@ -310,10 +338,16 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
       }
     }
   }
-  NSAssert(NO,
-           @"Failed to send request (%@) on port (%@) after %d attempts. The remote service may be "
-           @"unresponsive due to a crash or hang. Check full logs for more information.",
-           request, port, maxAttempts);
+  NSString *description = @"The remote service may be unresponsive due to a crash or hang. Check "
+                          @"full logs for more information.";
+  NSError *error = [NSError errorWithDomain:EDOClientServiceErrorDomain
+                                       code:EDOClientErrorConnectTimeout
+                                   userInfo:@{
+                                     EDOErrorRequestKey : request.description,
+                                     EDOErrorPortKey : port,
+                                     NSLocalizedDescriptionKey : description
+                                   }];
+  self.errorHandler(error);
   return nil;
 }
 
@@ -390,6 +424,7 @@ static const int64_t kPingTimeoutSeconds = 10 * NSEC_PER_SEC;
     dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
   }
 
+  // The ping hasn't been received, or nothing has been received, timing out.
   if (result != 0 || serviceClosed) {
     NSLog(@"The edo channel %@ is broken.", channel);
   }

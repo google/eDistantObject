@@ -23,6 +23,7 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOServiceError.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -36,6 +37,15 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 @end
 
 @implementation EDOUITestAppUITests
+
+- (void)setUp {
+  [super setUp];
+}
+
+- (void)tearDown {
+  EDOClientService.errorHandler = nil;
+  [super tearDown];
+}
 
 - (void)testServiceNonExist {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
@@ -197,22 +207,45 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   [service invalidate];
 }
 
-- (void)testServiceInvalidOrTerminatedInMiddle {
+- (void)testServiceInvalidErrorHandling {
   // Terminate the app if other tests launched it.
   [[[XCUIApplication alloc] init] terminate];
 
+  NSString *exceptionName = @"UITest Exception";
+  __block NSError *currentError;
+  EDOClientService.errorHandler = ^(NSError *error) {
+    currentError = error;
+    [NSException raise:exceptionName format:@"%ld", (long)error.code];  // NOLINT
+  };
+
   XCTAssertThrowsSpecificNamed([EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT],
-                               NSException, NSDestinationInvalidException);
+                               NSException, exceptionName);
+  XCTAssertEqualObjects(currentError.domain, EDOClientServiceErrorDomain);
+  XCTAssertEqual(currentError.code, EDOClientErrorCannotConnect);
+}
+
+- (void)testRemoteObjectShouldFailAfterServiceTerminated {
+  NSString *exceptionName = @"UITest Exception";
+  __block NSError *currentError;
+  EDOClientService.errorHandler = ^(NSError *error) {
+    currentError = error;
+    [NSException raise:exceptionName format:@"%ld", (long)error.code];  // NOLINT
+  };
 
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
-
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  XCTAssertEqual(remoteDummy.value, 8);
   [remoteDummy invalidateService];
-  XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException,
-                               NSDestinationInvalidException);
+  // The remote object should fail after the remote service is down.
+  XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException, exceptionName);
+  XCTAssertEqualObjects(currentError.domain, EDOClientServiceErrorDomain);
+  XCTAssertEqual(currentError.code, EDOClientErrorCannotConnect);
+  currentError = nil;
 
+  // The new service is created on the same port and the cached remote object from the previous
+  // service should fail.
+  // TODO(haowoo): Refactor this after moving to the new exception/error handler logic.
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
-
   XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException,
                                NSDestinationInvalidException);
 }

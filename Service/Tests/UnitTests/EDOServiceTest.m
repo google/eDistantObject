@@ -632,6 +632,21 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertFalse([namingServiceObject portForServiceWithName:kTestServiceName] == 0);
 }
 
+- (void)testClientErrorHandlerNotNil {
+  EDOClientService.errorHandler = nil;
+  XCTAssertNotNil(EDOClientService.errorHandler);
+}
+
+- (void)testClientErrorHandlerInvoked {
+  XCTestExpectation *expectInvoke = [self expectationWithDescription:@"Error handler is invoked."];
+  [EDOClientService setErrorHandler:^(NSError *error) {
+    [expectInvoke fulfill];
+  }];
+  // The port 0 is reserved and should always fail to connect to it.
+  [EDOClientService rootObjectWithPort:0];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
 #pragma mark - Helper methods
 
 - (EDOTestDummy *)rootObjectOnBackground {
