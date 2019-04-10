@@ -380,7 +380,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
       // Channel in the host side to receive requests.
       id<EDOChannel> channel = [EDOSocketChannel channelWithDispatchChannel:dispatchChannel
                                                                    hostPort:devicePort];
-      NSData *data = [name dataUsingEncoding:kCFStringEncodingUTF8];
+      NSData *data = [name dataUsingEncoding:NSUTF8StringEncoding];
       dispatch_semaphore_t lock = dispatch_semaphore_create(0);
       [channel sendData:data
           withCompletionHandler:^(id<EDOChannel> channel, NSError *channelError) {
