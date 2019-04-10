@@ -76,6 +76,58 @@
 		C5A2F0852134D6D100421D72 /* EDOTestProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03E2134D50600421D72 /* EDOTestProtocol.m */; };
 		C5A2F0862134D6D100421D72 /* EDOTestSwiftClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03F2134D50600421D72 /* EDOTestSwiftClass.swift */; };
 		C5A2F0872134D6D100421D72 /* EDOTestSwiftProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0402134D50600421D72 /* EDOTestSwiftProtocol.swift */; };
+		C5BB8C9B225E9AB10059E5C0 /* EDOiOS2MacHostTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5BB8C96225E9A580059E5C0 /* EDOiOS2MacHostTest.m */; };
+		C5BB8CB0225E9B6A0059E5C0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C5BB8C99225E9A770059E5C0 /* main.m */; };
+		C5BB8CB5225E9DE50059E5C0 /* libeDistantObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845027720DD9D5D00D7350F /* libeDistantObject.a */; };
+		C5BB8CBA225EA64A0059E5C0 /* Dummy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0582134D5BE00421D72 /* Dummy.swift */; };
+		C5BB8CC1225EA9340059E5C0 /* EDOClassMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFDE2134D43100421D72 /* EDOClassMessage.m */; };
+		C5BB8CC2225EA9340059E5C0 /* NSBlock+EDOInvocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */; };
+		C5BB8CC3225EA9340059E5C0 /* EDOObject+Invocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFFA2134D43300421D72 /* EDOObject+Invocation.m */; };
+		C5BB8CC4225EA9340059E5C0 /* NSProxy+EDOParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0012134D43400421D72 /* NSProxy+EDOParameter.m */; };
+		C5BB8CC5225EA9340059E5C0 /* EDOParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0042134D43400421D72 /* EDOParameter.m */; };
+		C5BB8CC6225EA9340059E5C0 /* EDOObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFF12134D43300421D72 /* EDOObject.m */; };
+		C5BB8CC7225EA9340059E5C0 /* EDOServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFFD2134D43400421D72 /* EDOServiceRequest.m */; };
+		C5BB8CC8225EA9340059E5C0 /* EDOTimingFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */; };
+		C5BB8CC9225EA9340059E5C0 /* EDOServiceException.m in Sources */ = {isa = PBXBuildFile; fileRef = C862C6DF2253D70C00EABE99 /* EDOServiceException.m */; };
+		C5BB8CCA225EA9340059E5C0 /* EDOExecutor.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFD82134D43100421D72 /* EDOExecutor.m */; };
+		C5BB8CCB225EA9340059E5C0 /* EDOValueObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFF72134D43300421D72 /* EDOValueObject.m */; };
+		C5BB8CCC225EA9340059E5C0 /* EDOProtocolObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFDB2134D43100421D72 /* EDOProtocolObject.m */; };
+		C5BB8CCD225EA9340059E5C0 /* EDOValueType.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFE52134D43200421D72 /* EDOValueType.m */; };
+		C5BB8CCE225EA9340059E5C0 /* EDOInvocationMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFF02134D43200421D72 /* EDOInvocationMessage.m */; };
+		C5BB8CCF225EA9340059E5C0 /* EDOClientServiceStatsCollector.m in Sources */ = {isa = PBXBuildFile; fileRef = C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */; };
+		C5BB8CD0225EA9340059E5C0 /* EDOObjectMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFEE2134D43200421D72 /* EDOObjectMessage.m */; };
+		C5BB8CD1225EA9340059E5C0 /* EDOServicePort.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFE72134D43200421D72 /* EDOServicePort.m */; };
+		C5BB8CD2225EA9340059E5C0 /* NSKeyedArchiver+EDOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C833238C215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m */; };
+		C5BB8CD3225EA9340059E5C0 /* EDOMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFD52134D43100421D72 /* EDOMessage.m */; };
+		C5BB8CD4225EA9340059E5C0 /* EDOHostService.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFD62134D43100421D72 /* EDOHostService.m */; };
+		C5BB8CD5225EA9340059E5C0 /* NSKeyedUnarchiver+EDOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C833238A215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.m */; };
+		C5BB8CD6225EA9340059E5C0 /* NSObject+EDOParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFDF2134D43100421D72 /* NSObject+EDOParameter.m */; };
+		C5BB8CD7225EA9340059E5C0 /* EDOClientService.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0002134D43400421D72 /* EDOClientService.m */; };
+		C5BB8CD8225EA9340059E5C0 /* EDOBlockObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E00321390E3B00D28052 /* EDOBlockObject.m */; };
+		C5BB8CD9225EA9340059E5C0 /* EDOValueObject+EDOParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFEF2134D43200421D72 /* EDOValueObject+EDOParameter.m */; };
+		C5BB8CDA225EA9340059E5C0 /* EDOHostNamingService.m in Sources */ = {isa = PBXBuildFile; fileRef = C535B59921D3077200BAE558 /* EDOHostNamingService.m */; };
+		C5BB8CDB225EA9340059E5C0 /* EDOObjectAliveMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFD42134D43100421D72 /* EDOObjectAliveMessage.m */; };
+		C5BB8CDC225EA9340059E5C0 /* EDORemoteVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFEA2134D43200421D72 /* EDORemoteVariable.m */; };
+		C5BB8CDD225EA9340059E5C0 /* NSObject+EDOValueObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFF62134D43300421D72 /* NSObject+EDOValueObject.m */; };
+		C5BB8CDE225EA9340059E5C0 /* EDOMethodSignatureMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFFB2134D43300421D72 /* EDOMethodSignatureMessage.m */; };
+		C5BB8CDF225EA9340059E5C0 /* EDOMessageQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFE32134D43200421D72 /* EDOMessageQueue.m */; };
+		C5BB8CE0225EA9340059E5C0 /* EDOExecutorMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C896A5D9217A601B00CA5610 /* EDOExecutorMessage.m */; };
+		C5BB8CE1225EA9340059E5C0 /* NSObject+EDOValue.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFED2134D43200421D72 /* NSObject+EDOValue.m */; };
+		C5BB8CE2225EA9340059E5C0 /* EDOServiceError.m in Sources */ = {isa = PBXBuildFile; fileRef = C862C6E22253D70D00EABE99 /* EDOServiceError.m */; };
+		C5BB8CE3225EA9340059E5C0 /* EDOObject+EDOParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFDC2134D43100421D72 /* EDOObject+EDOParameter.m */; };
+		C5BB8CE4225EA9340059E5C0 /* EDOHostService+Handlers.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFE82134D43200421D72 /* EDOHostService+Handlers.m */; };
+		C5BB8CE5225EA9340059E5C0 /* EDOObjectReleaseMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFEC2134D43200421D72 /* EDOObjectReleaseMessage.m */; };
+		C5BB8CE7225EA9340059E5C0 /* libMeasureLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C88B8A7B21ADD3BE00DDE607 /* libMeasureLib.a */; };
+		C5BB8CE8225EA9340059E5C0 /* libChannelLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C845026520DD9D2E00D7350F /* libChannelLib.a */; };
+		C5BB8CF1225EA94B0059E5C0 /* EDOTestValueType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B432183AC2100E8E75A /* EDOTestValueType.m */; };
+		C5BB8CF2225EA94B0059E5C0 /* EDOTestClassDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03B2134D50600421D72 /* EDOTestClassDummy.m */; };
+		C5BB8CF3225EA94B0059E5C0 /* EDOTestNonNSCodingType.m in Sources */ = {isa = PBXBuildFile; fileRef = C55F8B442183AC2200E8E75A /* EDOTestNonNSCodingType.m */; };
+		C5BB8CF4225EA94B0059E5C0 /* EDOTestSwiftProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0402134D50600421D72 /* EDOTestSwiftProtocol.swift */; };
+		C5BB8CF5225EA94B0059E5C0 /* EDOTestSwiftClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03F2134D50600421D72 /* EDOTestSwiftClass.swift */; };
+		C5BB8CF6225EA94B0059E5C0 /* EDOTestProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F03E2134D50600421D72 /* EDOTestProtocol.m */; };
+		C5BB8CF7225EA94B0059E5C0 /* EDOTestDummy.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0382134D50600421D72 /* EDOTestDummy.m */; };
+		C5BB8CFF225EA9820059E5C0 /* libeDistantObject_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C5BB8CED225EA9340059E5C0 /* libeDistantObject_Mac.a */; };
+		C5BB8D00225EA9820059E5C0 /* libTestsBundle_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C5BB8CFE225EA94B0059E5C0 /* libTestsBundle_Mac.a */; };
 		C5D03FDE21D77145003DC06A /* EDOChannelUtilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D03FDD21D77144003DC06A /* EDOChannelUtilTest.m */; };
 		C5D03FE121D77161003DC06A /* EDOChannelUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D03FE021D77161003DC06A /* EDOChannelUtil.m */; };
 		C8298A0721599CD3003E3C2C /* EDOServiceUIMemoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */; };
@@ -114,6 +166,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = C52D858C2220C44300E86E60;
 			remoteInfo = DeviceLib;
+		};
+		C5BB8C92225E99920059E5C0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C845024D20DD9CB900D7350F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C845026E20DD9D5D00D7350F;
+			remoteInfo = eDistantObject;
 		};
 		C845033A20DDA11D00D7350F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -161,6 +220,33 @@
 
 /* Begin PBXCopyFilesBuildPhase section */
 		C52D85902220C44300E86E60 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CAB225E9B510059E5C0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		C5BB8CE9225EA9340059E5C0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CFA225EA94B0059E5C0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "include/$(PRODUCT_NAME)";
@@ -329,6 +415,13 @@
 		C5A2F05E2134D5D900421D72 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Service/Tests/TestsHost/Resources/Info.plist; sourceTree = "<group>"; };
 		C5A2F05F2134D5D900421D72 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Service/Tests/TestsHost/Resources/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C5A2F0602134D5D900421D72 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Service/Tests/TestsHost/Resources/Main.storyboard; sourceTree = "<group>"; };
+		C5BB8C91225E992E0059E5C0 /* DeviceIntegrationTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DeviceIntegrationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5BB8C96225E9A580059E5C0 /* EDOiOS2MacHostTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOiOS2MacHostTest.m; path = Service/Tests/MacHost/EDOiOS2MacHostTest.m; sourceTree = "<group>"; };
+		C5BB8C99225E9A770059E5C0 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Service/Tests/MacHost/Host/main.m; sourceTree = "<group>"; };
+		C5BB8CAF225E9B510059E5C0 /* MacDeviceTestHost */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MacDeviceTestHost; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5BB8CBB225EA6FA0059E5C0 /* libOCMock.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libOCMock.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5BB8CED225EA9340059E5C0 /* libeDistantObject_Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libeDistantObject_Mac.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5BB8CFE225EA94B0059E5C0 /* libTestsBundle_Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTestsBundle_Mac.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5D03FDD21D77144003DC06A /* EDOChannelUtilTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOChannelUtilTest.m; sourceTree = "<group>"; };
 		C5D03FDF21D77160003DC06A /* EDOChannelUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDOChannelUtil.h; sourceTree = "<group>"; };
 		C5D03FE021D77161003DC06A /* EDOChannelUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOChannelUtil.m; sourceTree = "<group>"; };
@@ -391,6 +484,39 @@
 			buildActionMask = 2147483647;
 			files = (
 				C55B85F82241AEE600B568FA /* libDeviceLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8C8B225E992E0059E5C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8CB5225E9DE50059E5C0 /* libeDistantObject.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CAA225E9B510059E5C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8CFF225EA9820059E5C0 /* libeDistantObject_Mac.a in Frameworks */,
+				C5BB8D00225EA9820059E5C0 /* libTestsBundle_Mac.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CE6225EA9340059E5C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8CE7225EA9340059E5C0 /* libMeasureLib.a in Frameworks */,
+				C5BB8CE8225EA9340059E5C0 /* libChannelLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CF8225EA94B0059E5C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -512,6 +638,7 @@
 		C55B85E422419D7C00B568FA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C5BB8CBB225EA6FA0059E5C0 /* libOCMock.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -610,6 +737,7 @@
 		C5A2EFD22134D41E00421D72 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				C5BB8C95225E9A380059E5C0 /* MacHost */,
 				C5A2F02D2134D4B800421D72 /* UnitTests */,
 				C5A2F02C2134D4B000421D72 /* TestsHost */,
 				C5A2F02B2134D4A900421D72 /* TestsBundle */,
@@ -710,6 +838,23 @@
 			name = Sources;
 			sourceTree = "<group>";
 		};
+		C5BB8C95225E9A380059E5C0 /* MacHost */ = {
+			isa = PBXGroup;
+			children = (
+				C5BB8C98225E9A620059E5C0 /* Host */,
+				C5BB8C96225E9A580059E5C0 /* EDOiOS2MacHostTest.m */,
+			);
+			name = MacHost;
+			sourceTree = "<group>";
+		};
+		C5BB8C98225E9A620059E5C0 /* Host */ = {
+			isa = PBXGroup;
+			children = (
+				C5BB8C99225E9A770059E5C0 /* main.m */,
+			);
+			name = Host;
+			sourceTree = "<group>";
+		};
 		C845024C20DD9CB900D7350F = {
 			isa = PBXGroup;
 			children = (
@@ -737,6 +882,10 @@
 				C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */,
 				C52D85942220C44300E86E60 /* libDeviceLib.a */,
 				C55B85F62241AEAC00B568FA /* DeviceUnitTests.xctest */,
+				C5BB8C91225E992E0059E5C0 /* DeviceIntegrationTests.xctest */,
+				C5BB8CAF225E9B510059E5C0 /* MacDeviceTestHost */,
+				C5BB8CED225EA9340059E5C0 /* libeDistantObject_Mac.a */,
+				C5BB8CFE225EA94B0059E5C0 /* libTestsBundle_Mac.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -846,6 +995,75 @@
 			productName = ChannelTests;
 			productReference = C55B85F62241AEAC00B568FA /* DeviceUnitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C5BB8C86225E992E0059E5C0 /* DeviceIntegrationTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5BB8C8E225E992E0059E5C0 /* Build configuration list for PBXNativeTarget "DeviceIntegrationTests" */;
+			buildPhases = (
+				C5BB8C89225E992E0059E5C0 /* Sources */,
+				C5BB8C8B225E992E0059E5C0 /* Frameworks */,
+				C5BB8C8D225E992E0059E5C0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C5BB8C93225E99920059E5C0 /* PBXTargetDependency */,
+			);
+			name = DeviceIntegrationTests;
+			productName = ChannelTests;
+			productReference = C5BB8C91225E992E0059E5C0 /* DeviceIntegrationTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C5BB8CA7225E9B510059E5C0 /* MacDeviceTestHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5BB8CAC225E9B510059E5C0 /* Build configuration list for PBXNativeTarget "MacDeviceTestHost" */;
+			buildPhases = (
+				C5BB8CA8225E9B510059E5C0 /* Sources */,
+				C5BB8CAA225E9B510059E5C0 /* Frameworks */,
+				C5BB8CAB225E9B510059E5C0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacDeviceTestHost;
+			productName = MacDeviceTestHost;
+			productReference = C5BB8CAF225E9B510059E5C0 /* MacDeviceTestHost */;
+			productType = "com.apple.product-type.tool";
+		};
+		C5BB8CBF225EA9340059E5C0 /* eDistantObject_Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5BB8CEA225EA9340059E5C0 /* Build configuration list for PBXNativeTarget "eDistantObject_Mac" */;
+			buildPhases = (
+				C5BB8CC0225EA9340059E5C0 /* Sources */,
+				C5BB8CE6225EA9340059E5C0 /* Frameworks */,
+				C5BB8CE9225EA9340059E5C0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = eDistantObject_Mac;
+			productName = Channel;
+			productReference = C5BB8CED225EA9340059E5C0 /* libeDistantObject_Mac.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C5BB8CEE225EA94B0059E5C0 /* TestsBundle_Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5BB8CFB225EA94B0059E5C0 /* Build configuration list for PBXNativeTarget "TestsBundle_Mac" */;
+			buildPhases = (
+				C5BB8CF0225EA94B0059E5C0 /* Sources */,
+				C5BB8CF8225EA94B0059E5C0 /* Frameworks */,
+				C5BB8CFA225EA94B0059E5C0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TestsBundle_Mac;
+			productName = TestsBundle;
+			productReference = C5BB8CFE225EA94B0059E5C0 /* libTestsBundle_Mac.a */;
+			productType = "com.apple.product-type.library.static";
 		};
 		C845026420DD9D2E00D7350F /* ChannelLib */ = {
 			isa = PBXNativeTarget;
@@ -1084,12 +1302,23 @@
 				C84503C520DDB07A00D7350F /* TestsBundle */,
 				C52D858C2220C44300E86E60 /* DeviceLib */,
 				C55B85E82241AEAC00B568FA /* DeviceUnitTests */,
+				C5BB8C86225E992E0059E5C0 /* DeviceIntegrationTests */,
+				C5BB8CA7225E9B510059E5C0 /* MacDeviceTestHost */,
+				C5BB8CBF225EA9340059E5C0 /* eDistantObject_Mac */,
+				C5BB8CEE225EA94B0059E5C0 /* TestsBundle_Mac */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C55B85F22241AEAC00B568FA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8C8D225E992E0059E5C0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1159,6 +1388,81 @@
 			buildActionMask = 2147483647;
 			files = (
 				C55B85F72241AEDA00B568FA /* EDODeviceConnectorTest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8C89225E992E0059E5C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8C9B225E9AB10059E5C0 /* EDOiOS2MacHostTest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CA8225E9B510059E5C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8CBA225EA64A0059E5C0 /* Dummy.swift in Sources */,
+				C5BB8CB0225E9B6A0059E5C0 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CC0225EA9340059E5C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8CC1225EA9340059E5C0 /* EDOClassMessage.m in Sources */,
+				C5BB8CC2225EA9340059E5C0 /* NSBlock+EDOInvocation.m in Sources */,
+				C5BB8CC3225EA9340059E5C0 /* EDOObject+Invocation.m in Sources */,
+				C5BB8CC4225EA9340059E5C0 /* NSProxy+EDOParameter.m in Sources */,
+				C5BB8CC5225EA9340059E5C0 /* EDOParameter.m in Sources */,
+				C5BB8CC6225EA9340059E5C0 /* EDOObject.m in Sources */,
+				C5BB8CC7225EA9340059E5C0 /* EDOServiceRequest.m in Sources */,
+				C5BB8CC8225EA9340059E5C0 /* EDOTimingFunctions.m in Sources */,
+				C5BB8CC9225EA9340059E5C0 /* EDOServiceException.m in Sources */,
+				C5BB8CCA225EA9340059E5C0 /* EDOExecutor.m in Sources */,
+				C5BB8CCB225EA9340059E5C0 /* EDOValueObject.m in Sources */,
+				C5BB8CCC225EA9340059E5C0 /* EDOProtocolObject.m in Sources */,
+				C5BB8CCD225EA9340059E5C0 /* EDOValueType.m in Sources */,
+				C5BB8CCE225EA9340059E5C0 /* EDOInvocationMessage.m in Sources */,
+				C5BB8CCF225EA9340059E5C0 /* EDOClientServiceStatsCollector.m in Sources */,
+				C5BB8CD0225EA9340059E5C0 /* EDOObjectMessage.m in Sources */,
+				C5BB8CD1225EA9340059E5C0 /* EDOServicePort.m in Sources */,
+				C5BB8CD2225EA9340059E5C0 /* NSKeyedArchiver+EDOAdditions.m in Sources */,
+				C5BB8CD3225EA9340059E5C0 /* EDOMessage.m in Sources */,
+				C5BB8CD4225EA9340059E5C0 /* EDOHostService.m in Sources */,
+				C5BB8CD5225EA9340059E5C0 /* NSKeyedUnarchiver+EDOAdditions.m in Sources */,
+				C5BB8CD6225EA9340059E5C0 /* NSObject+EDOParameter.m in Sources */,
+				C5BB8CD7225EA9340059E5C0 /* EDOClientService.m in Sources */,
+				C5BB8CD8225EA9340059E5C0 /* EDOBlockObject.m in Sources */,
+				C5BB8CD9225EA9340059E5C0 /* EDOValueObject+EDOParameter.m in Sources */,
+				C5BB8CDA225EA9340059E5C0 /* EDOHostNamingService.m in Sources */,
+				C5BB8CDB225EA9340059E5C0 /* EDOObjectAliveMessage.m in Sources */,
+				C5BB8CDC225EA9340059E5C0 /* EDORemoteVariable.m in Sources */,
+				C5BB8CDD225EA9340059E5C0 /* NSObject+EDOValueObject.m in Sources */,
+				C5BB8CDE225EA9340059E5C0 /* EDOMethodSignatureMessage.m in Sources */,
+				C5BB8CDF225EA9340059E5C0 /* EDOMessageQueue.m in Sources */,
+				C5BB8CE0225EA9340059E5C0 /* EDOExecutorMessage.m in Sources */,
+				C5BB8CE1225EA9340059E5C0 /* NSObject+EDOValue.m in Sources */,
+				C5BB8CE2225EA9340059E5C0 /* EDOServiceError.m in Sources */,
+				C5BB8CE3225EA9340059E5C0 /* EDOObject+EDOParameter.m in Sources */,
+				C5BB8CE4225EA9340059E5C0 /* EDOHostService+Handlers.m in Sources */,
+				C5BB8CE5225EA9340059E5C0 /* EDOObjectReleaseMessage.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5BB8CF0225EA94B0059E5C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5BB8CF1225EA94B0059E5C0 /* EDOTestValueType.m in Sources */,
+				C5BB8CF2225EA94B0059E5C0 /* EDOTestClassDummy.m in Sources */,
+				C5BB8CF3225EA94B0059E5C0 /* EDOTestNonNSCodingType.m in Sources */,
+				C5BB8CF4225EA94B0059E5C0 /* EDOTestSwiftProtocol.swift in Sources */,
+				C5BB8CF5225EA94B0059E5C0 /* EDOTestSwiftClass.swift in Sources */,
+				C5BB8CF6225EA94B0059E5C0 /* EDOTestProtocol.m in Sources */,
+				C5BB8CF7225EA94B0059E5C0 /* EDOTestDummy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1320,6 +1624,11 @@
 			target = C52D858C2220C44300E86E60 /* DeviceLib */;
 			targetProxy = C55B85F92241AEEF00B568FA /* PBXContainerItemProxy */;
 		};
+		C5BB8C93225E99920059E5C0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C845026E20DD9D5D00D7350F /* eDistantObject */;
+			targetProxy = C5BB8C92225E99920059E5C0 /* PBXContainerItemProxy */;
+		};
 		C845033B20DDA11D00D7350F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C845026420DD9D2E00D7350F /* ChannelLib */;
@@ -1420,6 +1729,119 @@
 			};
 			name = Release;
 		};
+		C5BB8C8F225E992E0059E5C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.google.DeviceUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C5BB8C90225E992E0059E5C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.google.DeviceUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C5BB8CAD225E9B510059E5C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		C5BB8CAE225E9B510059E5C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C5BB8CEB225EA9340059E5C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Debug;
+		};
+		C5BB8CEC225EA9340059E5C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
+			};
+			name = Release;
+		};
+		C5BB8CFC225EA94B0059E5C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = Service/Tests/TestsBundle/EDOTestBridgingHeader.h;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C5BB8CFD225EA94B0059E5C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = Service/Tests/TestsBundle/EDOTestBridgingHeader.h;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		C845025C20DD9CB900D7350F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1477,10 +1899,10 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 4.0;
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
 			};
 			name = Debug;
 		};
@@ -1541,6 +1963,7 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 4.0;
 				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
 			};
 			name = Release;
 		};
@@ -1779,6 +2202,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = Service/Tests/TestsBundle/EDOTestBridgingHeader.h;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1792,6 +2216,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = Service/Tests/TestsBundle/EDOTestBridgingHeader.h;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1882,6 +2307,42 @@
 			buildConfigurations = (
 				C55B85F42241AEAC00B568FA /* Debug */,
 				C55B85F52241AEAC00B568FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5BB8C8E225E992E0059E5C0 /* Build configuration list for PBXNativeTarget "DeviceIntegrationTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5BB8C8F225E992E0059E5C0 /* Debug */,
+				C5BB8C90225E992E0059E5C0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5BB8CAC225E9B510059E5C0 /* Build configuration list for PBXNativeTarget "MacDeviceTestHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5BB8CAD225E9B510059E5C0 /* Debug */,
+				C5BB8CAE225E9B510059E5C0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5BB8CEA225EA9340059E5C0 /* Build configuration list for PBXNativeTarget "eDistantObject_Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5BB8CEB225EA9340059E5C0 /* Debug */,
+				C5BB8CEC225EA9340059E5C0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5BB8CFB225EA94B0059E5C0 /* Build configuration list for PBXNativeTarget "TestsBundle_Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5BB8CFC225EA94B0059E5C0 /* Debug */,
+				C5BB8CFD225EA94B0059E5C0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -34,6 +34,16 @@ target 'DeviceUnitTests' do
   pod 'OCMock', '3.4.1'
 end
 
+target 'TestsBundle_Mac' do
+  platform :osx, '10.12'
+  pod 'OCMock', '3.4.1'
+end
+
+target 'MacDeviceTestHost' do
+  platform :osx, '10.12'
+  pod 'OCMock', '3.4.1'
+end
+
 post_install do |installer_representation|
   installer_representation.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
