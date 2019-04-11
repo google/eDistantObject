@@ -34,8 +34,8 @@
 /** Tests remote invocation from iOS device to Mac host. */
 - (void)testDeviceCanMakeRemoteInvocationOnMacHost {
   // The remote object served by test service on Mac host.
-  EDOTestDummy *testDummy = [EDOClientService rootObjectWithPort:0
-                                                     serviceName:@"com.google.test.MacTestService"];
+  EDOTestDummy *testDummy =
+      [EDOClientService rootObjectWithServiceName:@"com.google.test.MacTestService"];
   XCTAssertEqual([testDummy returnInt], 100);
 }
 

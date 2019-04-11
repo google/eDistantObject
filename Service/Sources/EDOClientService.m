@@ -70,8 +70,8 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   return [self responseObjectWithRequest:objectRequest onPort:hostPort];
 }
 
-+ (id)rootObjectWithPort:(UInt16)port serviceName:(NSString *)serviceName {
-  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
++ (id)rootObjectWithServiceName:(NSString *)serviceName {
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:0 serviceName:serviceName];
   EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
   return [self responseObjectWithRequest:objectRequest onPort:hostPort];
 }
@@ -84,9 +84,8 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
 }
 
 + (Class)classObjectWithName:(NSString *)className
-                        port:(UInt16)port
                  serviceName:(NSString *)serviceName {
-  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port serviceName:serviceName];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:0 serviceName:serviceName];
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
                                                                  hostPort:hostPort];
   return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
