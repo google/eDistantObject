@@ -156,7 +156,7 @@
 
 /** Create a dispatch queue with the current testname. */
 - (dispatch_queue_t)testQueue {
-  NSString *queueName = [NSString stringWithFormat:@"com.google.edo.MessageQueue[%@]", self.name];
+  NSString *queueName = [NSString stringWithFormat:@"com.google.edo.messageQueue[%@]", self.name];
   return dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
 }
 
