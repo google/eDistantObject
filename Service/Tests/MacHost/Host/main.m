@@ -55,6 +55,7 @@ int main(int argc, const char *argv[]) {
                                    rootObject:[[EDOTestDummy alloc] initWithValue:100]
                                         queue:dispatch_get_main_queue()
                                       timeout:timeout];
+    NSLog(@"Started the service for device %@ to connect.", deviceSerial);
     [NSRunLoop.mainRunLoop run];
   } else {
     NSLog(@"Cannot determine the target device to connect or no device available.");
