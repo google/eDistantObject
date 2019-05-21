@@ -102,6 +102,7 @@
     [response.returnValue getValue:&obj];
     obj = [EDOClientService unwrappedObjectFromObject:obj];
     obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:obj];
+    obj = [EDOClientService addReferenceToWeakEdoObject:obj];
     [invocation setReturnValue:&obj];
 
     // ARC will insert a -release on the return if the method returns a retained object, but because
@@ -138,6 +139,7 @@
         // When there is no running service or the object is a true remote object, we will check
         // the local distant objects cache.
         *obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:*obj];
+        *obj = [EDOClientService addReferenceToWeakEdoObject:*obj];
       }
 
       ++curOutIdx;

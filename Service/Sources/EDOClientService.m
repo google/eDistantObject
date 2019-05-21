@@ -202,6 +202,15 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   return _pingMessageData;
 }
 
++ (NSMutableDictionary *)weakDistantObjects {
+  static NSMutableDictionary<NSNumber *, EDOObject *> *weakDistantObjects;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    weakDistantObjects = [self.weakDistantObjects copy];
+  });
+  return weakDistantObjects;
+}
+
 + (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress {
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
   __block EDOObject *result;
@@ -247,6 +256,23 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       // Track the new remote object.
       [self addDistantObjectReference:object];
     }
+  }
+  return object;
+}
+
++ (id)addReferenceToWeakEdoObject:(id)object {
+  EDOObject *edoObject =
+      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
+  Class objClass = object_getClass(edoObject);
+  if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
+    NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+      // If the edoObject is not recorded in the dictionary, add it into the weakDistantObjects.
+      if (![self.weakDistantObjects objectForKey:edoKey]) {
+        [self.weakDistantObjects setObject:object forKey:edoKey];
+      }
+    });
   }
   return object;
 }
@@ -436,6 +462,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   EDOObject *remoteObject = ((EDOObjectResponse *)response).object;
   remoteObject = [self unwrappedObjectFromObject:remoteObject];
   remoteObject = [self cachedEDOFromObjectUpdateIfNeeded:remoteObject];
+  remoteObject = [self addReferenceToWeakEdoObject:remoteObject];
   return remoteObject;
 }
 

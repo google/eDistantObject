@@ -36,6 +36,10 @@ NS_ASSUME_NONNULL_BEGIN
 /** The data of ping message for channel health check. */
 @property(class, readonly, nonatomic) NSData *pingMessageData;
 
+/** A dictionary to hold weak EDOObjects during invocation. The key is the
+ * remote address of object and the value is the EDOObject. */
+@property(class, readonly) NSMutableDictionary<NSNumber *, EDOObject *> *weakDistantObjects;
+
 /** Get the reference of a distant object of the given @c remoteAddress. */
 + (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress;
 
@@ -47,6 +51,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** Try to get the object from local cache. Update the cache if @c object is not in it. */
 + (id)cachedEDOFromObjectUpdateIfNeeded:(id)object;
+
+/** Add strong reference to weak edoObjects during invocation and store them. */
++ (EDOObject *)addReferenceToWeakEdoObject:(EDOObject *)object;
 
 /**
  *  Synchronously sends the request and waits for the response with the executor to process

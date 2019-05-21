@@ -332,6 +332,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           if (objRef && *objRef) {
             *objRef = [EDOClientService unwrappedObjectFromObject:*objRef];
             *objRef = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:*objRef];
+            *objRef = [EDOClientService addReferenceToWeakEdoObject:*objRef];
           }
           [invocation setArgument:&objRef atIndex:curArgIdx];
         } else if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
@@ -339,6 +340,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           [argument getValue:&obj];
           obj = [EDOClientService unwrappedObjectFromObject:obj];
           obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:obj];
+          obj = [EDOClientService addReferenceToWeakEdoObject:obj];
           [invocation setArgument:&obj atIndex:curArgIdx];
         } else {
           NSUInteger valueSize = 0;
