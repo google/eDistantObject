@@ -55,6 +55,10 @@
   return self;
 }
 
+- (NSString *)description {
+  return [_remoteObject description];
+}
+
 #pragma mark - NSProxy
 
 - (void)forwardInvocation:(NSInvocation *)invocation {
