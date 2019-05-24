@@ -16,6 +16,8 @@
 
 #import "Service/Sources/EDOClientServiceStatsCollector.h"
 
+#import "Measure/Sources/EDONumericMeasure.h"
+
 @implementation EDORequestMeasurement
 
 - (instancetype)init {

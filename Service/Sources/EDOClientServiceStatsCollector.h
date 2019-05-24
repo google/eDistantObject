@@ -16,7 +16,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "Measure/Sources/EDONumericMeasure.h"
+@class EDONumericMeasure;
 
 NS_ASSUME_NONNULL_BEGIN
 
