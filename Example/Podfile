@@ -1,0 +1,19 @@
+# Uncomment the next line to define a global platform for your project
+# platform :ios, '9.0'
+
+target 'Example' do
+  use_frameworks!
+
+  pod 'eDistantObject', :git => 'https://github.com/google/eDistantObject.git'
+
+  target 'ExampleTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+  target 'ExampleUITests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+end
