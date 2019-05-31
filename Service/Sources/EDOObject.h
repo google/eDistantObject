@@ -37,6 +37,9 @@ NS_ASSUME_NONNULL_BEGIN
 /** Method to be called on invocation target to get a value object from remote invocation. */
 - (id)returnByValue;
 
+/** Method to be called on weak invocation of edo. */
+- (instancetype)weakReference;
+
 @end
 
 NS_ASSUME_NONNULL_END

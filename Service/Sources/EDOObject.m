@@ -78,6 +78,14 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   return [[EDOValueObject alloc] initWithRemoteObject:self];
 }
 
+// Create ownership from localCopy to weak eDOObject.
+- (instancetype)weakReference {
+  EDOObject *localCopy = self;
+  objc_setAssociatedObject(localCopy, "attachedObject", self, OBJC_ASSOCIATION_RETAIN);
+  // TODO(b/134173957): Pass the localCopy to underlying object side to access
+  return self;
+}
+
 // No-op when called on a remote object.
 - (id)passByValue {
   return self;
