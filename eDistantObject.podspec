@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.author = "Google Inc."
   s.summary = "eDistantObject provides users an easy way to make remote method invocations between processes in Objective-C and Swift without explicitly constructing RPC structures."
   s.license = { :type => "Apache 2.0", :file => "LICENSE" }
-  s.source = { :git => "https://github.com/google/eDistantObject.git", :branch => "master" }
+  s.source = { :git => "https://github.com/google/eDistantObject.git", :tag => "0.9.0" }
 
   s.xcconfig = { 'USER_HEADER_SEARCH_PATHS' => '$(SOURCE_ROOT)/eDO/**' }
 
