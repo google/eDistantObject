@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.license = { :type => "Apache 2.0", :file => "LICENSE" }
   s.source = { :git => "https://github.com/google/eDistantObject.git", :tag => "0.9.0" }
 
-  s.xcconfig = { 'USER_HEADER_SEARCH_PATHS' => '$(SOURCE_ROOT)/eDO/**' }
+  s.xcconfig = { 'USER_HEADER_SEARCH_PATHS' => '$(SOURCE_ROOT)/eDistantObject/** $(SOURCE_ROOT)/Pods/eDistantObject/**' }
 
   # Subspec each folder so folders exist when pod is installed.
 
