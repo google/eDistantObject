@@ -9,8 +9,6 @@ Pod::Spec.new do |s|
   s.license = { :type => "Apache 2.0", :file => "LICENSE" }
   s.source = { :git => "https://github.com/google/eDistantObject.git", :tag => "0.9.0" }
 
-  s.xcconfig = { 'USER_HEADER_SEARCH_PATHS' => '$(SOURCE_ROOT)/eDO/**' }
-
   # Subspec each folder so folders exist when pod is installed.
 
   # Can't have the public headers exist in the private headers as you won't be able to import them. Made these arrays because of this.
