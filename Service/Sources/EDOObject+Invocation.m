@@ -23,6 +23,7 @@
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOServicePort.h"
 
 /**
  *  The extension of EDOObject to handle the message forwarding.

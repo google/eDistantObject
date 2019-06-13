@@ -24,14 +24,14 @@
 #import "Channel/Sources/EDOSocketPort.h"
 #import "Device/Sources/EDODeviceConnector.h"
 #import "Service/Sources/EDOBlockObject.h"
-#import "Service/Sources/EDOClientService+Device.h"
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
-#import "Service/Sources/EDOHostService+Device.h"
 #import "Service/Sources/EDOHostService+Handlers.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
@@ -226,72 +226,72 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   // This handler block will be executed recursively by calling itself at the end of the
   // block in order to accept new request after last one is executed.
   // It is the strong reference of @c weakHandlerBlock above.
-  EDOChannelReceiveHandler receiveHandler = ^(id<EDOChannel> targetChannel, NSData *data,
-                                              NSError *error) {
-    EDOChannelReceiveHandler strongHandlerBlock = weakHandlerBlock;
-    EDOHostService *strongSelf = weakSelf;
-    NSException *exception;
-    // TODO(haowoo): Add the proper error handler.
-    NSAssert(error == nil, @"Failed to receive the data (%d) for %@.",
-             strongSelf.port.hostPort.port, error);
-    if (data == nil) {
-      // the client socket is closed.
-      NSLog(@"The channel (%p) with port %d is closed", targetChannel,
-            strongSelf.port.hostPort.port);
-      dispatch_sync(strongSelf.handlerSyncQueue, ^{
-        [strongSelf.handlerSet removeObject:strongHandlerBlock];
-      });
-      return;
-    }
-    EDOServiceRequest *request;
+  EDOChannelReceiveHandler receiveHandler =
+      ^(id<EDOChannel> targetChannel, NSData *data, NSError *error) {
+        EDOChannelReceiveHandler strongHandlerBlock = weakHandlerBlock;
+        EDOHostService *strongSelf = weakSelf;
+        NSException *exception;
+        // TODO(haowoo): Add the proper error handler.
+        NSAssert(error == nil, @"Failed to receive the data (%d) for %@.",
+                 strongSelf.port.hostPort.port, error);
+        if (data == nil) {
+          // the client socket is closed.
+          NSLog(@"The channel (%p) with port %d is closed", targetChannel,
+                strongSelf.port.hostPort.port);
+          dispatch_sync(strongSelf.handlerSyncQueue, ^{
+            [strongSelf.handlerSet removeObject:strongHandlerBlock];
+          });
+          return;
+        }
+        EDOServiceRequest *request;
 
-    @try {
-      request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
-    } @catch (NSException *e) {
-      // TODO(haowoo): Handle exceptions in a better way.
-      exception = e;
-    }
-    if (![request matchesService:strongSelf.port]) {
-      // TODO(ynzhang): With better error handling, we may not throw exception in this
-      // case but return an error response.
-      NSError *error;
+        @try {
+          request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
+        } @catch (NSException *e) {
+          // TODO(haowoo): Handle exceptions in a better way.
+          exception = e;
+        }
+        if (![request matchesService:strongSelf.port]) {
+          // TODO(ynzhang): With better error handling, we may not throw exception in this
+          // case but return an error response.
+          NSError *error;
 
-      if (!request) {
-        // Error caused by the unarchiving process.
-        error = [NSError errorWithDomain:exception.reason code:0 userInfo:nil];
-      } else {
-        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
-      }
-      EDOServiceResponse *errorResponse = [EDOServiceResponse errorResponse:error
-                                                                 forRequest:request];
-      NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
-      [targetChannel sendData:errorData
-          withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {
-            dispatch_sync(strongSelf.handlerSyncQueue, ^{
-              [strongSelf.handlerSet removeObject:strongHandlerBlock];
-            });
-          }];
-    } else {
-      // For release request, we don't handle it in executor since response is not
-      // needed for this request. The request handler will process this request
-      // properly in its own queue.
-      if ([request class] == [EDOObjectReleaseRequest class]) {
-        [EDOObjectReleaseRequest requestHandler](request, strongSelf);
-      } else {
-        // Health check for the channel.
-        [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
-        EDOServiceResponse *response = [strongSelf.executor handleRequest:request context:self];
+          if (!request) {
+            // Error caused by the unarchiving process.
+            error = [NSError errorWithDomain:exception.reason code:0 userInfo:nil];
+          } else {
+            error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
+          }
+          EDOServiceResponse *errorResponse = [EDOServiceResponse errorResponse:error
+                                                                     forRequest:request];
+          NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
+          [targetChannel sendData:errorData
+              withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {
+                dispatch_sync(strongSelf.handlerSyncQueue, ^{
+                  [strongSelf.handlerSet removeObject:strongHandlerBlock];
+                });
+              }];
+        } else {
+          // For release request, we don't handle it in executor since response is not
+          // needed for this request. The request handler will process this request
+          // properly in its own queue.
+          if ([request class] == [EDOObjectReleaseRequest class]) {
+            [EDOObjectReleaseRequest requestHandler](request, strongSelf);
+          } else {
+            // Health check for the channel.
+            [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
+            EDOServiceResponse *response = [strongSelf.executor handleRequest:request context:self];
 
-        NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
-        [targetChannel sendData:responseData withCompletionHandler:nil];
-      }
-      if ([strongSelf edo_shouldReceiveData:channel]) {
-        [targetChannel receiveDataWithHandler:strongHandlerBlock];
-      }
-    }
-    // Channel will be released and invalidated if service becomes invalid. So the
-    // recursive block will eventually finish after service is invalid.
-  };
+            NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
+            [targetChannel sendData:responseData withCompletionHandler:nil];
+          }
+          if ([strongSelf edo_shouldReceiveData:channel]) {
+            [targetChannel receiveDataWithHandler:strongHandlerBlock];
+          }
+        }
+        // Channel will be released and invalidated if service becomes invalid. So the
+        // recursive block will eventually finish after service is invalid.
+      };
   // Move the receiveHandler block to the heap by explicitly copying before assigning it to the
   // weak pointer as in the latest clang compiler, it's possible the weak pointer can be invalid if
   // the block hasn't been moved to the heap in time.
@@ -310,22 +310,22 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 
 - (EDOSocket *)edo_createListenSocket:(UInt16)port {
   __weak EDOHostService *weakSelf = self;
-  return [EDOSocket
-      listenWithTCPPort:port
-                  queue:nil
-         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
-           EDOHostService *strongSelf = weakSelf;
-           if (!strongSelf) {
-             // TODO(haowoo): Add more info to the response when the service becomes invalid.
-             [socket invalidate];
-             return;
-           }
+  return [EDOSocket listenWithTCPPort:port
+                                queue:nil
+                       connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                         EDOHostService *strongSelf = weakSelf;
+                         if (!strongSelf) {
+                           // TODO(haowoo): Add more info to the response when the service becomes
+                           // invalid.
+                           [socket invalidate];
+                           return;
+                         }
 
-           id<EDOChannel> clientChannel =
-               [EDOSocketChannel channelWithSocket:socket
-                                          hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
-           [strongSelf startReceivingRequestsForChannel:clientChannel];
-         }];
+                         id<EDOChannel> clientChannel = [EDOSocketChannel
+                             channelWithSocket:socket
+                                      hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
+                         [strongSelf startReceivingRequestsForChannel:clientChannel];
+                       }];
 }
 
 - (void)edo_registerServiceAsyncOnDevice:(NSString *)deviceSerial timeout:(NSTimeInterval)seconds {
@@ -359,11 +359,10 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   dispatch_async(backgroundQueue, serviceRegistrationBlock);
 }
 
-- (BOOL)edo_registerServiceOnDevice:(NSString *)deviceSerial
-                              error:(NSError **)error {
+- (BOOL)edo_registerServiceOnDevice:(NSString *)deviceSerial error:(NSError **)error {
   __block NSError *connectionError;
   EDOHostNamingService *namingService =
-      [EDOClientService namingServiceWithDeivceSerial:deviceSerial error:&connectionError];
+      [EDOClientService namingServiceWithDeviceSerial:deviceSerial error:&connectionError];
   if (!connectionError) {
     UInt16 port = namingService.serviceConnectionPort;
     // dispatch channel connected to the registration service on device.

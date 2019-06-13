@@ -20,6 +20,7 @@
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 

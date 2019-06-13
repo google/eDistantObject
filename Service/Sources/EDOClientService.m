@@ -33,6 +33,7 @@
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServiceException.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOTimingFunctions.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
@@ -115,7 +116,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   return object;
 }
 
-+ (EDOHostNamingService *)namingServiceWithDeivceSerial:(NSString *)serial error:(NSError **)error {
++ (EDOHostNamingService *)namingServiceWithDeviceSerial:(NSString *)serial error:(NSError **)error {
   __block NSError *connectError;
   EDOHostPort *hostPort = [EDOHostPort hostPortWithPort:EDOHostNamingService.namingServerPort
                                                    name:nil

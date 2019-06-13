@@ -27,6 +27,7 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOServicePort.h"
 
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 

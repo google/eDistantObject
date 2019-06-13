@@ -21,6 +21,7 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOServicePort.h"
 
 static NSString *const kDummyServiceName = @"com.google.testService";
 static const UInt16 kDummyServicePort = 1234;

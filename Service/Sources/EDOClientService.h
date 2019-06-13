@@ -16,9 +16,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "Service/Sources/EDOServicePort.h"
-
 NS_ASSUME_NONNULL_BEGIN
+
+@class EDOHostNamingService;
 
 /** The error handler for handling errors generated when sending client requests. */
 typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
@@ -54,6 +54,20 @@ typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
                  serviceName:(NSString *)serviceName;
 
 - (instancetype)init NS_UNAVAILABLE;
+
+@end
+
+/** The device support methods for @c EDOClientService. */
+@interface EDOClientService (Device)
+
+/**
+ *  Fetches the naming service remote instance running on the physical device with given device
+ *  @c serial synchronously.
+ *
+ *  @note This is used to get the service's listen port on the host side by service name.
+ */
++ (EDOHostNamingService *)namingServiceWithDeviceSerial:(NSString *)serial
+                                                  error:(NSError *_Nullable *_Nullable)error;
 
 @end
 

@@ -20,6 +20,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOExecutor;
+@class EDOHostPort;
 @class EDOObject;
 @protocol EDOChannel;
 

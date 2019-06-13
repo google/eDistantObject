@@ -218,8 +218,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C506890E21F1D13600A809F1 /* EDOHostService+Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EDOHostService+Device.h"; path = "Service/Sources/EDOHostService+Device.h"; sourceTree = "<group>"; };
-		C506890F21F1D13600A809F1 /* EDOClientService+Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EDOClientService+Device.h"; path = "Service/Sources/EDOClientService+Device.h"; sourceTree = "<group>"; };
 		C52D85772220ADBB00E86E60 /* EDODeviceDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceDetector.h; path = Device/Sources/EDODeviceDetector.h; sourceTree = "<group>"; };
 		C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceDetector.m; path = Device/Sources/EDODeviceDetector.m; sourceTree = "<group>"; };
 		C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDOUSBMuxUtil.m; path = Device/Sources/EDOUSBMuxUtil.m; sourceTree = "<group>"; };
@@ -528,8 +526,6 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C506890F21F1D13600A809F1 /* EDOClientService+Device.h */,
-				C506890E21F1D13600A809F1 /* EDOHostService+Device.h */,
 				C535B59721D3077100BAE558 /* EDOHostNamingService.h */,
 				C535B59921D3077200BAE558 /* EDOHostNamingService.m */,
 				C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */,

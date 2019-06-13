@@ -23,6 +23,7 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
 
 // Box the value type directly into NSValue, the other types into a EDOObject, and the nil value.

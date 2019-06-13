@@ -21,6 +21,7 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
