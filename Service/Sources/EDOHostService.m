@@ -54,10 +54,16 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 @property(readonly) NSMutableDictionary<NSNumber *, id> *localObjects;
 /** The queue to update local objects atomically. */
 @property(readonly) dispatch_queue_t localObjectsSyncQueue;
+/** The tracked weak objects in the service. The key is the address of a tracked object and the
+ * value is the object. */
+@property(readonly) NSMutableDictionary<NSNumber *, id> *localWeakObjects;
+/** The queue to update weak local objects atomically. */
+@property(readonly) dispatch_queue_t localWeakObjectsSyncQueue;
 /** The underlying root object. */
 @property(readonly) id rootLocalObject;
 /** Internal property of the read-only flag of device registration. */
 @property(readwrite) BOOL registeredToDevice;
+
 @end
 
 @implementation EDOHostService
@@ -111,6 +117,11 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     _localObjects = [[NSMutableDictionary alloc] init];
     _localObjectsSyncQueue =
         dispatch_queue_create("com.google.edo.service.localObjects", DISPATCH_QUEUE_SERIAL);
+
+    _localWeakObjects = [[NSMutableDictionary alloc] init];
+    _localWeakObjectsSyncQueue =
+        dispatch_queue_create("com.google.edo.service.localWeakObjects", DISPATCH_QUEUE_SERIAL);
+
     _handlerSet = [[NSMutableSet alloc] init];
     _handlerSyncQueue =
         dispatch_queue_create("com.google.edo.service.handlers", DISPATCH_QUEUE_SERIAL);
@@ -215,6 +226,22 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
   dispatch_sync(_localObjectsSyncQueue, ^{
     [self.localObjects removeObjectForKey:edoKey];
+  });
+  return YES;
+}
+
+- (BOOL)removeWeakObjectWithAddress:(EDOPointerType)remoteAddress {
+  NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  dispatch_sync(_localWeakObjectsSyncQueue, ^{
+    [self.localWeakObjects removeObjectForKey:edoKey];
+  });
+  return YES;
+}
+
+- (BOOL)addWeakEdoObject:(EDOObject *)edoObject {
+  NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
+  dispatch_sync(_localWeakObjectsSyncQueue, ^{
+    [self.localWeakObjects setObject:edoObject forKey:edoKey];
   });
   return YES;
 }
