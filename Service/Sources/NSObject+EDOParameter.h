@@ -18,6 +18,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOObject;
 @class EDOHostPort;
 @class EDOHostService;
 @class EDOParameter;
@@ -29,11 +30,17 @@ NS_ASSUME_NONNULL_BEGIN
  *  Boxes an object into a EDOParameter that converts the object into an remote object if needed.
  *
  *  @param service  The host service that the remote object will belong to.
+ *  @param target   The remote target that the boxed parameter will send to. This is used when
+ *                  the boxed parameter needs to access the destination service, for example, the
+ *                  weak remote object.
  *  @param hostPort The port that the remote object will connect back to. If @c nil is given, the
- *                  hostPort will be generated from the given @c service.
+ *                  hostPort will be generated from the given @c service. This will be used if the
+ *                  @c hostPort is not the same as the service.hostPort, for example, when the
+ *                  service is connecting via usbmuxd.
  */
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(nullable EDOHostPort *)hostPort;
+- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+                                 service:(EDOHostService *)service
+                                hostPort:(nullable EDOHostPort *)hostPort;
 
 @end
 

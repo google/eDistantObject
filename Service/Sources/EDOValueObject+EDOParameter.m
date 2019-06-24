@@ -27,12 +27,13 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * Box the instance of @c EDOValueObject into a @c EDOParameter.
  *
- * @see -[NSObject edo_parameterForService:hostPort:]
+ * @see -[NSObject edo_parameterForTarget:service:hostPort:]
  * @note Because EDOValueObject is an NSProxy, it doesn't inherit category methods from NSObject and
  *       needs to implement it.
  */
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(EDOHostPort *)hostPort {
+- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+                                 service:(EDOHostService *)service
+                                hostPort:(EDOHostPort *)hostPort {
   return [EDOParameter parameterWithValue:(self.localObject ?: self.remoteObject) objCType:@"@"];
 }
 

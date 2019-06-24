@@ -18,6 +18,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOObject;
 @class EDOHostPort;
 @class EDOHostService;
 @class EDOParameter;
@@ -28,10 +29,11 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Boxes the @c NSProxy into an EDOParameter.
  *
- *  @see -[NSObject edo_parameterForService:hostPort:].
+ *  @see -[NSObject edo_parameterForTarget:service:hostPort:].
  */
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(nullable EDOHostPort *)hostPort;
+- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+                                 service:(EDOHostService *)service
+                                hostPort:(nullable EDOHostPort *)hostPort;
 
 @end
 

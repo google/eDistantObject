@@ -65,8 +65,9 @@ __attribute__((constructor)) static void SetupBlockInvocationForward() {
   }
 }
 
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(EDOHostPort *)hostPort {
+- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+                                 service:(EDOHostService *)service
+                                hostPort:(EDOHostPort *)hostPort {
   EDOBlockObject *blockObject = [EDOBlockObject EDOBlockObjectFromBlock:self];
   return [EDOParameter parameterWithObject:blockObject
                                                ?: [service distantObjectForLocalObject:self

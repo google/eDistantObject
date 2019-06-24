@@ -22,8 +22,9 @@
 
 @implementation NSProxy (EDOParameter)
 
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(EDOHostPort *)hostPort {
+- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+                                 service:(EDOHostService *)service
+                                hostPort:(EDOHostPort *)hostPort {
   // TODO(haowoo): Add the proper handler.
   NSAssert(service, @"The service isn't set up to create the remote object.");
 

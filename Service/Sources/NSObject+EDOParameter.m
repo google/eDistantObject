@@ -37,8 +37,9 @@ static Class GetProtocolClass() {
 
 @implementation NSObject (EDOParameter)
 
-- (EDOParameter *)edo_parameterForService:(EDOHostService *)service
-                                 hostPort:(EDOHostPort *)hostPort {
+- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+                                 service:(EDOHostService *)service
+                                hostPort:(EDOHostPort *)hostPort {
   id boxedObject = self;
 
   if ([boxedObject class] == GetProtocolClass()) {

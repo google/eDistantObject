@@ -27,8 +27,8 @@
 #import "Service/Sources/NSObject+EDOParameter.h"
 
 // Box the value type directly into NSValue, the other types into a EDOObject, and the nil value.
-#define BOX_VALUE(__value, __service, __hostPort)                        \
-  ([(__value) edo_parameterForService:(__service) hostPort:(__hostPort)] \
+#define BOX_VALUE(__value, __target, __service, __hostPort)                               \
+  ([(__value) edo_parameterForTarget:(__target) service:(__service)hostPort:(__hostPort)] \
        ?: [EDOBoxedValueType parameterForNilValue])
 
 #define CHECK_PREFIX(__string, __prefix) (strncmp(__string, __prefix, sizeof(__prefix) - 1) == 0)
@@ -232,13 +232,13 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
     if (EDO_IS_OBJECT_OR_CLASS(ctype)) {
       id __unsafe_unretained obj;
       [invocation getArgument:&obj atIndex:i];
-      value = BOX_VALUE(obj, service, nil);
+      value = BOX_VALUE(obj, target, service, nil);
     } else if (EDO_IS_OBJPOINTER(ctype)) {
       id __unsafe_unretained *objRef;
       [invocation getArgument:&objRef atIndex:i];
 
       // Convert and pass the value as an object and decode it on remote side.
-      value = objRef ? BOX_VALUE(*objRef, service, nil)
+      value = objRef ? BOX_VALUE(*objRef, target, service, nil)
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
       // TODO(haowoo): Add the proper error and/or exception handler.
@@ -359,7 +359,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           id __unsafe_unretained obj;
           [invocation getReturnValue:&obj];
           returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
-                                              : BOX_VALUE(obj, service, hostPort);
+                                              : BOX_VALUE(obj, target, service, hostPort);
           if (CheckIfMethodRetainsReturn(request.selectorName.UTF8String)) {
             // We need to do an extra release here because the method return is not autoreleased,
             // and because the invocation is dynamically created, ARC won't insert an extra release
@@ -387,7 +387,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           continue;
         }
         // TODO(ynzhang): add device serial info.
-        [outValues addObject:BOX_VALUE(outObjects[curArgIdx], service, hostPort)];
+        [outValues addObject:BOX_VALUE(outObjects[curArgIdx], target, service, hostPort)];
       }
     } @catch (NSException *e) {
       // TODO(haowoo): Add more error info for non-user exception errors.
