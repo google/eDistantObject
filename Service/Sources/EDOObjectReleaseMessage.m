@@ -19,13 +19,17 @@
 
 #import "Service/Sources/EDOHostService+Private.h"
 
-static NSString *const kEDOObjectReleaseCoderIsObjectReleasedKey = @"isObjectReleased";
+static NSString *const kEDOObjectReleaseCoderWeakReferencedKey = @"weakReferenced";
 static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress";
 
 @interface EDOObjectReleaseRequest ()
-@property(readonly) EDOPointerType remoteAddress;
-@end
 
+@property(readonly) EDOPointerType remoteAddress;
+
+/** Indicates whether the object to be released is a weak referenced object. */
+@property(readonly, getter=isWeakReferenced) BOOL weakReferenced;
+
+@end
 
 @implementation EDOObjectReleaseRequest
 
@@ -33,22 +37,29 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
   return YES;
 }
 
-- (instancetype)initWithRemoteAddress:(EDOPointerType)remoteAddress {
+- (instancetype)initWithRemoteAddress:(EDOPointerType)remoteAddress
+                     isWeakReferenced:(BOOL)isWeakReferenced {
   self = [super init];
   if (self) {
     _remoteAddress = remoteAddress;
+    _weakReferenced = isWeakReferenced;
   }
   return self;
 }
 
 + (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress {
-  return [[self alloc] initWithRemoteAddress:remoteAddress];
+  return [[self alloc] initWithRemoteAddress:remoteAddress isWeakReferenced:NO];
+}
+
++ (instancetype)requestWithWeakRemoteAddress:(EDOPointerType)remoteAddress {
+  return [[self alloc] initWithRemoteAddress:remoteAddress isWeakReferenced:YES];
 }
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
     _remoteAddress = [aDecoder decodeInt64ForKey:kEDOObjectReleaseCoderRemoteAddressKey];
+    _weakReferenced = [aDecoder decodeBoolForKey:kEDOObjectReleaseCoderWeakReferencedKey];
   }
   return self;
 }
@@ -56,13 +67,18 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
   [aCoder encodeInt64:self.remoteAddress forKey:kEDOObjectReleaseCoderRemoteAddressKey];
+  [aCoder encodeBool:self.weakReferenced forKey:kEDOObjectReleaseCoderWeakReferencedKey];
 }
 
 + (EDORequestHandler)requestHandler {
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOObjectReleaseRequest *releaseRequest = (EDOObjectReleaseRequest *)request;
     EDOPointerType edoRemoteAddress = releaseRequest.remoteAddress;
-    [service removeObjectWithAddress:edoRemoteAddress];
+    if (releaseRequest.isWeakReferenced) {
+      // TODO(yaqiji): Add case for weak object's release.
+    } else {
+      [service removeObjectWithAddress:edoRemoteAddress];
+    }
     // The return response from the call is not being needed. So we return a generic message.
     return [[EDOServiceResponse alloc] initWithMessageId:request.messageId];
   };
