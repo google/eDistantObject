@@ -55,14 +55,12 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   EDOSocket *_serviceRegistrationSocket;
   // The dispatch queue to accept service connection by name.
   dispatch_queue_t _serviceConnectionQueue;
-  // The once token to guarantee thread-safety of service connection port setup.
-  dispatch_once_t _serviceConnectionOnceToken;
 }
 
 + (instancetype)sharedChannelPool {
   static EDOChannelPool *instance = nil;
-  static dispatch_once_t token = 0;
-  dispatch_once(&token, ^{
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
     instance = [[EDOChannelPool alloc] init];
   });
   return instance;
@@ -137,7 +135,8 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 - (UInt16)serviceConnectionPort {
-  dispatch_once(&_serviceConnectionOnceToken, ^{
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
     [self edo_startHostRegistrationPortIfNeeded];
   });
   return _serviceRegistrationSocket.socketPort.port;
