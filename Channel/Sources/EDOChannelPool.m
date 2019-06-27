@@ -135,14 +135,13 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 - (UInt16)serviceConnectionPort {
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
+  @synchronized(self) {
     [self edo_startHostRegistrationPortIfNeeded];
-  });
+  }
   return _serviceRegistrationSocket.socketPort.port;
 }
 
-#pragma mark - private
+#pragma mark - Private
 
 - (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
   __block id<EDOChannel> channel = nil;

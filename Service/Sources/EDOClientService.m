@@ -134,25 +134,25 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:objectRequest];
   dispatch_semaphore_t lock = dispatch_semaphore_create(0);
   [channel sendData:requestData
-      withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
-        if (error) {
-          connectError = error;
+      withCompletionHandler:^(id<EDOChannel> channel, NSError *requestError) {
+        if (requestError) {
+          connectError = requestError;
         }
         dispatch_semaphore_signal(lock);
       }];
   dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
   __block EDOObjectResponse *response = nil;
   if (!connectError) {
-    [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
-      if (error) {
-        connectError = error;
+    [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *pingError) {
+      if (pingError) {
+        connectError = pingError;
       } else {
         // Continue to receive the response if the ping is received.
         if ([data isEqualToData:EDOClientService.pingMessageData]) {
           [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *responseData,
-                                            NSError *error) {
-            if (error) {
-              connectError = error;
+                                            NSError *responseError) {
+            if (responseError) {
+              connectError = responseError;
             } else {
               response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
             }

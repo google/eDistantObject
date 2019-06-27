@@ -346,10 +346,12 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                      backgroundQueue, weakServiceRegistrationBlock);
     } else {
       if (success) {
-        NSLog(@"The EDOHostService (%p) is registered to device %@", self, deviceSerial);
+        NSLog(@"The EDOHostService %@ is registered to device %@", self->_port.hostPort.name,
+              deviceSerial);
         self.registeredToDevice = YES;
       } else {
-        NSLog(@"Timeout: unable to register service (%p) on device %@.", self, deviceSerial);
+        NSLog(@"Timeout: unable to register service %@ on device %@.", self->_port.hostPort.name,
+              deviceSerial);
       }
     }
   };
