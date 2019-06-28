@@ -117,61 +117,22 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
 }
 
 + (EDOHostNamingService *)namingServiceWithDeviceSerial:(NSString *)serial error:(NSError **)error {
-  __block NSError *connectError;
-  EDOHostPort *hostPort = [EDOHostPort hostPortWithPort:EDOHostNamingService.namingServerPort
-                                                   name:nil
-                                     deviceSerialNumber:serial];
-  id<EDOChannel> channel =
-      [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:hostPort error:&connectError];
-  if (connectError) {
+  @try {
+    EDOHostPort *hostPort = [EDOHostPort hostPortWithPort:EDOHostNamingService.namingServerPort
+                                                     name:nil
+                                       deviceSerialNumber:serial];
+    EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
+    return (EDOHostNamingService *)[self responseObjectWithRequest:objectRequest onPort:hostPort];
+  } @catch (NSException *exception) {
     if (error) {
-      *error = connectError;
+      *error = [NSError errorWithDomain:EDOClientServiceErrorDomain
+                                   code:EDOClientErrorNamingServiceUnavailable
+                               userInfo:@{NSLocalizedDescriptionKey : exception.reason}];
+    } else {
+      NSLog(@"Failed to fetch naming service remote object: %@.", exception);
     }
-    return nil;
   }
-
-  EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
-  NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:objectRequest];
-  dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-  [channel sendData:requestData
-      withCompletionHandler:^(id<EDOChannel> channel, NSError *requestError) {
-        if (requestError) {
-          connectError = requestError;
-        }
-        dispatch_semaphore_signal(lock);
-      }];
-  dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-  __block EDOObjectResponse *response = nil;
-  if (!connectError) {
-    [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *pingError) {
-      if (pingError) {
-        connectError = pingError;
-      } else {
-        // Continue to receive the response if the ping is received.
-        if ([data isEqualToData:EDOClientService.pingMessageData]) {
-          [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *responseData,
-                                            NSError *responseError) {
-            if (responseError) {
-              connectError = responseError;
-            } else {
-              response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
-            }
-            dispatch_semaphore_signal(lock);
-          }];
-        } else {
-          // TODO(ynzhang): add better error handling with proper error info.
-          connectError = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
-          dispatch_semaphore_signal(lock);
-        }
-        [EDOChannelPool.sharedChannelPool addChannel:channel];
-      }
-    }];
-    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-  }
-  if (error) {
-    *error = connectError;
-  }
-  return response.object;
+  return nil;
 }
 
 #pragma mark - Private Category

@@ -16,16 +16,16 @@
 #import "Device/Sources/EDOUSBMuxUtil.h"
 
 // The types of usbmux message.
-NSString *const kEDOPlistPacketTypeListen = @"Listen";
 NSString *const kEDOPlistPacketTypeConnect = @"Connect";
+NSString *const kEDOPlistPacketTypeListen = @"Listen";
 NSString *const kEDOPlistPacketTypeResult = @"Result";
 
-NSString *const kEDOMessageTypeKey = @"MessageType";
-NSString *const kEDOMessageTypeAttachedKey = @"Attached";
-NSString *const kEDOMessageTypeDetachedKey = @"Detached";
+NSString *const kEDOMessageDeviceIDKey = @"DeviceID";
 NSString *const kEDOMessagePropertiesKey = @"Properties";
 NSString *const kEDOMessageSerialNumberKey = @"SerialNumber";
-NSString *const kEDOMessageDeviceIDKey = @"DeviceID";
+NSString *const kEDOMessageTypeAttachedKey = @"Attached";
+NSString *const kEDOMessageTypeDetachedKey = @"Detached";
+NSString *const kEDOMessageTypeKey = @"MessageType";
 
 NSString *const EDODeviceErrorDomain = @"EDODeviceError";
 

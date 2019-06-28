@@ -106,6 +106,13 @@ static const int64_t kDeviceDetectTime = 2;
       receivePacketWithHandler:^(NSDictionary *_Nullable packet, NSError *_Nullable packetError) {
         if (packetError) {
           connectError = packetError;
+        } else {
+          NSAssert([packet[kEDOMessageTypeKey] isEqualToString:kEDOPlistPacketTypeResult],
+                   @"Unexpected response packet type.");
+          NSError *responseError = [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
+          if (responseError) {
+            connectError = responseError;
+          }
         }
         dispatch_semaphore_signal(lock);
       }];

@@ -30,12 +30,12 @@ extern NSString *const EDODeviceErrorDomain;
 extern NSString *const kEDOPlistPacketTypeResult;
 
 // Keys of the data in the broadcast message.
-extern NSString *const kEDOMessageTypeKey;
-extern NSString *const kEDOMessageTypeAttachedKey;
-extern NSString *const kEDOMessageTypeDetachedKey;
+extern NSString *const kEDOMessageDeviceIDKey;
 extern NSString *const kEDOMessagePropertiesKey;
 extern NSString *const kEDOMessageSerialNumberKey;
-extern NSString *const kEDOMessageDeviceIDKey;
+extern NSString *const kEDOMessageTypeAttachedKey;
+extern NSString *const kEDOMessageTypeKey;
+extern NSString *const kEDOMessageTypeDetachedKey;
 
 // The max value of the packet payload size.
 extern const uint32_t kEDOPacketMaxPayloadSize;

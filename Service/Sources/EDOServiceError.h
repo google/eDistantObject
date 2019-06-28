@@ -26,6 +26,7 @@ FOUNDATION_EXPORT NSErrorDomain const EDOClientServiceErrorDomain;
 NS_ERROR_ENUM(EDOClientServiceErrorDomain){
     EDOClientErrorCannotConnect = -1000,
     EDOClientErrorConnectTimeout,
+    EDOClientErrorNamingServiceUnavailable,
 };
 
 /** Key in userInfo, the value is an NSString describing the request being sent. */
