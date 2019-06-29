@@ -24,8 +24,8 @@ typedef NSString EDOMessageID;
 /** The base class for the message to be transferred within a single service. */
 @interface EDOMessage : NSObject <NSSecureCoding>
 
-/** The unique message Id to track the request and response. */
-@property(readonly) EDOMessageID *messageId;
+/** The unique message identifier to track the request and response. */
+@property(readonly) EDOMessageID *messageID;
 
 /** Init with a random UUID message Id. */
 - (instancetype)init;
@@ -34,14 +34,14 @@ typedef NSString EDOMessageID;
 - (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 /**
- *  Init with a given message Id.
+ *  Init with a given message identifier.
  *
- *  @param messageId The message Id.
+ *  @param messageID The message identifier.
  *  @remark The message Id is a unique identifier to track, it is usually generated via UUID
  *          generator. For instance, the message Id will be the same if the response is for a
  *          request.
  */
-- (instancetype)initWithMessageId:(NSString *)messageId NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithMessageID:(NSString *)messageID NS_DESIGNATED_INITIALIZER;
 
 @end
 

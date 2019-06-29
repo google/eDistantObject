@@ -79,7 +79,7 @@ static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"Class request (%@) name: %@", self.messageId, self.className];
+  return [NSString stringWithFormat:@"Class request (%@) name: %@", self.messageID, self.className];
 }
 
 @end
@@ -93,7 +93,7 @@ static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"Class response (%@)", self.messageId];
+  return [NSString stringWithFormat:@"Class response (%@)", self.messageID];
 }
 
 @end

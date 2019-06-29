@@ -47,7 +47,7 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
  */
 @property(readonly, class) EDORequestHandler requestHandler;
 
-- (instancetype)initWithMessageId:(NSString *)messageId NS_UNAVAILABLE;
+- (instancetype)initWithMessageID:(NSString *)messageID NS_UNAVAILABLE;
 
 /**
  *  Checks if the request matches the @c port.
@@ -86,12 +86,11 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
 + (instancetype)unhandledErrorResponseForRequest:(EDOServiceRequest *)request;
 
 - (instancetype)init NS_UNAVAILABLE;
-- (instancetype)initWithMessageId:(NSString *)messageId NS_UNAVAILABLE;
+- (instancetype)initWithMessageID:(NSString *)messageID NS_UNAVAILABLE;
 
 /** Initializes the response with an @c NSError. */
-- (instancetype)initWithMessageId:(NSString *)messageId
+- (instancetype)initWithMessageID:(NSString *)messageID
                             error:(NSError *)error NS_DESIGNATED_INITIALIZER;
-;
 
 /** @see -[NSCoding initWithCoder:]. */
 - (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;

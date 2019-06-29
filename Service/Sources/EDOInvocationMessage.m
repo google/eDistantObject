@@ -146,7 +146,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
                           exception:(NSException *)exception
                           outValues:(NSArray<EDOBoxedValueType *> *)outValues
                          forRequest:(EDOInvocationRequest *)request {
-  self = [super initWithMessageId:request.messageId];
+  self = [super initWithMessageID:request.messageID];
   if (self) {
     _returnValue = value;
     _exception = exception;
@@ -187,7 +187,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"Invocation response (%@)", self.messageId];
+  return [NSString stringWithFormat:@"Invocation response (%@)", self.messageID];
 }
 
 @end
@@ -444,7 +444,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"Invocation request (%@) on target (%llx) with selector (%@)",
-                                    self.messageId, self.target, self.selectorName];
+                                    self.messageID, self.target, self.selectorName];
 }
 
 @end

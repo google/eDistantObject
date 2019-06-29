@@ -35,7 +35,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 }
 
 - (instancetype)initWithSignature:(NSString *)signature forRequest:(EDOServiceRequest *)request {
-  self = [super initWithMessageId:request.messageId];
+  self = [super initWithMessageID:request.messageID];
   if (self) {
     _signature = signature;
   }
@@ -58,7 +58,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
 - (NSString *)description {
   return [NSString
-      stringWithFormat:@"Method signature response (%@): (%@)", self.messageId, self.signature];
+      stringWithFormat:@"Method signature response (%@): (%@)", self.messageID, self.signature];
 }
 
 @end
@@ -152,7 +152,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
 - (NSString *)description {
   return [NSString
-      stringWithFormat:@"Method signature request (%@): (%@)", self.messageId, self.selectorName];
+      stringWithFormat:@"Method signature request (%@): (%@)", self.messageID, self.selectorName];
 }
 
 @end

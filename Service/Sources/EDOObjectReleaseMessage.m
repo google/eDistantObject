@@ -80,7 +80,7 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
       [service removeObjectWithAddress:edoRemoteAddress];
     }
     // The return response from the call is not being needed. So we return a generic message.
-    return [[EDOServiceResponse alloc] initWithMessageId:request.messageId];
+    return [[EDOServiceResponse alloc] initWithMessageID:request.messageID];
   };
 }
 

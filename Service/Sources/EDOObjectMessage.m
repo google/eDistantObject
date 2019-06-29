@@ -86,7 +86,7 @@ static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 }
 
 - (instancetype)initWithObject:(EDOObject *)object forRequest:(EDOServiceRequest *)request {
-  self = [self initWithMessageId:request.messageId];
+  self = [self initWithMessageID:request.messageID];
   if (self) {
     _object = object;
   }

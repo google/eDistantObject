@@ -276,7 +276,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       EDOServiceResponse *response;
       if (responseData) {
         response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
-        NSAssert([request.messageId isEqualToString:response.messageId],
+        NSAssert([request.messageID isEqualToString:response.messageID],
                  @"The response (%@) Id is mismatched with the request (%@)", response, request);
       }
 

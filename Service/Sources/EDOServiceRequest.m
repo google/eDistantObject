@@ -68,7 +68,7 @@ static NSString *const kEDOServiceResponseDurationKey = @"duration";
 }
 
 + (instancetype)errorResponse:(NSError *)error forRequest:(EDOServiceRequest *)request {
-  return [[self alloc] initWithMessageId:request.messageId error:error];
+  return [[self alloc] initWithMessageID:request.messageID error:error];
 }
 
 + (instancetype)unhandledErrorResponseForRequest:(EDOServiceRequest *)request {
@@ -81,8 +81,8 @@ static NSString *const kEDOServiceResponseDurationKey = @"duration";
   return [self errorResponse:unhandledError forRequest:request];
 }
 
-- (instancetype)initWithMessageId:(NSString *)messageId error:(NSError *)error {
-  self = [super initWithMessageId:messageId];
+- (instancetype)initWithMessageID:(NSString *)messageID error:(NSError *)error {
+  self = [super initWithMessageID:messageID];
   if (self) {
     _error = error;
   }

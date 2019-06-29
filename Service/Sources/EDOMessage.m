@@ -16,6 +16,8 @@
 
 #import "Service/Sources/EDOMessage.h"
 
+static NSString *const kEDOEDOMessageCoderMessageIDKey = @"messageID";
+
 @implementation EDOMessage
 
 + (BOOL)supportsSecureCoding {
@@ -23,13 +25,13 @@
 }
 
 - (instancetype)init {
-  return [self initWithMessageId:[NSUUID UUID].UUIDString];
+  return [self initWithMessageID:[NSUUID UUID].UUIDString];
 }
 
-- (instancetype)initWithMessageId:(NSString *)messageId {
+- (instancetype)initWithMessageID:(NSString *)messageID {
   self = [super init];
   if (self) {
-    _messageId = messageId;
+    _messageID = messageID;
   }
   return self;
 }
@@ -37,13 +39,14 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super init];
   if (self) {
-    _messageId = [aDecoder decodeObjectOfClass:[NSString class] forKey:@"messageId"];
+    _messageID = [aDecoder decodeObjectOfClass:[NSString class]
+                                        forKey:kEDOEDOMessageCoderMessageIDKey];
   }
   return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
-  [aCoder encodeObject:self.messageId forKey:@"messageId"];
+  [aCoder encodeObject:self.messageID forKey:kEDOEDOMessageCoderMessageIDKey];
 }
 
 @end
