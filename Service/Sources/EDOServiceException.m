@@ -19,3 +19,4 @@
 NSExceptionName const EDOServiceGenericException = @"EDOServiceGenericException";
 
 NSString *const EDOExceptionUnderlyingErrorKey = @"EDOUnderlyingErrorKey";
+NSString *const EDOExceptionPortKey = @"EDOExceptionPortKey";

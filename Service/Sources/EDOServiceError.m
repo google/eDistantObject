@@ -16,9 +16,7 @@
 
 #import "Service/Sources/EDOServiceError.h"
 
-#import <Foundation/Foundation.h>
-
-NSErrorDomain const EDOClientServiceErrorDomain = @"com.google.edo.clientService";
+NSErrorDomain const EDOServiceErrorDomain = @"com.google.edo.service";
 
 NSErrorUserInfoKey const EDOErrorRequestKey = @"EDOErrorRequestKey";
 NSErrorUserInfoKey const EDOErrorResponseKey = @"EDOErrorResponseKey";

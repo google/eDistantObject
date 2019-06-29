@@ -262,8 +262,8 @@ static const char *gServiceKey = "com.google.edo.servicekey";
           } else {
             error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
           }
-          EDOServiceResponse *errorResponse = [EDOServiceResponse errorResponse:error
-                                                                     forRequest:request];
+          EDOServiceResponse *errorResponse = [EDOErrorResponse errorResponse:error
+                                                                   forRequest:request];
           NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
           [targetChannel sendData:errorData
               withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {

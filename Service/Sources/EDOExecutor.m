@@ -147,12 +147,7 @@
     response.duration = EDOGetMillisecondsSinceMachTime(currentTime);
   }
 
-  if (!response) {
-    // TODO(haowoo): Define the proper NSError domain, code and error description.
-    NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
-    response = [EDOServiceResponse errorResponse:error forRequest:message.request];
-  }
-
+  response = response ?: [EDOErrorResponse unhandledErrorResponseForRequest:message.request];
   [message assignResponse:response];
 }
 

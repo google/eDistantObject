@@ -84,8 +84,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
 }
 
-+ (Class)classObjectWithName:(NSString *)className
-                 serviceName:(NSString *)serviceName {
++ (Class)classObjectWithName:(NSString *)className serviceName:(NSString *)serviceName {
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:0 serviceName:serviceName];
   EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
                                                                  hostPort:hostPort];
@@ -125,8 +124,8 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
     return (EDOHostNamingService *)[self responseObjectWithRequest:objectRequest onPort:hostPort];
   } @catch (NSException *exception) {
     if (error) {
-      *error = [NSError errorWithDomain:EDOClientServiceErrorDomain
-                                   code:EDOClientErrorNamingServiceUnavailable
+      *error = [NSError errorWithDomain:EDOServiceErrorDomain
+                                   code:EDOServiceErrorNamingServiceUnavailable
                                userInfo:@{NSLocalizedDescriptionKey : exception.reason}];
     } else {
       NSLog(@"Failed to fetch naming service remote object: %@.", exception);
@@ -229,21 +228,24 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   int maxAttempts = 2;
   int currentAttempt = 0;
   while (currentAttempt < maxAttempts) {
-    NSError *error;
+    NSError *connectionError;
     uint64_t connectionStartTime = mach_absolute_time();
     id<EDOChannel> channel =
-        [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port error:&error];
+        [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port
+                                                                  error:&connectionError];
     [stats reportConnectionDuration:EDOGetMillisecondsSinceMachTime(connectionStartTime)];
 
-    if (error) {
+    if (connectionError) {
       [stats reportError];
-      NSError *error = [NSError errorWithDomain:EDOClientServiceErrorDomain
-                                           code:EDOClientErrorCannotConnect
-                                       userInfo:@{
-                                         EDOErrorPortKey : port,
-                                         EDOErrorRequestKey : request.description,
-                                         EDOErrorConnectAttemptKey : @(currentAttempt)
-                                       }];
+      NSDictionary<NSErrorUserInfoKey, id> *userInfo = @{
+        EDOErrorPortKey : port,
+        EDOErrorRequestKey : request.description,
+        EDOErrorConnectAttemptKey : @(currentAttempt),
+        NSUnderlyingErrorKey : connectionError
+      };
+      NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
+                                           code:EDOServiceErrorCannotConnect
+                                       userInfo:userInfo];
       self.errorHandler(error);
     }
 
@@ -286,10 +288,13 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
         // TODO(haowoo): Now there are only errors from the host service when the requests don't
         //               match the service UDID. We need to add a better error domain and code to
         //               give a better explanation of what went wrong for the request.
-        if (response.error) {
+        if ([response class] == [EDOErrorResponse class]) {
+          // We raise an exception here for now, but the caller should also be able to handle the
+          // error responses. We will refactor this with a better error reporting logic.
+          EDOErrorResponse *errorResponse = (EDOErrorResponse *)response;
           [[self exceptionWithReason:@"The host service couldn't handle the request"
                                 port:port
-                               error:response.error] raise];
+                               error:errorResponse.error] raise];
         }
         return response;
       } else {
@@ -299,15 +304,17 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       }
     }
   }
+
   NSString *description = @"The remote service may be unresponsive due to a crash or hang. Check "
                           @"full logs for more information.";
-  NSError *error = [NSError errorWithDomain:EDOClientServiceErrorDomain
-                                       code:EDOClientErrorConnectTimeout
-                                   userInfo:@{
-                                     EDOErrorRequestKey : request.description,
-                                     EDOErrorPortKey : port,
-                                     NSLocalizedDescriptionKey : description
-                                   }];
+  NSDictionary<NSErrorUserInfoKey, id> *userInfo = @{
+    EDOErrorPortKey : port,
+    EDOErrorRequestKey : request.description,
+    NSLocalizedDescriptionKey : description,
+  };
+  NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
+                                       code:EDOServiceErrorConnectTimeout
+                                   userInfo:userInfo];
   self.errorHandler(error);
   return nil;
 }
@@ -344,7 +351,12 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
 + (NSException *)exceptionWithReason:(NSString *)reason
                                 port:(EDOHostPort *)port
                                error:(NSError *)error {
-  NSDictionary *userInfo = @{@"port" : port, @"error" : error ?: NSNull.null};
+  NSDictionary<NSErrorUserInfoKey, id> *userInfo;
+  if (error) {
+    userInfo = @{EDOExceptionPortKey : port, EDOExceptionUnderlyingErrorKey : error};
+  } else {
+    userInfo = @{EDOExceptionPortKey : port};
+  }
   return [NSException exceptionWithName:NSDestinationInvalidException
                                  reason:reason
                                userInfo:userInfo];

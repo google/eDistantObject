@@ -163,14 +163,16 @@
   EDORequestHandler requestHandler = ^(EDOServiceRequest *request, id handlerContext) {
     XCTAssertEqual(context, handlerContext);
     sleep(seconds);
-    return [EDOServiceResponse errorResponse:error forRequest:request];
+    return [EDOErrorResponse errorResponse:error forRequest:request];
   };
   return [EDOExecutor executorWithHandlers:@{@"EDOServiceRequest" : requestHandler} queue:queue];
 }
 
 - (void)verifyResponse:(EDOServiceResponse *)response {
-  XCTAssertEqual(response.error.code, 100);
-  XCTAssertEqualObjects(response.error.domain, NSPOSIXErrorDomain);
+  EDOErrorResponse *errorResponse = (EDOErrorResponse *)response;
+  XCTAssertTrue([response isKindOfClass:[EDOErrorResponse class]]);
+  XCTAssertEqual(errorResponse.error.code, 100);
+  XCTAssertEqualObjects(errorResponse.error.domain, NSPOSIXErrorDomain);
 }
 
 /** Create a dispatch queue with the current testname. */

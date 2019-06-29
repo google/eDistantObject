@@ -216,8 +216,8 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 
   XCTAssertThrowsSpecificNamed([EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT],
                                NSException, exceptionName);
-  XCTAssertEqualObjects(currentError.domain, EDOClientServiceErrorDomain);
-  XCTAssertEqual(currentError.code, EDOClientErrorCannotConnect);
+  XCTAssertEqualObjects(currentError.domain, EDOServiceErrorDomain);
+  XCTAssertEqual(currentError.code, EDOServiceErrorCannotConnect);
 }
 
 - (void)testRemoteObjectShouldFailAfterServiceTerminated {
@@ -234,8 +234,8 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   [remoteDummy invalidateService];
   // The remote object should fail after the remote service is down.
   XCTAssertThrowsSpecificNamed([remoteDummy voidWithValuePlusOne], NSException, exceptionName);
-  XCTAssertEqualObjects(currentError.domain, EDOClientServiceErrorDomain);
-  XCTAssertEqual(currentError.code, EDOClientErrorCannotConnect);
+  XCTAssertEqualObjects(currentError.domain, EDOServiceErrorDomain);
+  XCTAssertEqual(currentError.code, EDOServiceErrorCannotConnect);
   currentError = nil;
 
   // The new service is created on the same port and the cached remote object from the previous

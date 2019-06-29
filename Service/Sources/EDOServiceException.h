@@ -24,4 +24,7 @@ FOUNDATION_EXPORT NSExceptionName const EDOServiceGenericException;
 /** Key in userInfo, describing the embedded NSError object. */
 FOUNDATION_EXPORT NSString *const EDOExceptionUnderlyingErrorKey;
 
+/** Key in userInfo, describing the remote service's port. */
+FOUNDATION_EXPORT NSString *const EDOExceptionPortKey;
+
 NS_ASSUME_NONNULL_END

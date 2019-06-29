@@ -43,7 +43,7 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
  *  The request handler.
  *
  *  The sub classes should override this and provide its own handler. The default implementation
- *  returns nil.
+ *  returns an EDOErrorRequestNotHandled response.
  */
 @property(readonly, class) EDORequestHandler requestHandler;
 
@@ -66,16 +66,36 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
 /** The base response class for the response to receive. */
 @interface EDOServiceResponse : EDOMessage
 
-/** The error object if there is any. */
-@property(readonly, nonatomic, nullable) NSError *error;
 /** Time spent in seconds to generate the response. */
 @property(nonatomic) double duration;
 
 - (instancetype)init NS_UNAVAILABLE;
 
-/** Create an error response with the given error object from a request. */
-+ (EDOServiceResponse *)errorResponse:(NSError *_Nullable)error
-                           forRequest:(EDOServiceRequest *)request;
+@end
+
+/** The error response for a request if not handled and errored. */
+@interface EDOErrorResponse : EDOServiceResponse
+
+/** The error object if there is any. */
+@property(readonly, nonatomic) NSError *error;
+
+/** Creates an error response with the given error object from a request. */
++ (instancetype)errorResponse:(NSError *)error forRequest:(EDOServiceRequest *)request;
+
+/** Creates an error response with an unhandled error. */
++ (instancetype)unhandledErrorResponseForRequest:(EDOServiceRequest *)request;
+
+- (instancetype)init NS_UNAVAILABLE;
+- (instancetype)initWithMessageId:(NSString *)messageId NS_UNAVAILABLE;
+
+/** Initializes the response with an @c NSError. */
+- (instancetype)initWithMessageId:(NSString *)messageId
+                            error:(NSError *)error NS_DESIGNATED_INITIALIZER;
+;
+
+/** @see -[NSCoding initWithCoder:]. */
+- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -21,12 +21,13 @@ NS_ASSUME_NONNULL_BEGIN
 // To enable the linter recognize this be an Objective-C file.
 @class NSString;
 
-FOUNDATION_EXPORT NSErrorDomain const EDOClientServiceErrorDomain;
+FOUNDATION_EXPORT NSErrorDomain const EDOServiceErrorDomain;
 
-NS_ERROR_ENUM(EDOClientServiceErrorDomain){
-    EDOClientErrorCannotConnect = -1000,
-    EDOClientErrorConnectTimeout,
-    EDOClientErrorNamingServiceUnavailable,
+NS_ERROR_ENUM(EDOServiceErrorDomain){
+    EDOServiceErrorCannotConnect = -1000,
+    EDOServiceErrorConnectTimeout,
+    EDOServiceErrorRequestNotHandled,
+    EDOServiceErrorNamingServiceUnavailable,
 };
 
 /** Key in userInfo, the value is an NSString describing the request being sent. */

@@ -16,8 +16,10 @@
 
 #import "Service/Sources/EDOServiceRequest.h"
 
-static NSString *const kEDOServiceRequestErrorKey = @"error";
-static NSString *const kEDOServiceRequestDurationKey = @"duration";
+#import "Service/Sources/EDOServiceError.h"
+
+static NSString *const kEDOServiceResponseErrorKey = @"error";
+static NSString *const kEDOServiceResponseDurationKey = @"duration";
 
 @implementation EDOServiceRequest
 
@@ -28,7 +30,7 @@ static NSString *const kEDOServiceRequestDurationKey = @"duration";
 + (EDORequestHandler)requestHandler {
   // Default handler that only bounces the request.
   return ^(EDOServiceRequest *request, EDOHostService *service) {
-    return [EDOServiceResponse errorResponse:nil forRequest:request];
+    return [EDOErrorResponse unhandledErrorResponseForRequest:request];
   };
 }
 
@@ -44,11 +46,45 @@ static NSString *const kEDOServiceRequestDurationKey = @"duration";
   return YES;
 }
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super initWithCoder:aDecoder];
+  if (self) {
+    _duration = [aDecoder decodeDoubleForKey:kEDOServiceResponseDurationKey];
+  }
+  return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [super encodeWithCoder:aCoder];
+  [aCoder encodeDouble:self.duration forKey:kEDOServiceResponseDurationKey];
+}
+
+@end
+
+@implementation EDOErrorResponse
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
++ (instancetype)errorResponse:(NSError *)error forRequest:(EDOServiceRequest *)request {
+  return [[self alloc] initWithMessageId:request.messageId error:error];
+}
+
++ (instancetype)unhandledErrorResponseForRequest:(EDOServiceRequest *)request {
+  NSDictionary<NSErrorUserInfoKey, id> *userInfo = @{
+    EDOErrorRequestKey : request.description ?: @"(empty request)",
+  };
+  NSError *unhandledError = [NSError errorWithDomain:EDOServiceErrorDomain
+                                                code:EDOServiceErrorRequestNotHandled
+                                            userInfo:userInfo];
+  return [self errorResponse:unhandledError forRequest:request];
+}
+
 - (instancetype)initWithMessageId:(NSString *)messageId error:(NSError *)error {
   self = [super initWithMessageId:messageId];
   if (self) {
     _error = error;
-    _duration = 0.0;
   }
   return self;
 }
@@ -56,20 +92,14 @@ static NSString *const kEDOServiceRequestDurationKey = @"duration";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    _error = [aDecoder decodeObjectOfClass:[NSError class] forKey:kEDOServiceRequestErrorKey];
-    _duration = [aDecoder decodeDoubleForKey:kEDOServiceRequestDurationKey];
+    _error = [aDecoder decodeObjectOfClass:[NSError class] forKey:kEDOServiceResponseErrorKey];
   }
   return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeObject:self.error forKey:kEDOServiceRequestErrorKey];
-  [aCoder encodeDouble:self.duration forKey:kEDOServiceRequestDurationKey];
-}
-
-+ (EDOServiceResponse *)errorResponse:(NSError *)error forRequest:(EDOServiceRequest *)request {
-  return [[self alloc] initWithMessageId:request.messageId error:error];
+  [aCoder encodeObject:self.error forKey:kEDOServiceResponseErrorKey];
 }
 
 @end
