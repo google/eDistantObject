@@ -36,7 +36,7 @@ NSString *const kTimeoutArgumentKey = @"timeout";
 int main(int argc, const char *argv[]) {
   NSString *deviceSerial = [NSUserDefaults.standardUserDefaults stringForKey:kDeviceIDArgumentKey];
   [NSUserDefaults.standardUserDefaults registerDefaults:@{
-    kDeviceIDArgumentKey : @(kDefaultTimeout)
+    kTimeoutArgumentKey : @(kDefaultTimeout)
   }];
 
   // If no target device specified and there is only one connected device, register service on it.
