@@ -91,7 +91,8 @@ const uint32_t kEDOPacketMaxPayloadSize = UINT32_MAX - (uint32_t)sizeof(EDOUSBMu
   return sizeof(refPacket.size);
 }
 
-+ (dispatch_data_t)createPacketDataWithPayload:(NSDictionary *)payload error:(NSError **)error {
++ (dispatch_data_t)createPacketDataWithPayload:(NSDictionary<NSString *, id> *)payload
+                                         error:(NSError **)error {
   NSData *payloadData =
       [NSPropertyListSerialization dataWithPropertyList:payload
                                                  format:NSPropertyListXMLFormat_v1_0
@@ -153,7 +154,7 @@ const uint32_t kEDOPacketMaxPayloadSize = UINT32_MAX - (uint32_t)sizeof(EDOUSBMu
   return dict;
 }
 
-+ (NSError *)errorFromPlistResponsePacket:(NSDictionary *)packet {
++ (NSError *)errorFromPlistResponsePacket:(NSDictionary<NSString *, id> *)packet {
   NSNumber *number = [packet objectForKey:@"Number"];
   if (number) {
     EDOUSBMuxReplyCode replyCode = (EDOUSBMuxReplyCode)number.integerValue;
@@ -195,7 +196,7 @@ const uint32_t kEDOPacketMaxPayloadSize = UINT32_MAX - (uint32_t)sizeof(EDOUSBMu
  *  @return The data of the packet to send to usbmuxd.
  */
 + (NSDictionary *)packetDictionaryWithMessageType:(NSString *)messageType
-                                          payload:(NSDictionary *)payload {
+                                          payload:(NSDictionary<NSString *, id> *)payload {
   NSDictionary *packet = nil;
 
   static NSString *bundleName = nil;
@@ -220,7 +221,8 @@ const uint32_t kEDOPacketMaxPayloadSize = UINT32_MAX - (uint32_t)sizeof(EDOUSBMu
   }
 
   if (payload) {
-    NSMutableDictionary *mpacket = [NSMutableDictionary dictionaryWithDictionary:payload];
+    NSMutableDictionary<NSString *, id> *mpacket =
+        [NSMutableDictionary dictionaryWithDictionary:payload];
     [mpacket addEntriesFromDictionary:packet];
     packet = mpacket;
   }

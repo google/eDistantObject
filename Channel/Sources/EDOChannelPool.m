@@ -86,14 +86,11 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
     return channel;
   } else if (port.port == 0) {
     // TODO(ynzhang): Should request connection channel from the service side and add it to channel
-    // pool. Now it is done in the unit test.
+    // pool. Currently we rely on the other side registering the service to create channel.
+    channel = [self edo_popChannelFromChannelMapWithPort:port waitUntilTimeout:YES];
   } else {
-    id<EDOChannel> createdChannel = [self edo_createChannelWithPort:port error:&resultError];
-    if (createdChannel) {
-      [self addChannel:createdChannel];
-    }
+    channel = [self edo_createChannelWithPort:port error:&resultError];
   }
-  channel = [self edo_popChannelFromChannelMapWithPort:port waitUntilTimeout:YES];
   if (error) {
     *error = resultError;
   } else {

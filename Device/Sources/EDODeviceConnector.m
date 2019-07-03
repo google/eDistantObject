@@ -92,37 +92,35 @@ static const int64_t kDeviceDetectTime = 2;
   NSDictionary *packet = [EDOUSBMuxUtil connectPacketWithDeviceID:deviceID port:port];
   __block NSError *connectError;
   EDODeviceChannel *channel = [EDODeviceChannel channelWithError:&connectError];
-  dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-  [channel sendPacket:packet
-           completion:^(NSError *packetError) {
-             if (packetError) {
-               connectError = packetError;
-             }
-             dispatch_semaphore_signal(lock);
-           }];
-  dispatch_semaphore_wait(lock, dispatch_time(DISPATCH_TIME_NOW, kDeviceConnectTimeout));
-
-  [channel
-      receivePacketWithHandler:^(NSDictionary *_Nullable packet, NSError *_Nullable packetError) {
-        if (packetError) {
-          connectError = packetError;
-        } else {
-          NSAssert([packet[kEDOMessageTypeKey] isEqualToString:kEDOPlistPacketTypeResult],
-                   @"Unexpected response packet type.");
-          NSError *responseError = [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
-          if (responseError) {
-            connectError = responseError;
+  if (channel) {
+    dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+    [channel
+        sendPacket:packet
+        completion:^(NSError *packetError) {
+          if (packetError) {
+            connectError = packetError;
+            dispatch_semaphore_signal(lock);
+          } else {
+            [channel receivePacketWithHandler:^(NSDictionary<NSString *, id> *_Nullable packet,
+                                                NSError *_Nullable packetError) {
+              if (packetError) {
+                connectError = packetError;
+              } else {
+                NSAssert([packet[kEDOMessageTypeKey] isEqualToString:kEDOPlistPacketTypeResult],
+                         @"Unexpected response packet type.");
+                connectError = [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
+              }
+              dispatch_semaphore_signal(lock);
+            }];
           }
-        }
-        dispatch_semaphore_signal(lock);
-      }];
-  dispatch_semaphore_wait(lock, dispatch_time(DISPATCH_TIME_NOW, kDeviceConnectTimeout));
+        }];
+    dispatch_semaphore_wait(lock, dispatch_time(DISPATCH_TIME_NOW, kDeviceConnectTimeout));
+  }
 
-  dispatch_io_t dispatchChannel = [channel releaseChannel];
   if (error) {
     *error = connectError;
   }
-  return connectError ? nil : dispatchChannel;
+  return connectError ? nil : [channel releaseChannel];
 }
 
 #pragma mark - Private

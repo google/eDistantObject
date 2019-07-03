@@ -162,4 +162,16 @@
   XCTAssertEqualObjects(testMessage, dummyMessage);
 }
 
+/** Tests fetching a channel from an unavailable port and verifies the empty response and error. */
+- (void)testFetchChannelFailure {
+  UInt16 portNumber = 23456;  // No service should listen to this port during the test.
+  EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:portNumber];
+  NSError *error;
+  id<EDOChannel> channel = [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port
+                                                                                     error:&error];
+  XCTAssertNil(channel);
+  XCTAssertEqual(error.domain, NSPOSIXErrorDomain);
+  XCTAssertEqual(error.code, ECONNREFUSED);
+}
+
 @end
