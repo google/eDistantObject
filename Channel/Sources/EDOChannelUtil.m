@@ -16,15 +16,35 @@
 
 #import "Channel/Sources/EDOChannelUtil.h"
 
-static const uint64_t kGEdoSocketFrameHeaderTag = 0xc080c080;
+static const uint64_t kGEDOSocketFrameHeaderTag = 0xc080c080;
+
+/**
+ *  The data header for each data package being sent.
+ *
+ *  The header data layout:
+ *  |--- 32bit ---|--- 32bit ---|----- 32 bit -----|--- flexible ---|
+ *  |-- type(1) --|- 0xc080c080-|- length of data -|--*-* data *-*--|
+ */
+typedef struct EDOSocketFrameHeader_s {
+  // Type of frame, always 1.
+  uint32_t type;
+
+  // Tag.
+  uint32_t tag;
+
+  // If payloadSize is larger than zero, @c payloadSize of bytes are following.
+  uint32_t payloadSize;
+} __attribute__((__packed__)) EDOSocketFrameHeader_t;
 
 // Check if the frame header is valid
 // TODO(haowoo): add more checksum checks.
 static BOOL edo_isFrameHeaderValid(EDOSocketFrameHeader_t *header) {
   // Make sure it is not NULL and the tag matches the magic tag so we can make sure the data being
   // processed is in the expected format.
-  return header != NULL && header->tag == kGEdoSocketFrameHeaderTag;
+  return header != NULL && header->tag == kGEDOSocketFrameHeaderTag;
 }
+
+size_t EDOGetPayloadHeaderSize(void) { return sizeof(EDOSocketFrameHeader_t); }
 
 size_t EDOGetPayloadSizeFromFrameData(dispatch_data_t data) {
   if (data == NULL) {
@@ -52,7 +72,7 @@ dispatch_data_t EDOBuildFrameFromDataWithQueue(NSData *data, dispatch_queue_t qu
   dispatch_data_t headerData = ({
     EDOSocketFrameHeader_t frameHeader = {
         .type = 1,
-        .tag = kGEdoSocketFrameHeaderTag,
+        .tag = kGEDOSocketFrameHeaderTag,
         .payloadSize = htonl(data.length),
     };
     NSData *headerData = [NSData dataWithBytes:&frameHeader length:sizeof(frameHeader)];

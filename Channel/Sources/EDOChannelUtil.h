@@ -19,32 +19,24 @@
 #ifndef EDOCHANNEL_UTIL_H_
 #define EDOCHANNEL_UTIL_H_
 
-/**
- *  The data header for each data package being sent.
- *
- *  The header data layout:
- *  |--- 32bit ---|--- 32bit ---|----- 32 bit -----|--- flexible ---|
- *  |-- type(1) --|- 0xc080c080-|- length of data -|--*-* data *-*--|
- */
-typedef struct EDOSocketFrameHeader_s {
-  // Type of frame, always 1.
-  uint32_t type;
-
-  // Tag.
-  uint32_t tag;
-
-  // If payloadSize is larger than zero, @c payloadSize of bytes are following.
-  uint32_t payloadSize;
-} EDOSocketFrameHeader_t;
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-/** Get the size of the payload from the frame header. */
+/** Gets the size of the frame header. */
+size_t EDOGetPayloadHeaderSize(void);
+
+/** Gets the size of the payload from the frame header. */
 size_t EDOGetPayloadSizeFromFrameData(dispatch_data_t data);
 
-/** Util to create dispatch_data with frame header from NSData. */
+/**
+ *  Creates @c dispatch_data_t from NSData that has the frame header and is ready to be sent.
+ *
+ *  @param data   The data to be sent.
+ *  @param queue  The dispatch queue on which to release the @c data.
+ *
+ *  @return The dispatch data containing the frame header and the given data.
+ */
 dispatch_data_t EDOBuildFrameFromDataWithQueue(NSData *data, dispatch_queue_t queue);
 
 #if defined(__cplusplus)

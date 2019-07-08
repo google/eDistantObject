@@ -213,7 +213,7 @@
   };
 
   NSAssert(!self.dataReceived, @"There is an ongoing data transfer.");
-  dispatch_io_read(_channel, 0, sizeof(EDOSocketFrameHeader_t), _eventQueue, frameHandler);
+  dispatch_io_read(_channel, 0, EDOGetPayloadHeaderSize(), _eventQueue, frameHandler);
 }
 
 /** @see -[EDOChannel isValid] */
