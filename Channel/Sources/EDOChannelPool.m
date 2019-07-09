@@ -190,10 +190,10 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   });
 
   __block id<EDOChannel> socketChannel = nil;
-  // Since in some cases the channel could be registered asynchronously from the other processes,
-  // e.g. a service on Mac registers itself to a device, and the device tries to makes an eDO
-  // call, the channel may be unavailable until the request completes. This wait ensures that the
-  // channel is not being used.
+  // In some cases the channel could be registered asynchronously from other processes.
+  // e.g. A service on Mac registers itself to a device, and the device makes an eDO call to the
+  // service. The channel through which the request is made may be unavailable until the request
+  // completes. This wait ensures that the channel is not being used.
   long success = dispatch_semaphore_wait(
       channelSet.channelSemaphore,
       waitUntilTimeout ? dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout) : DISPATCH_TIME_NOW);
