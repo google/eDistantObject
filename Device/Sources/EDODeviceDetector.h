@@ -17,7 +17,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void (^BroadcastHandler)(NSDictionary*, NSError* _Nullable);
+typedef void (^EDOBroadcastHandler)(NSDictionary<NSString*, id>*, NSError* _Nullable);
 
 /** The class to detect device attachment/detachment events with a handler. */
 @interface EDODeviceDetector : NSObject
@@ -27,7 +27,7 @@ typedef void (^BroadcastHandler)(NSDictionary*, NSError* _Nullable);
  *  connects to usbmuxd successfully.
  */
 - (BOOL)listenToBroadcastWithError:(NSError* _Nullable* _Nullable)error
-                    receiveHandler:(BroadcastHandler)receiveHandler;
+                    receiveHandler:(EDOBroadcastHandler)receiveHandler;
 
 /** Stops listening the broadcast of device events. */
 - (void)cancel;

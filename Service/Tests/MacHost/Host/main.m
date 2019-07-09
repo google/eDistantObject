@@ -29,9 +29,9 @@ NSString *const kDeviceIDArgumentKey = @"udid";
 NSString *const kTimeoutArgumentKey = @"timeout";
 
 /**
- *  Starts 20 @c EDOHostService and registers them on target device, and keeps the process running.
- *  This is to test multiple services registration and communication, which is similar to
- *  multi-device test environment.
+ *  Starts 30 @c EDOHostService and registers them on target device, and keeps the process running.
+ *  This is to test multiple services registration and communication, and validating the system is
+ *  still stable under the pressure.
  *
  *  Pass -udid $(DEVICE_ID) to specify a connected target device.
  *  Pass -timeout $(TIMEOUT) to specify a timeout for service registration.
@@ -52,7 +52,7 @@ int main(int argc, const char *argv[]) {
 
   NS_VALID_UNTIL_END_OF_SCOPE ServiceRegistrationHelper *helper =
       [[ServiceRegistrationHelper alloc] initWithServiceNamePrefix:@"com.google.test.MacTestService"
-                                                  numberOfServices:20];
+                                                  numberOfServices:30];
   NSTimeInterval timeout = [NSUserDefaults.standardUserDefaults doubleForKey:kTimeoutArgumentKey];
   if (deviceSerial) {
     // TODO(ynzhang): catch the timeout issue and return a specific error.

@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  @param packet The packet being received. The channel is closed when it's nil.
  *  @param error  The error when it fails to receive data.
  */
-typedef void (^EDODevicePacketReceivedHandler)(NSDictionary *_Nullable packet,
+typedef void (^EDODevicePacketReceivedHandler)(NSDictionary<NSString *, id> *_Nullable packet,
                                                NSError *_Nullable error);
 
 /**

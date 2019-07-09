@@ -30,9 +30,9 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
  *  available channel resource.
  */
 @interface EDOChannelSet : NSObject
-@property(nonatomic) NSMutableSet<id<EDOChannel>> *channels;
+@property(nonatomic, readonly) NSMutableSet<id<EDOChannel>> *channels;
 // Each channel set has a semaphore to guarantee available channel when make connection.
-@property(nonatomic) dispatch_semaphore_t channelSemaphore;
+@property(nonatomic, readonly) dispatch_semaphore_t channelSemaphore;
 @end
 
 @implementation EDOChannelSet
@@ -174,7 +174,8 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 /**
- *  Pops channel from the channel set. If @c forcedToWait is @c NO, it will return @c nil if the
+ *  Pops an available channel randomly from the channel set. If @c waitUntilTimeout is @c NO, it
+ *  will return @c nil if the
  *  channel set is empty.
  */
 - (id<EDOChannel>)edo_popChannelFromChannelMapWithPort:(EDOHostPort *)port
@@ -189,8 +190,12 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   });
 
   __block id<EDOChannel> socketChannel = nil;
+  // Since in some cases the channel could be registered asynchronously from the other processes,
+  // e.g. a service on Mac registers itself to a device, and the device tries to makes an eDO
+  // call, the channel may be unavailable until the request completes. This wait ensures that the
+  // channel is not being used.
   long success = dispatch_semaphore_wait(
-      _channelMap[port].channelSemaphore,
+      channelSet.channelSemaphore,
       waitUntilTimeout ? dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout) : DISPATCH_TIME_NOW);
   if (success == 0) {
     dispatch_sync(_channelPoolQueue, ^{

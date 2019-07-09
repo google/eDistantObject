@@ -34,8 +34,9 @@
 /** Tests remote invocations from iOS device to Mac host. */
 - (void)testDeviceCanMakeRemoteInvocationOnMacHost {
   // The remote object served by test service on Mac host.
-  // Validating 20 registered services.
-  for (int i = 0; i < 20; i++) {
+  // Validating 30 registered services. This is based on the estimation of connections in parallel
+  // between Mac and physical iOS devices.
+  for (int i = 0; i < 30; i++) {
     NSString *serviceName = [NSString stringWithFormat:@"com.google.test.MacTestService%d", i];
     EDOTestDummy *testDummy = [EDOClientService rootObjectWithServiceName:serviceName];
     XCTAssertEqual([testDummy returnInt], i);

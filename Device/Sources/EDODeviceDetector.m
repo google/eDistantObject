@@ -24,35 +24,42 @@
  *  The channel to communicate with usbmuxd. It is lazily loaded when listenWithBroadcastHandler:
  *  is called.
  */
-@property EDODeviceChannel *channel;
+@property(nonatomic) EDODeviceChannel *channel;
+/** @c YES if the detector has already started to listen to broadcast. */
+@property(readonly) BOOL started;
 
 @end
 
 @implementation EDODeviceDetector
 
 - (BOOL)listenToBroadcastWithError:(NSError **)error
-                    receiveHandler:(BroadcastHandler)receiveHandler {
-  __block BOOL success = NO;
+                    receiveHandler:(EDOBroadcastHandler)receiveHandler {
   __block NSError *resultError;
+  EDODeviceChannel *deviceChannel;
   @synchronized(self) {
-    if (!self.channel) {
-      NSError *channelError = nil;
-      self.channel = [EDODeviceChannel channelWithError:&channelError];
-      if (channelError) {
-        resultError = channelError;
-      } else {
-        NSDictionary *packet = [EDOUSBMuxUtil listenPacket];
-        // Synchronously send the listen packet and read response.
-        dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-        [self.channel
-            sendPacket:packet
-            completion:^(NSError *packetSendError) {
-              if (packetSendError) {
-                resultError = packetSendError;
-                dispatch_semaphore_signal(lock);
-              } else {
-                [self->_channel receivePacketWithHandler:^(NSDictionary *_Nonnull packet,
-                                                           NSError *_Nonnull error) {
+    if (!self.started) {
+      deviceChannel = [EDODeviceChannel channelWithError:&resultError];
+      self.channel = deviceChannel;
+    } else {
+      // Return @c NO if the detector is already listening to broadcast.
+      return NO;
+    }
+  }
+
+  __block BOOL success = NO;
+  if (deviceChannel) {
+    NSDictionary<NSString *, id> *packet = [EDOUSBMuxUtil listenPacket];
+    // Synchronously send the listen packet and read response.
+    dispatch_semaphore_t lock = dispatch_semaphore_create(0);
+    [deviceChannel
+        sendPacket:packet
+        completion:^(NSError *packetSendError) {
+          if (packetSendError) {
+            resultError = packetSendError;
+            dispatch_semaphore_signal(lock);
+          } else {
+            [deviceChannel
+                receivePacketWithHandler:^(NSDictionary<NSString *, id> *packet, NSError *error) {
                   NSError *rootError = error ?: [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
                   if (rootError) {
                     resultError = rootError;
@@ -63,14 +70,12 @@
                   }
                   dispatch_semaphore_signal(lock);
                 }];
-              }
-            }];
-        dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-        if (success) {
-          // Schedule read recursively to constantly listen to broadcast event.
-          [self scheduleReadBroadcastPacketWithHandler:receiveHandler];
-        }
-      }
+          }
+        }];
+    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+    if (success) {
+      // Schedule read recursively to constantly listen to broadcast event.
+      [self edo_scheduleReadBroadcastPacketWithHandler:receiveHandler];
     }
   }
   if (resultError) {
@@ -83,14 +88,20 @@
 }
 
 - (void)cancel {
-  _channel = nil;
+  @synchronized(self) {
+    self.channel = nil;
+  }
+}
+
+- (BOOL)started {
+  return self.channel != nil;
 }
 
 #pragma mark - Private
 
-- (void)scheduleReadBroadcastPacketWithHandler:(void (^)(NSDictionary *packet,
-                                                         NSError *error))handler {
-  [_channel receivePacketWithHandler:^(NSDictionary *packet, NSError *error) {
+- (void)edo_scheduleReadBroadcastPacketWithHandler:(EDOBroadcastHandler)handler {
+  __weak EDODeviceDetector *weakSelf = self;
+  [_channel receivePacketWithHandler:^(NSDictionary<NSString *, id> *packet, NSError *error) {
     // Interpret the broadcast packet we just received
     if (handler) {
       handler(packet, error);
@@ -98,7 +109,7 @@
 
     // Re-schedule reading another incoming broadcast packet
     if (!error) {
-      [self scheduleReadBroadcastPacketWithHandler:handler];
+      [weakSelf edo_scheduleReadBroadcastPacketWithHandler:handler];
     }
   }];
 }

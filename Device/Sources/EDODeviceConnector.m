@@ -101,8 +101,8 @@ static const int64_t kDeviceDetectTime = 2;
             connectError = packetError;
             dispatch_semaphore_signal(lock);
           } else {
-            [channel receivePacketWithHandler:^(NSDictionary<NSString *, id> *_Nullable packet,
-                                                NSError *_Nullable packetError) {
+            EDODevicePacketReceivedHandler handler = ^(
+                NSDictionary<NSString *, id> *_Nullable packet, NSError *_Nullable packetError) {
               if (packetError) {
                 connectError = packetError;
               } else {
@@ -111,7 +111,8 @@ static const int64_t kDeviceDetectTime = 2;
                 connectError = [EDOUSBMuxUtil errorFromPlistResponsePacket:packet];
               }
               dispatch_semaphore_signal(lock);
-            }];
+            };
+            [channel receivePacketWithHandler:handler];
           }
         }];
     dispatch_semaphore_wait(lock, dispatch_time(DISPATCH_TIME_NOW, kDeviceConnectTimeout));
@@ -120,7 +121,7 @@ static const int64_t kDeviceDetectTime = 2;
   if (error) {
     *error = connectError;
   }
-  return connectError ? nil : [channel releaseChannel];
+  return connectError ? NULL : [channel releaseChannel];
 }
 
 #pragma mark - Private

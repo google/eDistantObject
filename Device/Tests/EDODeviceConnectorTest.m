@@ -124,7 +124,7 @@ static NSString *const kFakeSerialNumber = @"fake_serial";
       .andDo(^(NSInvocation *invocation) {
         __strong NSError **errorPointer;
         [invocation getArgument:&errorPointer atIndex:2];
-        BroadcastHandler handler;
+        EDOBroadcastHandler handler;
         [invocation getArgument:&handler atIndex:3];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)),
                        dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
@@ -164,7 +164,7 @@ static NSString *const kFakeSerialNumber = @"fake_serial";
   id mockDetector = OCMClassMock([EDODeviceDetector class]);
   OCMStub([mockDetector listenToBroadcastWithError:[OCMArg anyObjectRef] receiveHandler:OCMOCK_ANY])
       .andDo((^(NSInvocation *invocation) {
-        BroadcastHandler handler;
+        EDOBroadcastHandler handler;
         [invocation getArgument:&handler atIndex:3];
         for (NSUInteger i = 0; i < deviceNumber; i++) {
           NSString *fakeDeviceSerial =

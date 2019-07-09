@@ -63,7 +63,9 @@
   dispatch_io_read(
       _dispatchChannel, 0, [EDOUSBMuxUtil sizeOfPayloadSize], _queue,
       ^(bool done, dispatch_data_t sizeData, int error) {
-        if (!done) return;
+        if (!done) {
+          return;
+        }
 
         if (error) {
           handler(nil, [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil]);
@@ -78,6 +80,15 @@
             dispatch_data_create_map(sizeData, (const void **)&buffer, &bufferSize);
         // NS_VALID_UNTIL_END_OF_SCOPE guarantees 'mapData' isn't released before
         // memcpy has a chance to do its thing
+        if (bufferSize == 0) {
+          // The packet could be dropped by usbmuxd when there are more than ~50 packets in transit.
+          NSError *error = [NSError
+              errorWithDomain:NSPOSIXErrorDomain
+                         code:ECONNREFUSED
+                     userInfo:@{NSLocalizedDescriptionKey : @"The packet was dropped by usbmuxd."}];
+          handler(nil, error);
+          return;
+        }
         NSAssert(bufferSize == [EDOUSBMuxUtil sizeOfPayloadSize],
                  @"Buffer size is different from the size field.");
         NSAssert(sizeof(packetLength) == [EDOUSBMuxUtil sizeOfPayloadSize],
@@ -87,7 +98,7 @@
         // Read rest of the incoming usbmux packet
         size_t offset = [EDOUSBMuxUtil sizeOfPayloadSize];
         dispatch_io_read(
-            self->_dispatchChannel, offset, packetLength - offset, self->_queue,
+            self->_dispatchChannel, 0, packetLength - offset, self->_queue,
             ^(bool done, dispatch_data_t data, int error) {
               if (!done) {
                 return;
@@ -156,7 +167,9 @@
   // Create socket
   dispatch_fd_t fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (fd == -1) {
-    if (error) *error = [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil];
+    if (error) {
+      *error = [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil];
+    }
     return NO;
   }
 
@@ -170,7 +183,9 @@
   strcpy(addr.sun_path, "/var/run/usbmuxd");
   socklen_t socklen = sizeof(addr);
   if (connect(fd, (struct sockaddr *)&addr, socklen) == -1) {
-    if (error) *error = [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil];
+    if (error) {
+      *error = [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil];
+    }
     return NO;
   }
 
@@ -179,7 +194,7 @@
       close(fd);
     }
   });
-  return YES;
+  return _dispatchChannel != NULL;
 }
 
 @end
