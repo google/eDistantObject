@@ -19,21 +19,29 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The port to identify where the socket is listened on or connected to.
+ *  The helper class for the connected socket to retrieve its peer socket info.
  *
  *  @note This class supports both IPv4 and IPv6 addresses, but currently only IPv4 is used.
  */
 @interface EDOSocketPort : NSObject
 
-/** The port number. */
+/** The port number that the socket itself is bound to. */
 @property(readonly, nonatomic) UInt16 port;
-/** The IP address. */
+/** The IP address that the socket is bound to. */
 @property(readonly, nullable, nonatomic) NSString *IPAddress;
+
+/** The port number for the peer. */
+@property(readonly, nonatomic) UInt16 peerPort;
+/** The IP address for the peer. */
+@property(readonly, nullable, nonatomic) NSString *peerIPAddress;
+
+/** The local path for the UNIX socket it connects to. */
+@property(readonly, nullable, nonatomic) NSString *localPath;
 
 - (instancetype)init NS_UNAVAILABLE;
 
 /** Init with an established socket file descriptor. */
-- (instancetype)initWithSocket:(dispatch_fd_t)socketFD;
+- (instancetype)initWithSocket:(dispatch_fd_t)socketFD NS_DESIGNATED_INITIALIZER;
 
 @end
 
