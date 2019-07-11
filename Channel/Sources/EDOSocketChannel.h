@@ -54,17 +54,12 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort;
 
 /**
- *  Creates a channel with the established dispatch channel and host port.
- *  @note This dispatch channel will be owned by the socket channel. Calling dispatch_close on it
- *        will make the socket channel unavailable.
+ *  Releases the ownership of the underlying socket and returns it.
  *
- *  @param dispatchChannel The established dispatch channel.
- *  @param hostPort        The host port that the channel socket is connected to.
- *
- *  @return An instance of EDOSocketChannel.
+ *  It is not guaranteed to return a valid socket; it returns what the underlying socket is and
+ *  the channel becomes invalid.
  */
-+ (instancetype)channelWithDispatchChannel:(dispatch_io_t)dispatchChannel
-                                  hostPort:(EDOHostPort *)hostPort;
+- (dispatch_fd_t)releaseSocket;
 
 /**
  *  Updates the host port of the channel.

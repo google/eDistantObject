@@ -287,43 +287,19 @@
   [self waitForExpectationsWithTimeout:1 handler:nil];
 }
 
-- (void)testCreateChannelWithDispatchChannel {
-  XCTestExpectation *expectConnected = [self expectationWithDescription:@"Connected to host"];
-  XCTestExpectation *expectIncoming = [self expectationWithDescription:@"Incoming req is received"];
-  XCTestExpectation *expectReply = [self expectationWithDescription:@"Received from host"];
-
-  __block NSData *receivedData;
-  NS_VALID_UNTIL_END_OF_SCOPE EDOSocket *host = [EDOSocket
-      listenWithTCPPort:0
-                  queue:nil
-         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
-           [expectIncoming fulfill];
-           dispatch_io_t dispatchChannel = [self createDispatchChannelFromSocket:socket];
-           EDOSocketChannel *channel = [EDOSocketChannel
-               channelWithDispatchChannel:dispatchChannel
-                                 hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
-           [channel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
-             receivedData = data;
-             [expectReply fulfill];
-           }];
-         }];
-  XCTAssertNotEqual(host.socketPort.port, 0);
-
-  // Connect to the host and send the data
-  [EDOSocket connectWithTCPPort:host.socketPort.port
-                          queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
-                   [expectConnected fulfill];
-                   XCTAssertNil(error);
-                   dispatch_io_t dispatchChannel = [self createDispatchChannelFromSocket:socket];
-                   EDOSocketChannel *channel = [EDOSocketChannel
-                       channelWithDispatchChannel:dispatchChannel
-                                         hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
-                   [channel sendData:self.replyData withCompletionHandler:nil];
-                 }];
-
-  [self waitForExpectationsWithTimeout:5 handler:nil];
-  XCTAssertTrue(memcmp(self.replyData.bytes, receivedData.bytes, receivedData.length) == 0);
+- (void)testSocketCanBeReleased {
+  dispatch_fd_t socketFD = -1;
+  ({
+    EDOSocket *socket = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
+    XCTAssertNotEqual(socket.socketPort.port, 0);
+    XCTAssertTrue(socket.valid);
+    socketFD = [socket releaseSocket];
+    socket = nil;
+  });
+  // the socket should be still closable after the EDOSocket is released and dealloc'd
+  XCTAssertNotEqual(socketFD, -1);
+  XCTAssertTrue(close(socketFD) == 0);
+  XCTAssertFalse(close(socketFD) == 0);
 }
 
 #pragma mark - Test Utils

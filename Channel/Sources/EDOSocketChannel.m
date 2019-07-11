@@ -30,7 +30,7 @@
 
 @interface EDOSocketChannel ()
 // The underlying socket file descriptor.
-@property dispatch_fd_t socket;
+@property EDOSocket *socket;
 // The dispatch io channel to send and receive I/O data from the underlying socket.
 @property(readonly) dispatch_io_t channel;
 // The dispatch queue to run the dispatch source handler and IO handler.
@@ -57,31 +57,23 @@
   return [[self alloc] initWithSocket:socket hostPort:hostPort];
 }
 
-+ (instancetype)channelWithDispatchChannel:(dispatch_io_t)dispatchChannel
-                                  hostPort:(EDOHostPort *)hostPort {
-  return [[self alloc] initWithDispatchChannel:dispatchChannel hostPort:hostPort];
-}
-
 - (instancetype)initWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
   self = [self initInternal];
   if (self) {
     if (socket.valid) {
       // The channel takes over the socket.
-      dispatch_fd_t socketFD = [socket releaseSocket];
-      _socket = socketFD;
+      _socket = [EDOSocket socketWithSocket:[socket releaseSocket]];
       __weak EDOSocketChannel *weakSelf = self;
-      _channel = dispatch_io_create(DISPATCH_IO_STREAM, socketFD, _eventQueue, ^(int error) {
-        weakSelf.socket = -1;
-
+      _channel = dispatch_io_create(DISPATCH_IO_STREAM, _socket.socket, _eventQueue, ^(int error) {
         // TODO(haowoo): check error and report.
         if (error == 0) {
-          close(socketFD);
+          [weakSelf.socket invalidate];
         }
       });
 
       // Clean up the socket if it fails to create the channel here.
-      if (_channel == NULL && socketFD != -1) {
-        close(socketFD);
+      if (!_channel) {
+        [_socket invalidate];
       } else {
         _hostPort = hostPort;
       }
@@ -90,21 +82,9 @@
   return self;
 }
 
-- (instancetype)initWithDispatchChannel:(dispatch_io_t)dispatchChannel
-                               hostPort:(EDOHostPort *)hostPort {
-  self = [self initInternal];
-  if (self) {
-    _socket = dispatch_io_get_descriptor(dispatchChannel);
-    _channel = dispatchChannel;
-    _hostPort = hostPort;
-  }
-  return self;
-}
-
 - (instancetype)initInternal {
   self = [super init];
   if (self) {
-    _socket = -1;
     _handlerQueue =
         dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_CONCURRENT);
     // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
@@ -121,6 +101,11 @@
 
 - (void)updateHostPort:(EDOHostPort *)hostPort {
   _hostPort = hostPort;
+}
+
+- (dispatch_fd_t)releaseSocket {
+  EDOSocket *socket = self.socket;
+  return socket ? [self.socket releaseSocket] : -1;
 }
 
 #pragma mark - EDOChannel
@@ -218,7 +203,7 @@
 
 /** @see -[EDOChannel isValid] */
 - (BOOL)isValid {
-  return _socket != -1 && _channel != NULL;
+  return _channel && self.socket.valid;
 }
 
 /** @see -[EDOChannel invalidate] */
