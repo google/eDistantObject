@@ -144,12 +144,12 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   __block id<EDOChannel> channel = nil;
   __block NSError *connectionError;
   if (port.deviceSerialNumber) {
-    dispatch_io_t dispatchChannel =
+    dispatch_fd_t socket =
         [EDODeviceConnector.sharedConnector connectToDevice:port.deviceSerialNumber
                                                      onPort:port.port
                                                       error:&connectionError];
     if (!connectionError) {
-      channel = [EDOSocketChannel channelWithDispatchChannel:dispatchChannel hostPort:port];
+      channel = [EDOSocketChannel channelWithSocket:[EDOSocket socketWithSocket:socket]];
     }
   } else {
     dispatch_semaphore_t lock = dispatch_semaphore_create(0);

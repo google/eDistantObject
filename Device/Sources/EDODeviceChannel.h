@@ -54,13 +54,15 @@ typedef void (^EDODevicePacketSentHandler)(NSError *_Nullable error);
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Releases the ownership of the dispatch channel and returns the dispatch_io_t it owned.
+ *  Releases the ownership of the socket descriptor and returns it.
  *
- *  After calling this, the dispatch channel will be released and the device channel will not be
+ *  After calling this, the underlying channel will be released and the device channel will not be
  *  available anymore. Usually it will be used after successfully sending a connect message to a
  *  port on an iOS device.
+ *
+ *  @return The underlying socket file descriptor.
  */
-- (dispatch_io_t)releaseChannel;
+- (dispatch_fd_t)releaseSocket;
 
 /** Receives packet from usbmuxd asynchronously. */
 - (void)receivePacketWithHandler:(EDODevicePacketReceivedHandler _Nullable)handler;

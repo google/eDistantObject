@@ -368,19 +368,19 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   if (!connectionError) {
     UInt16 port = namingService.serviceConnectionPort;
     // dispatch channel connected to the registration service on device.
-    dispatch_io_t dispatchChannel =
-        [EDODeviceConnector.sharedConnector connectToDevice:deviceSerial
-                                                     onPort:port
-                                                      error:&connectionError];
+    dispatch_fd_t socket = [EDODeviceConnector.sharedConnector connectToDevice:deviceSerial
+                                                                        onPort:port
+                                                                         error:&connectionError];
     NSString *name = _port.hostPort.name;
     EDOHostPort *devicePort = [EDOHostPort hostPortWithPort:port
                                                        name:name
                                          deviceSerialNumber:deviceSerial];
 
-    if (!connectionError) {
+    if (!connectionError && socket != -1) {
       // Channel in the host side to receive requests.
-      id<EDOChannel> channel = [EDOSocketChannel channelWithDispatchChannel:dispatchChannel
-                                                                   hostPort:devicePort];
+      id<EDOChannel> channel =
+          [EDOSocketChannel channelWithSocket:[EDOSocket socketWithSocket:socket]
+                                     hostPort:devicePort];
       NSData *data = [name dataUsingEncoding:NSUTF8StringEncoding];
       dispatch_semaphore_t lock = dispatch_semaphore_create(0);
       [channel sendData:data
