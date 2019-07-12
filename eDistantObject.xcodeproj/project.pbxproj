@@ -106,6 +106,9 @@
 		C8A772D122D5215F00A75B22 /* EDOSocketPortTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A772D022D5215D00A75B22 /* EDOSocketPortTest.m */; };
 		C8C3B44C2140507700A71091 /* EDOTestSwiftProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0402134D50600421D72 /* EDOTestSwiftProtocol.swift */; };
 		C8ED2AE421B7504F00118999 /* EDOTimingFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */; };
+		DC84AF0422D805C800D43E26 /* EDOWeakObject.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */; };
+		DC84AF0522D805EE00D43E26 /* EDODeallocationTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */; };
+		DC84AF0922D80A4C00D43E26 /* EDOWeakReferenceTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -376,6 +379,11 @@
 		C8A772D022D5215D00A75B22 /* EDOSocketPortTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDOSocketPortTest.m; sourceTree = "<group>"; };
 		C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOTimingFunctions.m; path = Service/Sources/EDOTimingFunctions.m; sourceTree = "<group>"; };
 		C8ED2AE321B7504F00118999 /* EDOTimingFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOTimingFunctions.h; path = Service/Sources/EDOTimingFunctions.h; sourceTree = "<group>"; };
+		DC84AEFD22D572BD00D43E26 /* EDOWeakObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOWeakObject.h; path = Service/Sources/EDOWeakObject.h; sourceTree = "<group>"; };
+		DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDODeallocationTracker.m; path = Service/Sources/EDODeallocationTracker.m; sourceTree = "<group>"; };
+		DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOWeakObject.m; path = Service/Sources/EDOWeakObject.m; sourceTree = "<group>"; };
+		DC84AF0022D572BF00D43E26 /* EDODeallocationTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDODeallocationTracker.h; path = Service/Sources/EDODeallocationTracker.h; sourceTree = "<group>"; };
+		DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOWeakReferenceTest.m; path = Service/Tests/UnitTests/EDOWeakReferenceTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -528,6 +536,10 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				DC84AF0022D572BF00D43E26 /* EDODeallocationTracker.h */,
+				DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */,
+				DC84AEFD22D572BD00D43E26 /* EDOWeakObject.h */,
+				DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */,
 				C535B59721D3077100BAE558 /* EDOHostNamingService.h */,
 				C535B59921D3077200BAE558 /* EDOHostNamingService.m */,
 				C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */,
@@ -676,6 +688,7 @@
 		C5A2F02D2134D4B800421D72 /* UnitTests */ = {
 			isa = PBXGroup;
 			children = (
+				DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */,
 				C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */,
 				C5A2F0312134D4CB00421D72 /* EDOExecutorTest.m */,
 				C5A2F02E2134D4CB00421D72 /* EDOMessageQueueTest.m */,
@@ -1192,6 +1205,8 @@
 				C5A2F07C2134D6C100421D72 /* EDOValueObject.m in Sources */,
 				C5A2F0782134D6C100421D72 /* EDOProtocolObject.m in Sources */,
 				C5A2F07E2134D6C100421D72 /* EDOValueType.m in Sources */,
+				DC84AF0522D805EE00D43E26 /* EDODeallocationTracker.m in Sources */,
+				DC84AF0422D805C800D43E26 /* EDOWeakObject.m in Sources */,
 				C5A2F06D2134D6C100421D72 /* EDOInvocationMessage.m in Sources */,
 				C849824221BF212E008F0D6F /* EDOClientServiceStatsCollector.m in Sources */,
 				C5A2F0752134D6C100421D72 /* EDOObjectMessage.m in Sources */,
@@ -1261,6 +1276,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC84AF0922D80A4C00D43E26 /* EDOWeakReferenceTest.m in Sources */,
 				C5A2F0672134D65600421D72 /* EDOServiceTest.m in Sources */,
 				C535B59D21D307FF00BAE558 /* EDOHostNamingServiceTest.m in Sources */,
 				C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */,

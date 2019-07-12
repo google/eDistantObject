@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOServiceException.h"
 
 NSExceptionName const EDOServiceGenericException = @"EDOServiceGenericException";
+NSExceptionName const EDOWeakObjectWeakReleaseException = @"EDOWeakReleasedException";
 
 NSString *const EDOExceptionUnderlyingErrorKey = @"EDOUnderlyingErrorKey";
 NSString *const EDOExceptionPortKey = @"EDOExceptionPortKey";
