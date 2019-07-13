@@ -30,14 +30,6 @@
 
 @implementation EDOWeakReferenceTest
 
-- (void)setUp {
-  [super setUp];
-}
-
-- (void)tearDown {
-  [super tearDown];
-}
-
 /**
  * Tests EDOWeakObject is an NSProxy that forwards inovcation to the underlying object that both
  * EDOWeakObject and underlying object behaves the same.

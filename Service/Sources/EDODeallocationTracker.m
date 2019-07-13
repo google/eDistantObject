@@ -33,7 +33,7 @@
 @implementation EDODeallocationTracker
 
 + (void)enableTrackingForObject:(EDOWeakObject *)trackedObject hostPort:(EDOHostPort *)hostPort {
-  (void)[[EDODeallocationTracker alloc] initWithTrackedObject:trackedObject hostPort:hostPort];
+  (void)[[self alloc] initWithTrackedObject:trackedObject hostPort:hostPort];
 }
 
 - (instancetype)initWithTrackedObject:(EDOWeakObject *)trackedObject

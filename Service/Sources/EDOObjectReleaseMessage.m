@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@
 
 #import "Service/Sources/EDOHostService+Private.h"
 
-static NSString *const kEDOObjectReleaseCoderWeakReferencedKey = @"weakReferenced";
+static NSString *const kEDOObjectReleaseCoderWeaklyReferencedKey = @"weaklyReferenced";
 static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress";
 
 @interface EDOObjectReleaseRequest ()
 
 @property(readonly) EDOPointerType remoteAddress;
 
-/** Indicates whether the object to be released is a weak referenced object. */
-@property(readonly, getter=isWeakReferenced) BOOL weakReferenced;
+/** Indicates whether the object to be released is a weakly referenced object. */
+@property(readonly, getter=isWeaklyReferenced) BOOL weaklyReferenced;
 
 @end
 
@@ -38,28 +38,28 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 }
 
 - (instancetype)initWithRemoteAddress:(EDOPointerType)remoteAddress
-                     isWeakReferenced:(BOOL)isWeakReferenced {
+                     weaklyReferenced:(BOOL)weaklyReferenced {
   self = [super init];
   if (self) {
     _remoteAddress = remoteAddress;
-    _weakReferenced = isWeakReferenced;
+    _weaklyReferenced = weaklyReferenced;
   }
   return self;
 }
 
 + (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress {
-  return [[self alloc] initWithRemoteAddress:remoteAddress isWeakReferenced:NO];
+  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:NO];
 }
 
 + (instancetype)requestWithWeakRemoteAddress:(EDOPointerType)remoteAddress {
-  return [[self alloc] initWithRemoteAddress:remoteAddress isWeakReferenced:YES];
+  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:YES];
 }
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
     _remoteAddress = [aDecoder decodeInt64ForKey:kEDOObjectReleaseCoderRemoteAddressKey];
-    _weakReferenced = [aDecoder decodeBoolForKey:kEDOObjectReleaseCoderWeakReferencedKey];
+    _weaklyReferenced = [aDecoder decodeBoolForKey:kEDOObjectReleaseCoderWeaklyReferencedKey];
   }
   return self;
 }
@@ -67,14 +67,14 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
   [aCoder encodeInt64:self.remoteAddress forKey:kEDOObjectReleaseCoderRemoteAddressKey];
-  [aCoder encodeBool:self.weakReferenced forKey:kEDOObjectReleaseCoderWeakReferencedKey];
+  [aCoder encodeBool:self.weaklyReferenced forKey:kEDOObjectReleaseCoderWeaklyReferencedKey];
 }
 
 + (EDORequestHandler)requestHandler {
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOObjectReleaseRequest *releaseRequest = (EDOObjectReleaseRequest *)request;
     EDOPointerType edoRemoteAddress = releaseRequest.remoteAddress;
-    if (releaseRequest.isWeakReferenced) {
+    if (releaseRequest.weaklyReferenced) {
       // TODO(yaqiji): Add case for weak object's release.
     } else {
       [service removeObjectWithAddress:edoRemoteAddress];
