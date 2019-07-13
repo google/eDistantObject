@@ -318,16 +318,4 @@
   return data;
 }
 
-- (dispatch_io_t)createDispatchChannelFromSocket:(EDOSocket *)socket {
-  dispatch_fd_t fd = [socket releaseSocket];
-  dispatch_io_t dispatchChannel = dispatch_io_create(
-      DISPATCH_IO_STREAM, fd, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-      ^(int error) {
-        if (error == 0) {
-          close(fd);
-        }
-      });
-  return dispatchChannel;
-}
-
 @end
