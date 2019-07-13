@@ -196,8 +196,8 @@
   _socket = fd;
   _dispatchChannel = dispatch_io_create(DISPATCH_IO_STREAM, fd, _queue, ^(int error) {
     if (error == 0) {
-      [weakSelf releaseSocket];
-      close(fd);
+      dispatch_fd_t socket = [weakSelf releaseSocket];
+      close(socket);
     }
   });
   return _dispatchChannel != NULL;
