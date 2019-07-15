@@ -20,7 +20,34 @@ static NSString *const kEDOHostPortCoderPortKey = @"port";
 static NSString *const kEDOHostPortCoderNameKey = @"serviceName";
 static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
 
+/**
+ *  The host port data layout
+ *  |--- 32 bit ---|-- 16 bit --|--- 16 bit ----|---- 16 bit -----|--- name ----|--- serial ---|
+ *  |- data size --|-  port #  -|- name offset -|- serial offset -|--- "name"---|-- "serial" --|
+ *
+ *  Note the name and serial both have the ending '\0' to tell it's nil or an empty string.
+ */
+typedef struct EDOHostPortData_s {
+  uint32_t size;
+  uint16_t port;
+  uint16_t nameOffset;
+  uint16_t serialOffset;
+} __attribute__((__packed__)) EDOHostPortData_t;
+
 @implementation EDOHostPort
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
++ (NSString *)deviceIdentifier {
+  static dispatch_once_t onceToken;
+  static NSString *deviceIdentifier;
+  dispatch_once(&onceToken, ^{
+    deviceIdentifier = NSProcessInfo.processInfo.globallyUniqueString;
+  });
+  return deviceIdentifier;
+}
 
 + (instancetype)hostPortWithLocalPort:(UInt16)port {
   return [self hostPortWithPort:port name:nil deviceSerialNumber:nil];
@@ -48,6 +75,47 @@ static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
     _port = port;
     _name = name;
     _deviceSerialNumber = [deviceSerialNumber copy];
+  }
+  return self;
+}
+
+- (instancetype)initWithData:(NSData *)data {
+  self = [super init];
+  if (self) {
+    const char *bytes = data.bytes;
+    const EDOHostPortData_t *header = data.bytes;
+    if (header->size != data.length || header->nameOffset != sizeof(EDOHostPortData_t) ||
+        header->serialOffset > data.length) {
+      return nil;
+    }
+
+    _port = header->port;
+    if (header->serialOffset > header->nameOffset) {
+      _name = [[NSString alloc] initWithBytes:bytes + header->nameOffset
+                                       length:header->serialOffset - header->nameOffset - 1
+                                     encoding:NSASCIIStringEncoding];
+    }
+    if (header->size > header->serialOffset) {
+      _deviceSerialNumber = [[NSString alloc] initWithBytes:bytes + header->serialOffset
+                                                     length:header->size - header->serialOffset - 1
+                                                   encoding:NSASCIIStringEncoding];
+    }
+  }
+  return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  NSData *data = [aDecoder decodeDataObject];
+  if (data) {
+    return [self initWithData:data];
+  }
+
+  self = [super init];
+  if (self) {
+    _port = (UInt16)[aDecoder decodeIntForKey:kEDOHostPortCoderPortKey];
+    _name = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOHostPortCoderNameKey];
+    _deviceSerialNumber = [aDecoder decodeObjectOfClass:[NSString class]
+                                                 forKey:kEDOHostPortCoderDeviceSerialKey];
   }
   return self;
 }
@@ -81,30 +149,42 @@ static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
 #pragma mark - NSCopying
 
 - (id)copyWithZone:(nullable NSZone *)zone {
-  return [[EDOHostPort alloc] initWithPort:_port name:_name deviceSerialNumber:_deviceSerialNumber];
+  return [[EDOHostPort alloc] initWithPort:_port
+                                      name:[_name copy]
+                        deviceSerialNumber:[_deviceSerialNumber copy]];
 }
 
 #pragma mark - NSSecureCoding
 
-+ (BOOL)supportsSecureCoding {
-  return YES;
-}
-
-- (instancetype)initWithCoder:(NSCoder *)aDecoder {
-  self = [super init];
-  if (self) {
-    _port = (UInt16)[aDecoder decodeIntForKey:kEDOHostPortCoderPortKey];
-    _name = [aDecoder decodeObjectOfClass:[NSString class] forKey:kEDOHostPortCoderNameKey];
-    _deviceSerialNumber = [aDecoder decodeObjectOfClass:[NSString class]
-                                                 forKey:kEDOHostPortCoderDeviceSerialKey];
-  }
-  return self;
-}
-
 - (void)encodeWithCoder:(NSCoder *)aCoder {
+  [aCoder encodeDataObject:self.data];
+  // TODO(haowoo): Remove below once all the compatible issues are resolved.
   [aCoder encodeInteger:self.port forKey:kEDOHostPortCoderPortKey];
   [aCoder encodeObject:self.name forKey:kEDOHostPortCoderNameKey];
   [aCoder encodeObject:self.deviceSerialNumber forKey:kEDOHostPortCoderDeviceSerialKey];
+}
+
+- (NSData *)data {
+  uint32_t size = sizeof(EDOHostPortData_t);
+  size += self.name ? (uint32_t)self.name.length + 1 : 0;
+  size += self.deviceSerialNumber ? (uint32_t)self.deviceSerialNumber.length + 1 : 0;
+  NSMutableData *data = [[NSMutableData alloc] initWithCapacity:size];
+  data.length = size;
+  EDOHostPortData_t *header = data.mutableBytes;
+  header->size = size;
+  header->port = self.port;
+  header->nameOffset = sizeof(EDOHostPortData_t);
+  if (self.name) {
+    header->serialOffset = header->nameOffset + self.name.length + 1;
+    memcpy(data.mutableBytes + header->nameOffset, self.name.UTF8String, self.name.length + 1);
+  } else {
+    header->serialOffset = sizeof(EDOHostPortData_t);
+  }
+  if (self.deviceSerialNumber) {
+    memcpy(data.mutableBytes + header->serialOffset, self.deviceSerialNumber.UTF8String,
+           self.deviceSerialNumber.length + 1);
+  }
+  return [data copy];
 }
 
 @end

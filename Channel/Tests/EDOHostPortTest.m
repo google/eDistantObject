@@ -19,7 +19,6 @@
 #import "Channel/Sources/EDOHostPort.h"
 
 @interface EDOHostPortTest : XCTestCase
-
 @end
 
 @implementation EDOHostPortTest
@@ -70,6 +69,45 @@
   EDOHostPort *port4 = [EDOHostPort hostPortWithLocalPort:1];
   [dict setObject:@"4" forKey:port4];
   XCTAssertEqualObjects([dict objectForKey:port1], @"4");
+}
+
+- (void)testHostPortDataRepresentation {
+  NSArray<EDOHostPort *> *ports = @[
+    [EDOHostPort hostPortWithLocalPort:1],
+    [EDOHostPort hostPortWithName:@""],
+    [EDOHostPort hostPortWithName:@"test_name"],
+    [EDOHostPort hostPortWithPort:1 name:nil deviceSerialNumber:@"test_serial"],
+    [EDOHostPort hostPortWithPort:2 name:@"test name" deviceSerialNumber:@"test_serial"],
+    [EDOHostPort hostPortWithPort:3 name:@"test name" deviceSerialNumber:@""],
+  ];
+  for (EDOHostPort *port in ports) {
+    XCTAssertEqualObjects(port, [[EDOHostPort alloc] initWithData:port.data]);
+  }
+}
+
+- (void)testInvalidHostPortData {
+  // header.size = 10, but data.size = 3
+  char incorrectSizeData[] = "\12\0";
+  // header.size = 12, but data.nameOffset = \30bee
+  char incorrectNameOffsetData[] = "\14\0\0\0\0\0\30beef";
+  // header.size = 12, but data.serialOffset = \13bee
+  char incorrectSerialOffsetData[] = "\16\0\0\0\0\0\12\0\13beef";
+  // random data
+  char randomData[] = "deadbeefneverstop";
+  NSArray<NSData *> *datas = @[
+    [NSData dataWithBytes:incorrectSizeData length:sizeof(incorrectSizeData)],
+    [NSData dataWithBytes:incorrectNameOffsetData length:sizeof(incorrectNameOffsetData)],
+    [NSData dataWithBytes:incorrectSerialOffsetData length:sizeof(incorrectSerialOffsetData)],
+    [NSData dataWithBytes:randomData length:sizeof(randomData)],
+  ];
+  for (NSData *data in datas) {
+    XCTAssertNil([[EDOHostPort alloc] initWithData:data]);
+  }
+}
+
+- (void)testDeviceIdentifierUniqueness {
+  XCTAssertNotNil(EDOHostPort.deviceIdentifier);
+  XCTAssertEqualObjects(EDOHostPort.deviceIdentifier, EDOHostPort.deviceIdentifier);
 }
 
 @end

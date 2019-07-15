@@ -19,10 +19,19 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The information for a port that the host service is listening on.
- *  This interface can represent either a host port on local machine or host port on a real device.
+ *  The destination host that the channel can connect to.
+ *
+ *  This interface represents a host port that can be on a local machine or on a real device.
  */
 @interface EDOHostPort : NSObject <NSCopying, NSSecureCoding>
+
+/**
+ *  The unique device identifier for the current running process.
+ *
+ *  TODO(haowoo): This will be used to identify whether the host is on a real device or a machine
+ *                later, to replace deviceSerialNumber.
+ */
+@property(readonly, class) NSString *deviceIdentifier;
 
 /** The listen port number of the host. 0 if the host port is identified by name. */
 @property(readonly, nonatomic) UInt16 port;
@@ -32,6 +41,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** The device serial number string. @c nil if the connection is not to a physical iOS device. */
 @property(readonly, nonatomic, nullable) NSString *deviceSerialNumber;
+
+/** The data representation of the host port. */
+@property(readonly, nonatomic) NSData *data;
 
 /**
  *  Creates a host port instance with local port number. This is used for host ports on a local
@@ -57,7 +69,15 @@ NS_ASSUME_NONNULL_BEGIN
                             name:(NSString *_Nullable)name
               deviceSerialNumber:(NSString *_Nullable)deviceSerialNumber;
 
-- (instancetype)init NS_UNAVAILABLE;
+/** Initializes the host port with the given @c port, @c name and @c deviceSerialNumber. */
+- (instancetype)initWithPort:(UInt16)port
+                        name:(nullable NSString *)name
+          deviceSerialNumber:(nullable NSString *)deviceSerialNumber;
+
+/**
+ *  Initializes the host port from the data representation. Returns @c nil if the data is not valid.
+ */
+- (nullable instancetype)initWithData:(NSData *)data;
 
 @end
 
