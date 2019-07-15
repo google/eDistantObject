@@ -30,22 +30,19 @@
 
 @interface EDOSocketChannel ()
 // The underlying socket file descriptor.
-@property EDOSocket *socket;
+@property(readonly, nonatomic) EDOSocket *socket;
 // The dispatch io channel to send and receive I/O data from the underlying socket.
-@property(readonly) dispatch_io_t channel;
+@property(readonly, nonatomic) dispatch_io_t channel;
 // The dispatch queue to run the dispatch source handler and IO handler.
-@property(readonly) dispatch_queue_t eventQueue;
+@property(readonly, nonatomic) dispatch_queue_t eventQueue;
 // The dispatch queue where the receive handler block will be dispatched to.
-@property(readonly) dispatch_queue_t handlerQueue;
+@property(readonly, nonatomic) dispatch_queue_t handlerQueue;
 @end
 
 #pragma mark - Socket Connection
 
 @implementation EDOSocketChannel
 @dynamic valid;
-
-+ (void)Foo {
-}
 
 + (instancetype)channelWithSocket:(EDOSocket *)socket {
   return [[EDOSocketChannel alloc] initWithSocket:socket];

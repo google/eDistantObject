@@ -73,7 +73,6 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
 }
 
 @dynamic valid;
-@synthesize socket = _socket;
 
 - (instancetype)initWithSocket:(dispatch_fd_t)socket {
   self = [super init];
@@ -94,9 +93,11 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
 }
 
 - (dispatch_fd_t)releaseSocket {
-  dispatch_fd_t socketFD = _socket;
-  _socket = -1;
-  return socketFD;
+  @synchronized(self) {
+    dispatch_fd_t socketFD = _socket;
+    _socket = -1;
+    return socketFD;
+  }
 }
 
 - (void)invalidate {
@@ -107,7 +108,9 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
 }
 
 - (BOOL)valid {
-  return _socket >= 0;
+  @synchronized(self) {
+    return _socket >= 0;
+  }
 }
 
 + (void)connectWithTCPPort:(UInt16)port
