@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,28 +37,22 @@
 @property(readonly) dispatch_queue_t eventQueue;
 // The dispatch queue where the receive handler block will be dispatched to.
 @property(readonly) dispatch_queue_t handlerQueue;
-// The data to be received.
-@property dispatch_data_t dataReceived;
-// The remaining size of data to be received.
-@property size_t remainingDataSize;
 @end
 
 #pragma mark - Socket Connection
 
 @implementation EDOSocketChannel
 @dynamic valid;
-@synthesize hostPort = _hostPort;
+
++ (void)Foo {
+}
 
 + (instancetype)channelWithSocket:(EDOSocket *)socket {
-  return [[self alloc] initWithSocket:socket hostPort:nil];
+  return [[EDOSocketChannel alloc] initWithSocket:socket];
 }
 
-+ (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
-  return [[self alloc] initWithSocket:socket hostPort:hostPort];
-}
-
-- (instancetype)initWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort {
-  self = [self initInternal];
+- (instancetype)initWithSocket:(EDOSocket *)socket {
+  self = [self init];
   if (self) {
     if (socket.valid) {
       // The channel takes over the socket.
@@ -74,15 +68,13 @@
       // Clean up the socket if it fails to create the channel here.
       if (!_channel) {
         [_socket invalidate];
-      } else {
-        _hostPort = hostPort;
       }
     }
   }
   return self;
 }
 
-- (instancetype)initInternal {
+- (instancetype)init {
   self = [super init];
   if (self) {
     _handlerQueue =
@@ -99,20 +91,19 @@
   [self invalidate];
 }
 
-- (void)updateHostPort:(EDOHostPort *)hostPort {
-  _hostPort = hostPort;
-}
-
 - (dispatch_fd_t)releaseSocket {
   EDOSocket *socket = self.socket;
-  return socket ? [self.socket releaseSocket] : -1;
+  dispatch_fd_t socketFD = socket ? [self.socket releaseSocket] : -1;
+  [self invalidate];
+  return socketFD;
 }
 
 #pragma mark - EDOChannel
 
 - (void)sendData:(NSData *)data withCompletionHandler:(EDOChannelSentHandler)handler {
+  dispatch_queue_t handlerQueue = self.handlerQueue;
   if (!self.channel) {
-    dispatch_async(_handlerQueue, ^{
+    dispatch_async(handlerQueue, ^{
       if (handler) {
         handler(self, [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil]);
       }
@@ -128,7 +119,7 @@
         }
 
         if (handler) {
-          dispatch_async(self->_handlerQueue, ^{
+          dispatch_async(handlerQueue, ^{
             NSError *error;
             if (errCode != 0) {
               error = [NSError errorWithDomain:NSPOSIXErrorDomain code:errCode userInfo:nil];
@@ -140,8 +131,11 @@
 }
 
 - (void)receiveDataWithHandler:(EDOChannelReceiveHandler)handler {
-  if (!self.channel) {
-    dispatch_async(_handlerQueue, ^{
+  dispatch_queue_t handlerQueue = self.handlerQueue;
+  dispatch_queue_t eventQueue = self.eventQueue;
+  dispatch_io_t channel = self.channel;
+  if (!channel) {
+    dispatch_async(handlerQueue, ^{
       // TODO(haowoo): Add better error code define.
       handler(self, nil,
               [NSError errorWithDomain:NSInternalInconsistencyException code:0 userInfo:nil]);
@@ -149,39 +143,38 @@
     return;
   }
 
+  __block dispatch_data_t dataReceived;
+  __block size_t remainingDataSize;
   dispatch_io_handler_t dataHandler = ^(bool done, dispatch_data_t data, int error) {
     // TODO(haowoo): Propagate this error to the handler.
     NSAssert(error == 0, @"Error on receiving data.");
-    self.remainingDataSize -= dispatch_data_get_size(data);
-    self.dataReceived =
-        self.dataReceived ? dispatch_data_create_concat(self.dataReceived, data) : data;
+    remainingDataSize -= dispatch_data_get_size(data);
+    dataReceived = dataReceived ? dispatch_data_create_concat(dataReceived, data) : data;
 
-    if (self.remainingDataSize > 0) {
+    if (remainingDataSize > 0) {
       return;
     }
 
     NSMutableData *receivedData =
-        [NSMutableData dataWithCapacity:dispatch_data_get_size(self.dataReceived)];
-    dispatch_data_apply(self.dataReceived, ^bool(dispatch_data_t region, size_t offset,
-                                                 const void *buffer, size_t size) {
+        [NSMutableData dataWithCapacity:dispatch_data_get_size(dataReceived)];
+    dispatch_data_apply(dataReceived, ^bool(dispatch_data_t region, size_t offset,
+                                            const void *buffer, size_t size) {
       [receivedData appendBytes:buffer length:size];
       return YES;
     });
-    self.dataReceived = nil;
 
     if (handler) {
-      dispatch_async(self->_handlerQueue, ^{
+      dispatch_async(handlerQueue, ^{
         handler(self, receivedData, nil);
       });
     }
   };
 
   dispatch_io_handler_t frameHandler = ^(bool done, dispatch_data_t data, int error) {
-    dispatch_io_t channel = self.channel;
     size_t payloadSize = EDOGetPayloadSizeFromFrameData(data);
     if (payloadSize > 0) {
-      self.remainingDataSize = payloadSize;
-      dispatch_io_read(channel, 0, payloadSize, self.eventQueue, dataHandler);
+      remainingDataSize = payloadSize;
+      dispatch_io_read(channel, 0, payloadSize, eventQueue, dataHandler);
     } else {
       // Close the channel on errors and closed sockets.
       if (error != 0 || payloadSize == 0) {
@@ -190,15 +183,14 @@
 
       // Execute the block on closing the channel.
       if (payloadSize == 0 && error == 0 && handler) {
-        dispatch_async(self->_handlerQueue, ^{
+        dispatch_async(handlerQueue, ^{
           handler(self, nil, nil);
         });
       }
     }
   };
 
-  NSAssert(!self.dataReceived, @"There is an ongoing data transfer.");
-  dispatch_io_read(_channel, 0, EDOGetPayloadHeaderSize(), _eventQueue, frameHandler);
+  dispatch_io_read(channel, 0, EDOGetPayloadHeaderSize(), eventQueue, frameHandler);
 }
 
 /** @see -[EDOChannel isValid] */
@@ -212,7 +204,6 @@
     dispatch_io_close(_channel, 0);
     _channel = NULL;
   }
-  _hostPort = nil;
 }
 
 @end

@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,20 +33,17 @@
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
   __block NSMutableArray<EDOSocketChannel *> *channels =
       [[NSMutableArray alloc] initWithCapacity:10];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:host.socketPort.port];
   for (int i = 0; i < 10; i++) {
-    id<EDOChannel> socketChannel = [channelPool
-        fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
-                                error:nil];
+    id<EDOChannel> socketChannel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
     [channels addObject:socketChannel];
-    [channelPool addChannel:socketChannel];
+    [channelPool addChannel:socketChannel forPort:hostPort];
   }
-  XCTAssertEqual(
-      [channelPool countChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]],
-      1u);
+  XCTAssertEqual([channelPool countChannelsWithPort:hostPort], 1u);
   for (int i = 0; i < 9; i++) {
     XCTAssertEqual(channels[i], channels[i + 1]);
   }
-  [channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]];
+  [channelPool removeChannelsWithPort:hostPort];
 }
 
 - (void)testAsyncCreateChannels {
@@ -60,11 +57,10 @@
   for (int i = 0; i < 10; i++) {
     UInt16 port = i % 2 == 0 ? host1.socketPort.port : host2.socketPort.port;
     NSMutableSet *set = i % 2 == 0 ? set1 : set2;
-    id<EDOChannel> socketChannel =
-        [channelPool fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
-                                             error:nil];
+    EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
+    id<EDOChannel> socketChannel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
 
-    [channelPool addChannel:socketChannel];
+    [channelPool addChannel:socketChannel forPort:hostPort];
     dispatch_sync(queue, ^{
       [set addObject:socketChannel];
     });
@@ -81,11 +77,10 @@
 
 - (void)testClearChannelWithPort {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:host.socketPort.port];
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
-  id<EDOChannel> socketChannel = [channelPool
-      fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
-                              error:nil];
-  [channelPool addChannel:socketChannel];
+  id<EDOChannel> socketChannel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
+  [channelPool addChannel:socketChannel forPort:hostPort];
 
   [channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]];
   XCTAssertEqual(
@@ -95,12 +90,12 @@
 
 - (void)testReleaseInvalidChannel {
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:host.socketPort.port];
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
-  id<EDOChannel> channel = [channelPool
-      fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]
-                              error:nil];
+  id<EDOChannel> channel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
+
   [channel invalidate];
-  [channelPool addChannel:channel];
+  [channelPool addChannel:channel forPort:hostPort];
   XCTAssertEqual(
       [channelPool countChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]],
       0u);
@@ -141,13 +136,13 @@
 
   // Send dummy message with the connected client channel in the channel pool.
   NSString *dummyMessage = @"EDODummyMessage";
-  id<EDOChannel> socketChannel = [EDOChannelPool.sharedChannelPool
-      fetchConnectedChannelWithPort:[EDOHostPort hostPortWithName:dummyServiceName]
-                              error:nil];
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithName:dummyServiceName];
+  id<EDOChannel> socketChannel =
+      [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:hostPort error:nil];
   NSData *data = [dummyMessage dataUsingEncoding:NSUTF8StringEncoding];
   [socketChannel sendData:data
       withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
-        [EDOChannelPool.sharedChannelPool addChannel:channel];
+        [EDOChannelPool.sharedChannelPool addChannel:channel forPort:hostPort];
       }];
 
   __block NSString *testMessage;

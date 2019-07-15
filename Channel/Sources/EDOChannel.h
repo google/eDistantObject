@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 //
 
 NS_ASSUME_NONNULL_BEGIN
-
-@class EDOHostPort;
 
 /**
  *  @protocol EDOChannel
@@ -62,12 +60,6 @@ typedef void (^EDOChannelSentHandler)(id<EDOChannel> channel, NSError *_Nullable
  *  error out for various other reasons.
  */
 @property(readonly, nonatomic, getter=isValid) BOOL valid;
-
-/**
- *  The host port that the channel socket is connected to. @c nil if the channel is not connected to
- *  a host port or not known yet.
- */
-@property(readonly, nonatomic, nullable) EDOHostPort *hostPort;
 
 /**
  *  Asynchronously send the data to this channel.

@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -99,14 +99,14 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   return channel;
 }
 
-- (void)addChannel:(id<EDOChannel>)channel {
+- (void)addChannel:(id<EDOChannel>)channel forPort:(EDOHostPort *)port {
   // reuse the channel only when it is valid
   if (channel.isValid) {
     dispatch_sync(_channelPoolQueue, ^{
-      EDOChannelSet *channelSet = self->_channelMap[channel.hostPort];
+      EDOChannelSet *channelSet = self->_channelMap[port];
       if (!channelSet) {
         channelSet = [[EDOChannelSet alloc] init];
-        [self->_channelMap setObject:channelSet forKey:channel.hostPort];
+        [self->_channelMap setObject:channelSet forKey:port];
       }
       [channelSet.channels addObject:channel];
       dispatch_semaphore_signal(channelSet.channelSemaphore);
@@ -141,7 +141,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 #pragma mark - Private
 
 - (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
-  __block id<EDOChannel> channel = nil;
+  __block id<EDOChannel> channel;
   __block NSError *connectionError;
   if (port.deviceSerialNumber) {
     dispatch_fd_t socket =
@@ -157,10 +157,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
                             queue:nil
                    connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *socketError) {
                      if (socket) {
-                       channel = [EDOSocketChannel
-                           channelWithSocket:socket
-                                    hostPort:[EDOHostPort hostPortWithLocalPort:listenPort
-                                                                    serviceName:port.name]];
+                       channel = [EDOSocketChannel channelWithSocket:socket];
                      }
                      connectionError = socketError;
                      dispatch_semaphore_signal(lock);
@@ -210,26 +207,33 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   if (_serviceRegistrationSocket) {
     return;
   }
+  __weak EDOChannelPool *weakSelf = self;
   _serviceRegistrationSocket = [EDOSocket
       listenWithTCPPort:0
                   queue:_serviceConnectionQueue
          connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *serviceError) {
-           if (!serviceError) {
-             EDOSocketChannel *socketChannel = [EDOSocketChannel channelWithSocket:socket];
-             [socketChannel
-                 receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
-                   if (!error) {
-                     NSString *name = [[NSString alloc] initWithData:data
-                                                            encoding:NSUTF8StringEncoding];
-                     [socketChannel updateHostPort:[EDOHostPort hostPortWithName:name]];
-                     [self addChannel:socketChannel];
-                   } else {
-                     // Log the error instead of exception in order not to terminate the process,
-                     // since eDO may still work without getting the host port name.
-                     NSLog(@"Unable to receive host port name: %@", error);
-                   }
-                 }];
+           if (serviceError) {
+             // Only log the error for now, it is fine to ignore any error for the incoming
+             // connection as the eDO will continue to function without this setup.
+             NSLog(@"Fail to accept a new connection. %@", serviceError);
            }
+           EDOSocketChannel *socketChannel = [EDOSocketChannel channelWithSocket:socket];
+           [socketChannel receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data,
+                                                   NSError *error) {
+             if (error) {
+               // Log the error instead of exception in order not to terminate the process,
+               // since eDO may still work without getting the host port name.
+               NSLog(@"Unable to receive host port name: %@", error);
+               return;
+             }
+             NSString *name = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+             if (name.length) {
+               EDOHostPort *hostPort = [EDOHostPort hostPortWithName:name];
+               [weakSelf addChannel:channel forPort:hostPort];
+             } else {
+               NSLog(@"The port name is empty, the channel is discarded.");
+             }
+           }];
          }];
 }
 

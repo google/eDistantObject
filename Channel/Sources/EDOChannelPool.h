@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,25 +53,34 @@ typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
 @property(readonly) UInt16 serviceConnectionPort;
 
 /**
- *  Fetch an available channel from the pool given host port. If no available, it will connect the
- *  host port to create one.
+ *  Fetches an available channel in the pool for the provided given host port.
+ *
+ *  @note If there is no channel for the host port, it will attempt to create one by connecting
+ *        to the host. In case of real devices, it waits for the remote to be connected because the
+ *        device cannot initiate the connection to the Mac host via usbmuxd. It will time out if
+ *        there is no connection set up and return @c nil.
+ *
+ *  @return The channel that's ready to send and receive data, or @c nil if there is an error.
  */
-- (id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port
-                                          error:(NSError *_Nullable *_Nullable)error;
-/**
- *  Release an available channel and add it to the pool.
- */
-- (void)addChannel:(id<EDOChannel>)channel;
+- (nullable id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port
+                                                   error:(NSError *_Nullable *_Nullable)error;
 
 /**
- *  Clean up channels connected by the given host port.
- *  This should be called when the service the host port belongs to is closed.
+ *  Adds the @c channel to the pool.
+ *
+ *  @param channel The channel being added to be reused.
+ *  @param port    The port the channel connects to as the key.
+ */
+- (void)addChannel:(id<EDOChannel>)channel forPort:(EDOHostPort *)port;
+
+/**
+ *  Removes all the channels by the given host port.
+ *
+ *  @note This should be called when the service the host port belongs to is closed.
  */
 - (void)removeChannelsWithPort:(EDOHostPort *)port;
 
-/**
- *  The count of channels in the pool given host port.
- */
+/** Gets the number of available channels in the pool for the given host port. */
 - (NSUInteger)countChannelsWithPort:(EDOHostPort *)port;
 
 @end

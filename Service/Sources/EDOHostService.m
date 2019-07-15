@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -321,9 +321,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                            return;
                          }
 
-                         id<EDOChannel> clientChannel = [EDOSocketChannel
-                             channelWithSocket:socket
-                                      hostPort:[EDOHostPort hostPortWithLocalPort:listenPort]];
+                         id<EDOChannel> clientChannel = [EDOSocketChannel channelWithSocket:socket];
                          [strongSelf startReceivingRequestsForChannel:clientChannel];
                        }];
 }
@@ -372,15 +370,11 @@ static const char *gServiceKey = "com.google.edo.servicekey";
                                                                         onPort:port
                                                                          error:&connectionError];
     NSString *name = _port.hostPort.name;
-    EDOHostPort *devicePort = [EDOHostPort hostPortWithPort:port
-                                                       name:name
-                                         deviceSerialNumber:deviceSerial];
 
     if (!connectionError && socket != -1) {
       // Channel in the host side to receive requests.
       id<EDOChannel> channel =
-          [EDOSocketChannel channelWithSocket:[EDOSocket socketWithSocket:socket]
-                                     hostPort:devicePort];
+          [EDOSocketChannel channelWithSocket:[EDOSocket socketWithSocket:socket]];
       NSData *data = [name dataUsingEncoding:NSUTF8StringEncoding];
       dispatch_semaphore_t lock = dispatch_semaphore_create(0);
       [channel sendData:data

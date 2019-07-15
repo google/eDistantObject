@@ -1,5 +1,5 @@
-
-// Copyright 2018 Google Inc.
+//
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -257,7 +257,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       [stats reportReleaseObject];
       NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
       [channel sendData:requestData withCompletionHandler:nil];
-      [EDOChannelPool.sharedChannelPool addChannel:channel];
+      [EDOChannelPool.sharedChannelPool addChannel:channel forPort:port];
       return nil;
     } else {
       uint64_t requestStartTime = mach_absolute_time();
@@ -284,7 +284,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
                requestDuration:EDOGetMillisecondsSinceMachTime(requestStartTime)
               responseDuration:response.duration];
       if (response) {
-        [EDOChannelPool.sharedChannelPool addChannel:channel];
+        [EDOChannelPool.sharedChannelPool addChannel:channel forPort:port];
         // TODO(haowoo): Now there are only errors from the host service when the requests don't
         //               match the service UDID. We need to add a better error domain and code to
         //               give a better explanation of what went wrong for the request.

@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOSocket;
-@class EDOHostPort;
 
 /**
  *  The channel implemented using POSIX socket.
@@ -35,23 +34,19 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOSocketChannel : NSObject <EDOChannel>
 
 /**
- *  Creates a channel with the established socket.
+ *  Convenience creation method. See -initWithSocket:.
  *
  *  @param socket The established socket from the @c EDOSocketConnectedBlock callback.
- *
  *  @return An instance of EDOSocketChannel.
  */
 + (instancetype)channelWithSocket:(EDOSocket *)socket;
 
 /**
- *  Create a channel with the established socket and host port.
+ *  Initializes a channel with the established socket.
  *
- *  @param socket   The established socket from the @c EDOSocketConnectedBlock callback.
- *  @param hostPort The host port that the channel socket is connected to.
- *
- *  @return An instance of EDOSocketChannel.
+ *  @param socket The established socket from the @c EDOSocketConnectedBlock callback.
  */
-+ (instancetype)channelWithSocket:(EDOSocket *)socket hostPort:(EDOHostPort *)hostPort;
+- (instancetype)initWithSocket:(EDOSocket *)socket;
 
 /**
  *  Releases the ownership of the underlying socket and returns it.
@@ -60,16 +55,6 @@ NS_ASSUME_NONNULL_BEGIN
  *  the channel becomes invalid.
  */
 - (dispatch_fd_t)releaseSocket;
-
-/**
- *  Updates the host port of the channel.
- *
- *  Sometimes the host port is unknown when the channel is created. This method could be used to
- *  set the host port later.
- */
-- (void)updateHostPort:(EDOHostPort *)hostPort;
-
-- (instancetype)init NS_UNAVAILABLE;
 
 @end
 
