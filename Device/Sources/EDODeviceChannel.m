@@ -56,7 +56,10 @@
   @synchronized(self) {
     dispatch_fd_t socket = _socket;
     _socket = -1;
-    _dispatchChannel = nil;
+    if (_dispatchChannel) {
+      dispatch_io_close(_dispatchChannel, 0);
+      _dispatchChannel = nil;
+    }
     return socket;
   }
 }
@@ -197,7 +200,9 @@
   _dispatchChannel = dispatch_io_create(DISPATCH_IO_STREAM, fd, _queue, ^(int error) {
     if (error == 0) {
       dispatch_fd_t socket = [weakSelf releaseSocket];
-      close(socket);
+      if (socket > 0) {
+        close(socket);
+      }
     }
   });
   return _dispatchChannel != NULL;
