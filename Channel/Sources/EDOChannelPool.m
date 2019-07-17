@@ -16,6 +16,7 @@
 
 #import "Channel/Sources/EDOChannelPool.h"
 
+#import "Channel/Sources/EDOBlockingQueue.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
@@ -25,32 +26,11 @@
 /** Timeout for channel fetch. */
 static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 
-/**
- *  A data object to store channels with the same host port along with a semaphore to control
- *  available channel resource.
- */
-@interface EDOChannelSet : NSObject
-@property(nonatomic, readonly) NSMutableSet<id<EDOChannel>> *channels;
-// Each channel set has a semaphore to guarantee available channel when make connection.
-@property(nonatomic, readonly) dispatch_semaphore_t channelSemaphore;
-@end
-
-@implementation EDOChannelSet
-
-- (instancetype)init {
-  self = [super init];
-  if (self) {
-    _channels = [[NSMutableSet alloc] init];
-    _channelSemaphore = dispatch_semaphore_create(0);
-  }
-  return self;
-}
-
-@end
-
 @implementation EDOChannelPool {
+  // The isolation queue to access the channelMap.
   dispatch_queue_t _channelPoolQueue;
-  NSMutableDictionary<EDOHostPort *, EDOChannelSet *> *_channelMap;
+  // The reusable channels, mapping from the host port to the channels.
+  NSMutableDictionary<EDOHostPort *, EDOBlockingQueue<id<EDOChannel>> *> *_channelMap;
   // The socket of service registration.
   EDOSocket *_serviceRegistrationSocket;
   // The dispatch queue to accept service connection by name.
@@ -58,7 +38,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 + (instancetype)sharedChannelPool {
-  static EDOChannelPool *instance = nil;
+  static EDOChannelPool *instance;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     instance = [[EDOChannelPool alloc] init];
@@ -69,7 +49,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 - (instancetype)init {
   self = [super init];
   if (self) {
-    _channelPoolQueue = dispatch_queue_create("com.google.edo.channelPool", DISPATCH_QUEUE_SERIAL);
+    _channelPoolQueue = dispatch_queue_create("com.google.edo.ChannelPool", DISPATCH_QUEUE_SERIAL);
     _channelMap = [[NSMutableDictionary alloc] init];
     _serviceConnectionQueue =
         dispatch_queue_create("com.google.edo.serviceConnection", DISPATCH_QUEUE_SERIAL);
@@ -77,17 +57,21 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   return self;
 }
 
-- (id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
-  __block id<EDOChannel> channel = [self edo_popChannelFromChannelMapWithPort:port
-                                                             waitUntilTimeout:NO];
-  __block NSError *resultError;
+- (id<EDOChannel>)channelWithPort:(EDOHostPort *)port error:(NSError **)error {
+  dispatch_time_t now = dispatch_time(DISPATCH_TIME_NOW, 0);
+  id<EDOChannel> channel = [[self channelsForPort:port] lastObjectWithTimeout:now];
+  NSError *resultError;
 
   if (channel) {
     return channel;
   } else if (port.port == 0) {
     // TODO(ynzhang): Should request connection channel from the service side and add it to channel
     // pool. Currently we rely on the other side registering the service to create channel.
-    channel = [self edo_popChannelFromChannelMapWithPort:port waitUntilTimeout:YES];
+
+    // The channel from the device to the host will be registered asynchronously. We give a short
+    // period time to wait here until the channel is being added from the host.
+    dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout);
+    channel = [[self channelsForPort:port] lastObjectWithTimeout:timeout];
   } else {
     channel = [self edo_createChannelWithPort:port error:&resultError];
   }
@@ -99,18 +83,22 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   return channel;
 }
 
+- (EDOBlockingQueue<id<EDOChannel>> *)channelsForPort:(EDOHostPort *)port {
+  __block EDOBlockingQueue *channels;
+  dispatch_sync(_channelPoolQueue, ^{
+    channels = self->_channelMap[port];
+    if (!channels) {
+      channels = [[EDOBlockingQueue alloc] init];
+      [self->_channelMap setObject:channels forKey:port];
+    }
+  });
+  return channels;
+}
+
 - (void)addChannel:(id<EDOChannel>)channel forPort:(EDOHostPort *)port {
   // reuse the channel only when it is valid
   if (channel.isValid) {
-    dispatch_sync(_channelPoolQueue, ^{
-      EDOChannelSet *channelSet = self->_channelMap[port];
-      if (!channelSet) {
-        channelSet = [[EDOChannelSet alloc] init];
-        [self->_channelMap setObject:channelSet forKey:port];
-      }
-      [channelSet.channels addObject:channel];
-      dispatch_semaphore_signal(channelSet.channelSemaphore);
-    });
+    [[self channelsForPort:port] appendObject:channel];
   }
 }
 
@@ -121,14 +109,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 - (NSUInteger)countChannelsWithPort:(EDOHostPort *)port {
-  __block NSUInteger channelCount = 0;
-  dispatch_sync(_channelPoolQueue, ^{
-    NSMutableSet *channelSet = self->_channelMap[port].channels;
-    if (channelSet) {
-      channelCount = channelSet.count;
-    }
-  });
-  return channelCount;
+  return [self channelsForPort:port].count;
 }
 
 - (UInt16)serviceConnectionPort {
@@ -168,39 +149,6 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
     *error = connectionError;
   }
   return channel;
-}
-
-/**
- *  Pops an available channel randomly from the channel set. If @c waitUntilTimeout is @c NO, it
- *  will return @c nil if the
- *  channel set is empty.
- */
-- (id<EDOChannel>)edo_popChannelFromChannelMapWithPort:(EDOHostPort *)port
-                                      waitUntilTimeout:(BOOL)waitUntilTimeout {
-  __block EDOChannelSet *channelSet;
-  dispatch_sync(_channelPoolQueue, ^{
-    channelSet = self->_channelMap[port];
-    if (!channelSet) {
-      channelSet = [[EDOChannelSet alloc] init];
-      [self->_channelMap setObject:channelSet forKey:port];
-    }
-  });
-
-  __block id<EDOChannel> socketChannel = nil;
-  // In some cases the channel could be registered asynchronously from other processes.
-  // e.g. A service on Mac registers itself to a device, and the device makes an eDO call to the
-  // service. The channel through which the request is made may be unavailable until the request
-  // completes. This wait ensures that the channel is not being used.
-  long success = dispatch_semaphore_wait(
-      channelSet.channelSemaphore,
-      waitUntilTimeout ? dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout) : DISPATCH_TIME_NOW);
-  if (success == 0) {
-    dispatch_sync(_channelPoolQueue, ^{
-      socketChannel = channelSet.channels.anyObject;
-      [channelSet.channels removeObject:socketChannel];
-    });
-  }
-  return socketChannel;
 }
 
 - (void)edo_startHostRegistrationPortIfNeeded {

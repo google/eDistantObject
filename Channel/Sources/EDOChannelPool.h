@@ -22,28 +22,16 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol EDOChannel;
 
 /**
- *  @typedef EDOFetchChannelHandler
- *  The type of handlers that are invoked when channel is successfully created or fetched from the
- *  socket channel pool.
+ *  The @c EDOChannelPool manages reusable channels that are already connected and ready to send and
+ *  receive data.
  *
- *  @param socketChannel The channel fetched from the channel pool. Nil if the channel
- *                       failed to be created.
- *  @param error         The error object if the data is failed to send. Nil if
- *                       there wasn't an error in the channel.
- */
-typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
-                                       NSError *_Nullable error);
-
-/**
- *  The @c EDOChannelPool manages channels that are used to send data to
- *  another process.
- *
- *  @c EDOSocketChannel objects that are available can be stored here for future reuse.
- *  It will help save time build socket connection again. Channels are clustered with the port
- *  they are connected to.
+ *  @c EDOSocketChannel objects that are available can be stored here for future reuse. Reuse will
+ *  help reduce the amount to time spent rebuilding and reestablishing a connection. Channels are
+ *  clustered with the port they are connected to.
  */
 @interface EDOChannelPool : NSObject
 
+/** The singleton of @c EDOChannelPool. */
 @property(class, readonly) EDOChannelPool *sharedChannelPool;
 
 /**
@@ -53,7 +41,7 @@ typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
 @property(readonly) UInt16 serviceConnectionPort;
 
 /**
- *  Fetches an available channel in the pool for the provided given host port.
+ *  Fetches an already-connected channel from the pool, keyed by the host @c port.
  *
  *  @note If there is no channel for the host port, it will attempt to create one by connecting
  *        to the host. In case of real devices, it waits for the remote to be connected because the
@@ -62,8 +50,8 @@ typedef void (^EDOFetchChannelHandler)(id<EDOChannel> _Nullable socketChannel,
  *
  *  @return The channel that's ready to send and receive data, or @c nil if there is an error.
  */
-- (nullable id<EDOChannel>)fetchConnectedChannelWithPort:(EDOHostPort *)port
-                                                   error:(NSError *_Nullable *_Nullable)error;
+- (nullable id<EDOChannel>)channelWithPort:(EDOHostPort *)port
+                                     error:(NSError *_Nullable *_Nullable)error;
 
 /**
  *  Adds the @c channel to the pool.

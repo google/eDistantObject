@@ -230,9 +230,8 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   while (currentAttempt < maxAttempts) {
     NSError *connectionError;
     uint64_t connectionStartTime = mach_absolute_time();
-    id<EDOChannel> channel =
-        [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port
-                                                                  error:&connectionError];
+    id<EDOChannel> channel = [EDOChannelPool.sharedChannelPool channelWithPort:port
+                                                                         error:&connectionError];
     [stats reportConnectionDuration:EDOGetMillisecondsSinceMachTime(connectionStartTime)];
 
     if (connectionError) {
@@ -364,9 +363,8 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
 
 /** Connects to the host service on the given @c port. */
 + (id<EDOChannel>)connectPort:(UInt16)port error:(NSError **)error {
-  return [EDOChannelPool.sharedChannelPool
-      fetchConnectedChannelWithPort:[EDOHostPort hostPortWithLocalPort:port]
-                              error:error];
+  return [EDOChannelPool.sharedChannelPool channelWithPort:[EDOHostPort hostPortWithLocalPort:port]
+                                                     error:error];
 }
 
 /** Sends the request data through the given @c channel and waits for the response synchronously. */

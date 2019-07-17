@@ -23,7 +23,6 @@
 #import "Channel/Sources/EDOSocketPort.h"
 
 @interface EDOChannelPoolTest : XCTestCase
-
 @end
 
 @implementation EDOChannelPoolTest
@@ -35,7 +34,7 @@
       [[NSMutableArray alloc] initWithCapacity:10];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:host.socketPort.port];
   for (int i = 0; i < 10; i++) {
-    id<EDOChannel> socketChannel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
+    id<EDOChannel> socketChannel = [channelPool channelWithPort:hostPort error:nil];
     [channels addObject:socketChannel];
     [channelPool addChannel:socketChannel forPort:hostPort];
   }
@@ -58,7 +57,7 @@
     UInt16 port = i % 2 == 0 ? host1.socketPort.port : host2.socketPort.port;
     NSMutableSet *set = i % 2 == 0 ? set1 : set2;
     EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
-    id<EDOChannel> socketChannel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
+    id<EDOChannel> socketChannel = [channelPool channelWithPort:hostPort error:nil];
 
     [channelPool addChannel:socketChannel forPort:hostPort];
     dispatch_sync(queue, ^{
@@ -79,7 +78,7 @@
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:host.socketPort.port];
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
-  id<EDOChannel> socketChannel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
+  id<EDOChannel> socketChannel = [channelPool channelWithPort:hostPort error:nil];
   [channelPool addChannel:socketChannel forPort:hostPort];
 
   [channelPool removeChannelsWithPort:[EDOHostPort hostPortWithLocalPort:host.socketPort.port]];
@@ -92,7 +91,7 @@
   EDOSocket *host = [EDOSocket listenWithTCPPort:0 queue:nil connectedBlock:nil];
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:host.socketPort.port];
   EDOChannelPool *channelPool = EDOChannelPool.sharedChannelPool;
-  id<EDOChannel> channel = [channelPool fetchConnectedChannelWithPort:hostPort error:nil];
+  id<EDOChannel> channel = [channelPool channelWithPort:hostPort error:nil];
 
   [channel invalidate];
   [channelPool addChannel:channel forPort:hostPort];
@@ -137,8 +136,8 @@
   // Send dummy message with the connected client channel in the channel pool.
   NSString *dummyMessage = @"EDODummyMessage";
   EDOHostPort *hostPort = [EDOHostPort hostPortWithName:dummyServiceName];
-  id<EDOChannel> socketChannel =
-      [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:hostPort error:nil];
+  id<EDOChannel> socketChannel = [EDOChannelPool.sharedChannelPool channelWithPort:hostPort
+                                                                             error:nil];
   NSData *data = [dummyMessage dataUsingEncoding:NSUTF8StringEncoding];
   [socketChannel sendData:data
       withCompletionHandler:^(id<EDOChannel> channel, NSError *error) {
@@ -162,8 +161,7 @@
   UInt16 portNumber = 23456;  // No service should listen to this port during the test.
   EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:portNumber];
   NSError *error;
-  id<EDOChannel> channel = [EDOChannelPool.sharedChannelPool fetchConnectedChannelWithPort:port
-                                                                                     error:&error];
+  id<EDOChannel> channel = [EDOChannelPool.sharedChannelPool channelWithPort:port error:&error];
   XCTAssertNil(channel);
   XCTAssertEqual(error.domain, NSPOSIXErrorDomain);
   XCTAssertEqual(error.code, ECONNREFUSED);
