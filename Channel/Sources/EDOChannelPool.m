@@ -17,6 +17,7 @@
 #import "Channel/Sources/EDOChannelPool.h"
 
 #import "Channel/Sources/EDOBlockingQueue.h"
+#import "Channel/Sources/EDOChannelErrors.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
@@ -72,6 +73,12 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
     // period time to wait here until the channel is being added from the host.
     dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, kChannelPoolTimeout);
     channel = [[self channelsForPort:port] lastObjectWithTimeout:timeout];
+    if (!channel) {
+      NSDictionary<NSErrorUserInfoKey, id> *userInfo = @{EDOChannelPortKey : port};
+      resultError = [NSError errorWithDomain:EDOChannelErrorDomain
+                                        code:EDOChannelErrorFetchFailed
+                                    userInfo:userInfo];
+    }
   } else {
     channel = [self edo_createChannelWithPort:port error:&resultError];
   }

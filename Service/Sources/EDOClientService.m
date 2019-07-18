@@ -246,6 +246,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
                                            code:EDOServiceErrorCannotConnect
                                        userInfo:userInfo];
       self.errorHandler(error);
+      return nil;
     }
 
     // If the request is of type ObjectReleaseRequest then don't perform any of the
