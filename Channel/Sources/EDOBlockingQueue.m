@@ -17,12 +17,14 @@
 #import "Channel/Sources/EDOBlockingQueue.h"
 
 @implementation EDOBlockingQueue {
-  // The dispatch queue used for the resource isolation/fast lock
+  /** The dispatch queue used for the resource isolation/fast lock. */
   dispatch_queue_t _objectIsolationQueue;
-  // The objects in the pool.
+  /** The objects in the pool. */
   NSMutableArray<id> *_objects;
-  // The object semaphore to signal.
+  /** The object semaphore to signal. */
   dispatch_semaphore_t _numberOfObjects;
+  /** Whether the queue is closed and will reject any new object. */
+  BOOL _closed;
 }
 
 - (instancetype)init {
@@ -36,14 +38,23 @@
   return self;
 }
 
-- (void)appendObject:(id)object {
+- (BOOL)appendObject:(id)object {
+  __block BOOL appended = NO;
   dispatch_sync(_objectIsolationQueue, ^{
-    [self->_objects addObject:object];
+    if (!self->_closed) {
+      [self->_objects addObject:object];
+      appended = YES;
+    }
   });
   dispatch_semaphore_signal(_numberOfObjects);
+  return appended;
 }
 
 - (id)firstObjectWithTimeout:(dispatch_time_t)timeout {
+  if (![self shouldWaitMessage]) {
+    return nil;
+  }
+
   if (dispatch_semaphore_wait(_numberOfObjects, timeout) != 0) {
     return nil;
   }
@@ -59,6 +70,10 @@
 }
 
 - (id)lastObjectWithTimeout:(dispatch_time_t)timeout {
+  if (![self shouldWaitMessage]) {
+    return nil;
+  }
+
   if (dispatch_semaphore_wait(_numberOfObjects, timeout) != 0) {
     return nil;
   }
@@ -73,6 +88,20 @@
   return object;
 }
 
+- (BOOL)close {
+  __block BOOL success = NO;
+  dispatch_sync(_objectIsolationQueue, ^{
+    if (!self->_closed) {
+      self->_closed = YES;
+      success = YES;
+    }
+  });
+  if (success) {
+    dispatch_semaphore_signal(_numberOfObjects);
+  }
+  return success;
+}
+
 - (BOOL)isEmpty {
   return self.count == 0;
 }
@@ -84,4 +113,15 @@
   });
   return count;
 }
+
+- (BOOL)shouldWaitMessage {
+  __block BOOL shouldWaitMessage = YES;
+  dispatch_sync(_objectIsolationQueue, ^{
+    if (self->_closed && self->_objects.count == 0) {
+      shouldWaitMessage = NO;
+    }
+  });
+  return shouldWaitMessage;
+}
+
 @end

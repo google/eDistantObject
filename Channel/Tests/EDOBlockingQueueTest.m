@@ -109,8 +109,8 @@
 
 - (void)testFetchObjectTimeout {
   EDOBlockingQueue<NSObject *> *blockingQueue = [[EDOBlockingQueue alloc] init];
-  XCTAssertNil([blockingQueue firstObjectWithTimeout:DISPATCH_TIME_NOW]);
-  XCTAssertNil([blockingQueue lastObjectWithTimeout:DISPATCH_TIME_NOW]);
+  XCTAssertNil([blockingQueue firstObjectWithTimeout:dispatch_time(DISPATCH_TIME_NOW, 0)]);
+  XCTAssertNil([blockingQueue lastObjectWithTimeout:dispatch_time(DISPATCH_TIME_NOW, 0)]);
   ({
     CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
     dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 200 * NSEC_PER_MSEC);
@@ -123,6 +123,25 @@
     XCTAssertNil([blockingQueue lastObjectWithTimeout:timeout]);
     XCTAssertGreaterThanOrEqual(CFAbsoluteTimeGetCurrent() - startTime, 0.2);
   });
+}
+
+- (void)testCloseQueueWithObjects {
+  EDOBlockingQueue<NSObject *> *blockingQueue = [[EDOBlockingQueue alloc] init];
+  XCTAssertTrue([blockingQueue appendObject:[[NSObject alloc] init]]);
+  XCTAssertTrue([blockingQueue close]);
+  XCTAssertFalse([blockingQueue close], @"The queue should only be closed once.");
+
+  XCTAssertNotNil([blockingQueue lastObjectWithTimeout:DISPATCH_TIME_FOREVER]);
+  XCTAssertNil([blockingQueue lastObjectWithTimeout:DISPATCH_TIME_FOREVER]);
+  XCTAssertFalse([blockingQueue appendObject:[[NSObject alloc] init]],
+                 @"No new messages should be enqueued after it is closed");
+}
+
+- (void)testCloseQueueWithoutObjects {
+  EDOBlockingQueue<NSObject *> *blockingQueue = [[EDOBlockingQueue alloc] init];
+  XCTAssertTrue([blockingQueue close]);
+  XCTAssertFalse([blockingQueue close]);
+  XCTAssertNil([blockingQueue lastObjectWithTimeout:DISPATCH_TIME_FOREVER]);
 }
 
 #pragma mark - Helper methods

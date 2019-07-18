@@ -24,6 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
  *  Elements can be appended to the blocking queue and retrieved from either end. The retrieval can
  *  be synchronized in the way that it waits until there is an element. This is primarily for
  *  producer-consumer use cases.
+ *
+ *  After the queue is closed, no more objects can be appended but one can still fetch objects
+ *  until it is empty, in such case, the timeout will not affect and return @c nil immediately.
  */
 @interface EDOBlockingQueue<ObjectType> : NSObject
 
@@ -33,8 +36,12 @@ NS_ASSUME_NONNULL_BEGIN
 /** The number of objects in the queue. */
 @property(readonly) NSUInteger count;
 
-/** Appends the @c object to the end of the queue. */
-- (void)appendObject:(ObjectType)object;
+/** Appends the @c object to the end of the queue.
+ *
+ *  @return YES if the object is appended; NO, if the queue is closed already and the message
+ *          will not be enqueued.
+ */
+- (BOOL)appendObject:(ObjectType)object;
 
 /**
  *  Fetches an object from the head of the queue.
@@ -55,6 +62,14 @@ NS_ASSUME_NONNULL_BEGIN
  *  @return The object in the queue, or @c nil if timing out.
  */
 - (nullable ObjectType)lastObjectWithTimeout:(dispatch_time_t)timeout;
+
+/**
+ *  Closes the queue so no more messages can be appended.
+ *
+ *  @note The closed queue can still fetch objects but will not wait if the queue is empty.
+ *  @return YES if the queue is just closed; NO if the queue is already closed.
+ */
+- (BOOL)close;
 
 @end
 
