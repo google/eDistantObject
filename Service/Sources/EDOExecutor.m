@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@
   return self;
 }
 
-- (void)runUsingMessageQueueCloseHandler:(EDOExecutorCloseHandler)closeHandler {
+- (void)runWithBlock:(void (^)(void))executeBlock {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   NSAssert(!self.executionQueue || dispatch_get_current_queue() == self.executionQueue,
@@ -76,17 +76,20 @@
   // handler closes the messageQueue, before or after the while loop starts, it will trigger the
   // while loop to exit.
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    closeHandler(messageQueue);
+    executeBlock();
+    [messageQueue closeQueue];
   });
 
   while (true) {
     // Block the current queue and wait for the new message. It will unset the
     // messageQueue if it receives a response so there is no race condition where it has some
     // messages left in the queue to be processed after the queue is unset.
+    // ready to pop
     EDOExecutorMessage *message = [messageQueue dequeueMessage];
     if (!message) {
       break;
     }
+    // not ready to process
 
     [self edo_handleMessage:message];
 

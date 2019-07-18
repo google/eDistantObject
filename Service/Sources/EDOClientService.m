@@ -264,9 +264,8 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
 
       if (executor) {
-        [executor runUsingMessageQueueCloseHandler:^(EDOMessageQueue *messageQueue) {
+        [executor runWithBlock:^{
           responseData = [self sendRequestData:requestData withChannel:channel];
-          [messageQueue closeQueue];
         }];
       } else {
         responseData = [self sendRequestData:requestData withChannel:channel];

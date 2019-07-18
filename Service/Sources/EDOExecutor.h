@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,25 +16,12 @@
 
 #import <Foundation/Foundation.h>
 
-#import "Service/Sources/EDOMessageQueue.h"
 #import "Service/Sources/EDOServiceRequest.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class EDOExecutorMessage;
-@protocol EDOChannel;
-
 /** The request handlers from the class name to the handler block. */
 typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
-
-/**
- *  The handler to close the message queue and exit the while-loop of the executor.
- *
- *  Before the executor starts the while-loop, it schedules the handler in the background queue
- *  with the message queue. This message queue can be closed and the while-loop exits.
- *  @param messageQueue The message queue used to process the messages of the executor.
- */
-typedef void (^EDOExecutorCloseHandler)(EDOMessageQueue<EDOExecutorMessage *> *messageQueue);
 
 /**
  *  The executor to handle the requests.
@@ -74,12 +61,10 @@ typedef void (^EDOExecutorCloseHandler)(EDOMessageQueue<EDOExecutorMessage *> *m
 /**
  *  Runs the while-loop to handle requests from the message queue synchronously.
  *
- *  @note The executor will continue to wait on the messages until the close handler closes the
- *        message queue given in the handler.
- *  @param closeHandler The handler to close the message queue. The handler will be scheduled on
- *                      the background queue before the while-loop starts.
+ *  @note The executor will continue to wait on the messages until the @c executeBlock is finished.
+ *  @param executeBlock The block to execute in the background queue.
  */
-- (void)runUsingMessageQueueCloseHandler:(EDOExecutorCloseHandler)closeHandler;
+- (void)runWithBlock:(void (^)(void))executeBlock;
 
 /**
  *  Handles the request at once with the given context.

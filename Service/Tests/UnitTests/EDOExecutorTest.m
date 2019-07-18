@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,37 +64,13 @@
 
   XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
   dispatch_async(queue, ^{
-    [executor
-        runUsingMessageQueueCloseHandler:^(EDOMessageQueue<EDOExecutorMessage *> *messageQueue) {
-          [messageQueue closeQueue];
-        }];
+    [executor runWithBlock:^{
+    }];
     // Only fulfills the exepectation after the executor finishes the run.
     [expectFinish fulfill];
   });
 
   [self waitForExpectationsWithTimeout:1 handler:nil];
-}
-
-- (void)testExecutorIsRunningToHandleMessage {
-  dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:nil];
-
-  XCTestExpectation *expectRun = [self expectationWithDescription:@"The executor is running."];
-  XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
-  __block EDOMessageQueue *executorMessageQueue;
-  dispatch_async(queue, ^{
-    [executor
-        runUsingMessageQueueCloseHandler:^(EDOMessageQueue<EDOExecutorMessage *> *messageQueue) {
-          executorMessageQueue = messageQueue;
-          [expectRun fulfill];
-        }];
-    [expectFinish fulfill];
-  });
-
-  [self waitForExpectations:@[ expectRun ] timeout:1];
-  [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
-  XCTAssertTrue([executorMessageQueue closeQueue]);
-  [self waitForExpectations:@[ expectFinish ] timeout:1];
 }
 
 - (void)testExecutorHandleMessageAfterClosingQueue {
@@ -103,11 +79,9 @@
 
   XCTestExpectation *expectClose = [self expectationWithDescription:@"The queue is closed."];
   dispatch_async(queue, ^{
-    [executor
-        runUsingMessageQueueCloseHandler:^(EDOMessageQueue<EDOExecutorMessage *> *messageQueue) {
-          [messageQueue closeQueue];
-          [expectClose fulfill];
-        }];
+    [executor runWithBlock:^{
+      [expectClose fulfill];
+    }];
   });
 
   [self waitForExpectationsWithTimeout:1 handler:nil];
@@ -123,10 +97,8 @@
   NSInteger numRuns = 1000;
   dispatch_async(queue, ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
-      [executor
-          runUsingMessageQueueCloseHandler:^(EDOMessageQueue<EDOExecutorMessage *> *messageQueue) {
-            [messageQueue closeQueue];
-          }];
+      [executor runWithBlock:^{
+      }];
     }
     [expectFinish fulfill];
   });
