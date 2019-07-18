@@ -17,6 +17,7 @@
 #import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 
+#import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDODeallocationTracker.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
@@ -24,6 +25,8 @@
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOWeakObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
+
+static const NSTimeInterval kTestTimeoutInterval = 10.0;
 
 @interface EDOWeakReferenceTest : XCTestCase
 @end
@@ -63,19 +66,19 @@
  * Tests EDOWeakObject is an NSProxy that forwards inovcation to the underlying object.
  */
 - (void)testWeakObjectCanForwardToUnderlyingObject {
-  id testDummyMock = OCMStrictClassMock([EDOTestDummy class]);
+  EDOTestDummy *dummy = [[EDOTestDummy alloc] init];
+  id testDummyMock = OCMPartialMock(dummy);
   // Cast to EDOTestDummy to test that weakObject is correctly forwarded using same class of
   // functions.
   EDOTestDummy *weakObject =
       (EDOTestDummy *)[[EDOWeakObject alloc] initWithWeakObject:testDummyMock];
 
   // Tests that invoking weakObject actually invokes the underlying object.
-  OCMExpect([testDummyMock returnData]);
-  [weakObject returnData];
-  OCMExpect([testDummyMock returnSelf]);
-  [weakObject returnSelf];
+  [testDummyMock returnData];
+  OCMVerify([weakObject returnData]);
+  [testDummyMock returnSelf];
+  OCMVerify([weakObject returnSelf]);
 
-  OCMVerifyAll(testDummyMock);
   [testDummyMock stopMocking];
 }
 
@@ -83,7 +86,8 @@
  * Tests multiple EDOWeakObject can forward inovcation to the same underlying object.
  */
 - (void)testMultipleWeakObjectCanForwardToTheUnderlyingObject {
-  id testDummyMock = OCMStrictClassMock([EDOTestDummy class]);
+  EDOTestDummy *dummy = [[EDOTestDummy alloc] init];
+  id testDummyMock = OCMPartialMock(dummy);
 
   int numWeakObjects = 10;
   NSArray<EDOTestDummy *> *weakObjects =
@@ -91,13 +95,12 @@
 
   // Tests that invoking weakObject actually invokes the underlying object.
   for (EDOTestDummy *weakObject in weakObjects) {
-    OCMExpect([testDummyMock returnData]);
-    [weakObject returnData];
-    OCMExpect([testDummyMock returnSelf]);
-    [weakObject returnSelf];
+    [testDummyMock returnData];
+    OCMVerify([weakObject returnData]);
+    [testDummyMock returnSelf];
+    OCMVerify([weakObject returnSelf]);
   }
 
-  OCMVerifyAll(testDummyMock);
   [testDummyMock stopMocking];
 }
 
@@ -187,28 +190,34 @@
 
   EDOHostService *hostService = [self serviceForQueue:queue];
 
-  id releaseMock = OCMClassMock([EDOObjectReleaseRequest class]);
+  id clientMock = OCMClassMock([EDOClientService class]);
+  for (int i = 0; i < numWeakObjects; i++) {
+    OCMExpect([clientMock sendSynchronousRequest:[OCMArg checkWithBlock:^BOOL(id value) {
+                            return [[value class] isEqual:[EDOObjectReleaseRequest class]];
+                          }]
+                                          onPort:hostService.port.hostPort]);
+  }
+
   @autoreleasepool {
     EDOTestDummy *testDummy = [[EDOTestDummy alloc] init];
     weakObjects = [self weakObjectsArrayWithNumberOfWeakObjects:numWeakObjects
                                                     localObject:testDummy];
-
     for (EDOWeakObject *weakObject in weakObjects) {
       [EDODeallocationTracker enableTrackingForObject:weakObject
                                              hostPort:hostService.port.hostPort];
     }
     // Verify that release message is not sent if the object is in scope.
     for (EDOWeakObject *weakObject in weakObjects) {
-      OCMReject([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
+      OCMReject([EDOObjectReleaseRequest requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
     }
   }
-  // Verify that when underlying object is out of scope, the release message is sent.
-  for (EDOWeakObject *weakObject in weakObjects) {
-    OCMVerify([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
-  }
 
-  [releaseMock stopMocking];
+  // Verify that when underlying object is out of scope, the release message is sent.
+  // kTestTimeoutInterval is the maximum time that OCMVerify will wait.
+  OCMVerifyAllWithDelay(clientMock, kTestTimeoutInterval);
+
   [hostService invalidate];
+  [clientMock stopMocking];
 }
 
 /**
@@ -228,7 +237,13 @@
     [hostServices addObject:[self serviceForQueue:queue]];
   }
 
-  id releaseMock = OCMClassMock([EDOObjectReleaseRequest class]);
+  id clientMock = OCMClassMock([EDOClientService class]);
+  for (int i = 0; i < numWeakObjects; i++) {
+    OCMExpect([clientMock sendSynchronousRequest:[OCMArg checkWithBlock:^BOOL(id value) {
+                            return [[value class] isEqual:[EDOObjectReleaseRequest class]];
+                          }]
+                                          onPort:hostServices[i].port.hostPort]);
+  }
 
   @autoreleasepool {
     EDOTestDummy *testDummy = [[EDOTestDummy alloc] init];
@@ -240,22 +255,25 @@
     }
     // Verify that release message is not sent if the object is in scope.
     for (EDOWeakObject *weakObject in weakObjects) {
-      OCMReject([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
+      OCMReject([EDOObjectReleaseRequest requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
     }
   }
   // Verify that when object is out of scope, the release message is sent, the object has been
   // removed and exception will throw when it is called.
   for (EDOWeakObject *weakObject in weakObjects) {
-    OCMVerify([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
     XCTAssertThrowsSpecificNamed([(EDOTestDummy *)weakObject returnSelf], NSException,
                                  EDOWeakObjectWeakReleaseException);
     XCTAssert(weakObject.weakObject == nil);
   }
 
-  [releaseMock stopMocking];
+  // Verify that when underlying object is out of scope, the release message is sent.
+  // kTestTimeoutInterval is the maximum time that OCMVerify will wait.
+  OCMVerifyAllWithDelay(clientMock, kTestTimeoutInterval);
+
   for (int i = 0; i < numWeakObjects; i++) {
     [hostServices[i] invalidate];
   }
+  [clientMock stopMocking];
 }
 
 /**
@@ -269,6 +287,7 @@
   NSString *queueName = [NSString stringWithFormat:@"com.google.edotest.%@", self.name];
   dispatch_queue_t concurrentQueue =
       dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_CONCURRENT);
+
   EDOHostService *hostService = [self serviceForQueue:concurrentQueue];
   id releaseMock = OCMClassMock([EDOObjectReleaseRequest class]);
 
@@ -284,6 +303,10 @@
       });
     }
 
+    // Wait for the concurrentQueue to finish before testing its behaviors.
+    dispatch_barrier_sync(concurrentQueue, ^{
+                          });
+
     // Verify that release message is not sent if the object is in scope.
     for (EDOWeakObject *weakObject in weakObjects) {
       OCMReject([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
@@ -292,14 +315,12 @@
 
   // Verify that when object is out of scope, the release message is sent, the object has been
   // removed and exception will throw when it is called.
-  dispatch_barrier_sync(concurrentQueue, ^{
-    for (EDOWeakObject *weakObject in weakObjects) {
-      OCMVerify([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
-      XCTAssertThrowsSpecificNamed([(EDOTestDummy *)weakObject returnSelf], NSException,
-                                   EDOWeakObjectWeakReleaseException);
-      XCTAssertTrue(weakObject.weakObject == nil);
-    }
-  });
+  for (EDOWeakObject *weakObject in weakObjects) {
+    OCMVerify([releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
+    XCTAssertThrowsSpecificNamed([(EDOTestDummy *)weakObject returnSelf], NSException,
+                                 EDOWeakObjectWeakReleaseException);
+    XCTAssertTrue(weakObject.weakObject == nil);
+  }
 
   [releaseMock stopMocking];
   [hostService invalidate];
