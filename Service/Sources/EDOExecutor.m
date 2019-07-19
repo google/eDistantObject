@@ -16,15 +16,15 @@
 
 #import "Service/Sources/EDOExecutor.h"
 
+#import "Channel/Sources/EDOBlockingQueue.h"
 #import "Channel/Sources/EDOChannel.h"
 #import "Service/Sources/EDOExecutorMessage.h"
 #import "Service/Sources/EDOMessage.h"
-#import "Service/Sources/EDOMessageQueue.h"
 #import "Service/Sources/EDOTimingFunctions.h"
 
 @interface EDOExecutor ()
 // The message queue to process the requests and responses.
-@property EDOMessageQueue<EDOExecutorMessage *> *messageQueue;
+@property EDOBlockingQueue<EDOExecutorMessage *> *messageQueue;
 // The isolation queue for synchronization.
 @property(readonly) dispatch_queue_t isolationQueue;
 @end
@@ -64,7 +64,7 @@
 
   // Create the waited queue so it can also process the requests while waiting for the response
   // when the incoming request is dispatched to the same queue.
-  EDOMessageQueue<EDOExecutorMessage *> *messageQueue = [[EDOMessageQueue alloc] init];
+  EDOBlockingQueue<EDOExecutorMessage *> *messageQueue = [[EDOBlockingQueue alloc] init];
 
   // Set the message queue to process the request that will be received and dispatched to this
   // queue while waiting for the response to come back.
@@ -77,7 +77,7 @@
   // while loop to exit.
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     executeBlock();
-    [messageQueue closeQueue];
+    [messageQueue close];
   });
 
   while (true) {
@@ -85,7 +85,7 @@
     // messageQueue if it receives a response so there is no race condition where it has some
     // messages left in the queue to be processed after the queue is unset.
     // ready to pop
-    EDOExecutorMessage *message = [messageQueue dequeueMessage];
+    EDOExecutorMessage *message = [messageQueue firstObjectWithTimeout:DISPATCH_TIME_FOREVER];
     if (!message) {
       break;
     }
@@ -117,8 +117,8 @@
   __block BOOL messageHandled = YES;
   EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request service:context];
   dispatch_sync(self.isolationQueue, ^{
-    EDOMessageQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
-    if (![messageQueue enqueueMessage:message]) {
+    EDOBlockingQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
+    if (![messageQueue appendObject:message]) {
       dispatch_queue_t executionQueue = self.executionQueue;
       if (executionQueue) {
         dispatch_async(self.executionQueue, ^{

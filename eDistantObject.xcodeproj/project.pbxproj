@@ -41,7 +41,6 @@
 		C5A2F0622134D5DA00421D72 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C5A2F05F2134D5D900421D72 /* LaunchScreen.storyboard */; };
 		C5A2F0632134D5DA00421D72 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C5A2F0602134D5D900421D72 /* Main.storyboard */; };
 		C5A2F0642134D65600421D72 /* EDOExecutorTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0312134D4CB00421D72 /* EDOExecutorTest.m */; };
-		C5A2F0652134D65600421D72 /* EDOMessageQueueTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F02E2134D4CB00421D72 /* EDOMessageQueueTest.m */; };
 		C5A2F0662134D65600421D72 /* EDOMessageTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F02F2134D4CB00421D72 /* EDOMessageTest.m */; };
 		C5A2F0672134D65600421D72 /* EDOServiceTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0302134D4CB00421D72 /* EDOServiceTest.m */; };
 		C5A2F0682134D6A000421D72 /* EDOClassMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFDE2134D43100421D72 /* EDOClassMessage.m */; };
@@ -51,7 +50,6 @@
 		C5A2F06C2134D6A000421D72 /* EDOHostService+Handlers.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFE82134D43200421D72 /* EDOHostService+Handlers.m */; };
 		C5A2F06D2134D6C100421D72 /* EDOInvocationMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFF02134D43200421D72 /* EDOInvocationMessage.m */; };
 		C5A2F06E2134D6C100421D72 /* EDOMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFD52134D43100421D72 /* EDOMessage.m */; };
-		C5A2F06F2134D6C100421D72 /* EDOMessageQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFE32134D43200421D72 /* EDOMessageQueue.m */; };
 		C5A2F0702134D6C100421D72 /* EDOMethodSignatureMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFFB2134D43300421D72 /* EDOMethodSignatureMessage.m */; };
 		C5A2F0712134D6C100421D72 /* EDOObject.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFF12134D43300421D72 /* EDOObject.m */; };
 		C5A2F0722134D6C100421D72 /* EDOObject+EDOParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5A2EFDC2134D43100421D72 /* EDOObject+EDOParameter.m */; };
@@ -263,10 +261,8 @@
 		C5A2EFDD2134D43100421D72 /* EDOObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOObject.h; path = Service/Sources/EDOObject.h; sourceTree = "<group>"; };
 		C5A2EFDE2134D43100421D72 /* EDOClassMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOClassMessage.m; path = Service/Sources/EDOClassMessage.m; sourceTree = "<group>"; };
 		C5A2EFDF2134D43100421D72 /* NSObject+EDOParameter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+EDOParameter.m"; path = "Service/Sources/NSObject+EDOParameter.m"; sourceTree = "<group>"; };
-		C5A2EFE02134D43100421D72 /* EDOMessageQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOMessageQueue.h; path = Service/Sources/EDOMessageQueue.h; sourceTree = "<group>"; };
 		C5A2EFE12134D43100421D72 /* EDOHostService+Handlers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "EDOHostService+Handlers.h"; path = "Service/Sources/EDOHostService+Handlers.h"; sourceTree = "<group>"; };
 		C5A2EFE22134D43100421D72 /* EDOParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOParameter.h; path = Service/Sources/EDOParameter.h; sourceTree = "<group>"; };
-		C5A2EFE32134D43200421D72 /* EDOMessageQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOMessageQueue.m; path = Service/Sources/EDOMessageQueue.m; sourceTree = "<group>"; };
 		C5A2EFE42134D43200421D72 /* EDOObjectAliveMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOObjectAliveMessage.h; path = Service/Sources/EDOObjectAliveMessage.h; sourceTree = "<group>"; };
 		C5A2EFE52134D43200421D72 /* EDOValueType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOValueType.m; path = Service/Sources/EDOValueType.m; sourceTree = "<group>"; };
 		C5A2EFE62134D43200421D72 /* NSObject+EDOParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOParameter.h"; path = "Service/Sources/NSObject+EDOParameter.h"; sourceTree = "<group>"; };
@@ -303,7 +299,6 @@
 		C5A2F0052134D43400421D72 /* NSObject+EDOValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOValue.h"; path = "Service/Sources/NSObject+EDOValue.h"; sourceTree = "<group>"; };
 		C5A2F0062134D43500421D72 /* EDOObjectReleaseMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDOObjectReleaseMessage.h; path = Service/Sources/EDOObjectReleaseMessage.h; sourceTree = "<group>"; };
 		C5A2F0072134D43500421D72 /* NSObject+EDOValueObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOValueObject.h"; path = "Service/Sources/NSObject+EDOValueObject.h"; sourceTree = "<group>"; };
-		C5A2F02E2134D4CB00421D72 /* EDOMessageQueueTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOMessageQueueTest.m; path = Service/Tests/UnitTests/EDOMessageQueueTest.m; sourceTree = "<group>"; };
 		C5A2F02F2134D4CB00421D72 /* EDOMessageTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOMessageTest.m; path = Service/Tests/UnitTests/EDOMessageTest.m; sourceTree = "<group>"; };
 		C5A2F0302134D4CB00421D72 /* EDOServiceTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOServiceTest.m; path = Service/Tests/UnitTests/EDOServiceTest.m; sourceTree = "<group>"; };
 		C5A2F0312134D4CB00421D72 /* EDOExecutorTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOExecutorTest.m; path = Service/Tests/UnitTests/EDOExecutorTest.m; sourceTree = "<group>"; };
@@ -573,8 +568,6 @@
 				C5A2EFF02134D43200421D72 /* EDOInvocationMessage.m */,
 				C5A2EFEB2134D43200421D72 /* EDOMessage.h */,
 				C5A2EFD52134D43100421D72 /* EDOMessage.m */,
-				C5A2EFE02134D43100421D72 /* EDOMessageQueue.h */,
-				C5A2EFE32134D43200421D72 /* EDOMessageQueue.m */,
 				C5A2EFF42134D43300421D72 /* EDOMethodSignatureMessage.h */,
 				C5A2EFFB2134D43300421D72 /* EDOMethodSignatureMessage.m */,
 				C5A2EFDD2134D43100421D72 /* EDOObject.h */,
@@ -699,7 +692,6 @@
 				DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */,
 				C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */,
 				C5A2F0312134D4CB00421D72 /* EDOExecutorTest.m */,
-				C5A2F02E2134D4CB00421D72 /* EDOMessageQueueTest.m */,
 				C5A2F02F2134D4CB00421D72 /* EDOMessageTest.m */,
 				C5A2F0302134D4CB00421D72 /* EDOServiceTest.m */,
 			);
@@ -1239,7 +1231,6 @@
 				C5A2F0792134D6C100421D72 /* EDORemoteVariable.m in Sources */,
 				C5A2F0812134D6C100421D72 /* NSObject+EDOValueObject.m in Sources */,
 				C5A2F0702134D6C100421D72 /* EDOMethodSignatureMessage.m in Sources */,
-				C5A2F06F2134D6C100421D72 /* EDOMessageQueue.m in Sources */,
 				C896A5DB217A601B00CA5610 /* EDOExecutorMessage.m in Sources */,
 				C5A2F0802134D6C100421D72 /* NSObject+EDOValue.m in Sources */,
 				C862C6E42253D70D00EABE99 /* EDOServiceError.m in Sources */,
@@ -1297,7 +1288,6 @@
 				C535B59D21D307FF00BAE558 /* EDOHostNamingServiceTest.m in Sources */,
 				C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */,
 				C5A2F0662134D65600421D72 /* EDOMessageTest.m in Sources */,
-				C5A2F0652134D65600421D72 /* EDOMessageQueueTest.m in Sources */,
 				C5A2F0642134D65600421D72 /* EDOExecutorTest.m in Sources */,
 				C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */,
 				C532ABFC2136172E00162011 /* EDOTestProtocol.m in Sources */,
