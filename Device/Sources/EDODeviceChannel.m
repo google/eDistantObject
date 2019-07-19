@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,16 +39,15 @@
   self = [super init];
   if (self) {
     _socket = -1;
-    _dispatchChannel = nil;
     _queue = dispatch_queue_create("com.google.edo.deviceChannel", DISPATCH_QUEUE_CONCURRENT);
   }
   return self;
 }
 
 - (void)dealloc {
-  if (_dispatchChannel) {
-    dispatch_io_close(_dispatchChannel, 0);
-    _dispatchChannel = nil;
+  dispatch_fd_t socket = [self releaseSocket];
+  if (socket > -1) {
+    close(socket);
   }
 }
 
@@ -195,15 +194,8 @@
     return NO;
   }
 
-  __weak EDODeviceChannel *weakSelf = self;
   _socket = fd;
   _dispatchChannel = dispatch_io_create(DISPATCH_IO_STREAM, fd, _queue, ^(int error) {
-    if (error == 0) {
-      dispatch_fd_t socket = [weakSelf releaseSocket];
-      if (socket > 0) {
-        close(socket);
-      }
-    }
   });
   return _dispatchChannel != NULL;
 }
