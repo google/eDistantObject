@@ -65,30 +65,34 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   }
 }
 
-+ (id)rootObjectWithPort:(UInt16)port {
-  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
++ (id)rootObjectWithHostPort:(EDOHostPort *)hostPort {
   EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
   return [self responseObjectWithRequest:objectRequest onPort:hostPort];
+}
+
++ (id)rootObjectWithPort:(UInt16)port {
+  return [self rootObjectWithHostPort:[EDOHostPort hostPortWithLocalPort:port]];
 }
 
 + (id)rootObjectWithServiceName:(NSString *)serviceName {
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:0 serviceName:serviceName];
-  EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
-  return [self responseObjectWithRequest:objectRequest onPort:hostPort];
+  return [self rootObjectWithHostPort:hostPort];
+}
+
++ (Class)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort {
+  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
+                                                                 hostPort:hostPort];
+  return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
 }
 
 + (Class)classObjectWithName:(NSString *)className port:(UInt16)port {
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
-  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
-                                                                 hostPort:hostPort];
-  return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
+  return [self classObjectWithName:className hostPort:hostPort];
 }
 
 + (Class)classObjectWithName:(NSString *)className serviceName:(NSString *)serviceName {
   EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:0 serviceName:serviceName];
-  EDOServiceRequest *classRequest = [EDOClassRequest requestWithClassName:className
-                                                                 hostPort:hostPort];
-  return (Class)[self responseObjectWithRequest:classRequest onPort:hostPort];
+  return [self classObjectWithName:className hostPort:hostPort];
 }
 
 + (id)unwrappedObjectFromObject:(id)object {
@@ -265,6 +269,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       NSData *requestData = [NSKeyedArchiver edo_archivedDataWithObject:request];
 
       if (executor) {
+        // if the current queue has a pending request, send it over.
         [executor runWithBlock:^{
           responseData = [self sendRequestData:requestData withChannel:channel];
         }];

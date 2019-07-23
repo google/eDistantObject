@@ -15,10 +15,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <os/availability.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOHostNamingService;
+@class EDOHostPort;
 
 /** The error handler for handling errors generated when sending client requests. */
 typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
@@ -40,6 +42,27 @@ typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
  */
 @property(class, atomic, null_resettable) EDOClientErrorHandler errorHandler;
 
+/**
+ *  Gets the root object on the host port.
+ *
+ *  @param hostPort The host port the service is running on.
+ *  @return The remote root object.
+ */
++ (id)rootObjectWithHostPort:(EDOHostPort *)hostPort;
+
+/**
+ *  Gets the remote class object on the host port.
+ *
+ *  @param className The class name.
+ *  @param hostPort   The host port the service is running on.
+ *  @return The remote @c Class object.
+ */
++ (id)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
+
+- (instancetype)init NS_UNAVAILABLE;
+
+#pragma mark - Deprecated APIs
+
 /** Retrieve the root object from the given host port of a service. */
 + (id)rootObjectWithPort:(UInt16)port;
 
@@ -52,8 +75,6 @@ typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
 /** Retrieve the class object from the given host port of and name of a service. */
 + (Class)classObjectWithName:(NSString *)className
                  serviceName:(NSString *)serviceName;
-
-- (instancetype)init NS_UNAVAILABLE;
 
 @end
 
