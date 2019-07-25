@@ -29,12 +29,8 @@
 #pragma mark - Socket Connection Extension
 
 @interface EDOSocketChannel ()
-// The underlying socket file descriptor.
-@property(readonly, nonatomic) EDOSocket *socket;
 // The dispatch io channel to send and receive I/O data from the underlying socket.
 @property(readonly, nonatomic) dispatch_io_t channel;
-// The dispatch queue to run the dispatch source handler and IO handler.
-@property(readonly, nonatomic) dispatch_queue_t eventQueue;
 // The dispatch queue where the receive handler block will be dispatched to.
 @property(readonly, nonatomic) dispatch_queue_t handlerQueue;
 @end
@@ -48,51 +44,33 @@
   return [[EDOSocketChannel alloc] initWithSocket:socket];
 }
 
-- (instancetype)initWithSocket:(EDOSocket *)socket {
+- (instancetype)initWithDispatchIO:(dispatch_io_t)channel {
+  NSParameterAssert(channel != nil);
+
   self = [self init];
   if (self) {
-    if (socket.valid) {
-      // The channel takes over the socket.
-      _socket = [EDOSocket socketWithSocket:[socket releaseSocket]];
-      __weak EDOSocketChannel *weakSelf = self;
-      _channel = dispatch_io_create(DISPATCH_IO_STREAM, _socket.socket, _eventQueue, ^(int error) {
-        // TODO(haowoo): check error and report.
-        if (error == 0) {
-          [weakSelf.socket invalidate];
-        }
-      });
-
-      // Clean up the socket if it fails to create the channel here.
-      if (!_channel) {
-        [_socket invalidate];
-      }
-    }
+    _channel = channel;
   }
   return self;
+}
+
+- (instancetype)initWithSocket:(EDOSocket *)socket {
+  return [self initWithDispatchIO:[socket releaseAsDispatchIO]];
 }
 
 - (instancetype)init {
   self = [super init];
   if (self) {
-    _handlerQueue =
-        dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_CONCURRENT);
     // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
     // are not reentrant and only one block will be scheduled by dispatch io and dispatch source.
-    _eventQueue =
-        dispatch_queue_create("com.google.edo.socketChannel.event", DISPATCH_QUEUE_SERIAL);
+    _handlerQueue =
+        dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_SERIAL);
   }
   return self;
 }
 
 - (void)dealloc {
   [self invalidate];
-}
-
-- (dispatch_fd_t)releaseSocket {
-  EDOSocket *socket = self.socket;
-  dispatch_fd_t socketFD = socket ? [self.socket releaseSocket] : -1;
-  [self invalidate];
-  return socketFD;
 }
 
 #pragma mark - EDOChannel
@@ -108,9 +86,9 @@
     return;
   }
 
-  dispatch_data_t totalData = EDOBuildFrameFromDataWithQueue(data, self.eventQueue);
+  dispatch_data_t totalData = EDOBuildFrameFromDataWithQueue(data, handlerQueue);
   dispatch_io_write(
-      self.channel, 0, totalData, self.eventQueue, ^(bool done, dispatch_data_t _, int errCode) {
+      self.channel, 0, totalData, handlerQueue, ^(bool done, dispatch_data_t _, int errCode) {
         if (!done) {
           return;
         }
@@ -129,7 +107,6 @@
 
 - (void)receiveDataWithHandler:(EDOChannelReceiveHandler)handler {
   dispatch_queue_t handlerQueue = self.handlerQueue;
-  dispatch_queue_t eventQueue = self.eventQueue;
   dispatch_io_t channel = self.channel;
   if (!channel) {
     dispatch_async(handlerQueue, ^{
@@ -143,8 +120,14 @@
   __block dispatch_data_t dataReceived;
   __block size_t remainingDataSize;
   dispatch_io_handler_t dataHandler = ^(bool done, dispatch_data_t data, int error) {
-    // TODO(haowoo): Propagate this error to the handler.
-    NSAssert(error == 0, @"Error on receiving data.");
+    if (error || !data) {
+      if (handler) {
+        dispatch_async(handlerQueue, ^{
+          handler(self, nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:error userInfo:nil]);
+        });
+      }
+      return;
+    }
     remainingDataSize -= dispatch_data_get_size(data);
     dataReceived = dataReceived ? dispatch_data_create_concat(dataReceived, data) : data;
 
@@ -171,7 +154,7 @@
     size_t payloadSize = EDOGetPayloadSizeFromFrameData(data);
     if (payloadSize > 0) {
       remainingDataSize = payloadSize;
-      dispatch_io_read(channel, 0, payloadSize, eventQueue, dataHandler);
+      dispatch_io_read(channel, 0, payloadSize, handlerQueue, dataHandler);
     } else {
       // Close the channel on errors and closed sockets.
       if (error != 0 || payloadSize == 0) {
@@ -187,19 +170,23 @@
     }
   };
 
-  dispatch_io_read(channel, 0, EDOGetPayloadHeaderSize(), eventQueue, frameHandler);
+  dispatch_io_read(channel, 0, EDOGetPayloadHeaderSize(), handlerQueue, frameHandler);
 }
 
 /** @see -[EDOChannel isValid] */
 - (BOOL)isValid {
-  return _channel && self.socket.valid;
+  @synchronized(self) {
+    return _channel != NULL;
+  }
 }
 
 /** @see -[EDOChannel invalidate] */
 - (void)invalidate {
-  if (_channel) {
-    dispatch_io_close(_channel, 0);
-    _channel = NULL;
+  @synchronized(self) {
+    if (_channel) {
+      dispatch_io_close(_channel, 0);
+      _channel = NULL;
+    }
   }
 }
 

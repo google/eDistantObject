@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -98,6 +98,29 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
     _socket = -1;
     return socketFD;
   }
+}
+
+- (nullable dispatch_io_t)releaseAsDispatchIO {
+  dispatch_fd_t socket = [self releaseSocket];
+  if (socket == -1) {
+    return NULL;
+  }
+
+  dispatch_queue_t queue = dispatch_queue_create("com.google.edo.SocketIO", DISPATCH_QUEUE_SERIAL);
+  dispatch_io_t channel = dispatch_io_create(DISPATCH_IO_STREAM, socket, queue, ^(int error) {
+    if (error) {
+      NSLog(@"Error (%d) when closing dispatch channel.", error);
+    }
+    if (error == 0) {
+      close(socket);
+    }
+  });
+
+  // Clean up the socket if it fails to create the channel here.
+  if (!channel) {
+    close(socket);
+  }
+  return channel;
 }
 
 - (void)invalidate {

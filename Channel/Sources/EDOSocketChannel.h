@@ -23,38 +23,35 @@ NS_ASSUME_NONNULL_BEGIN
 @class EDOSocket;
 
 /**
- *  The channel implemented using POSIX socket.
+ *  The channel implemented using dispatch I/O.
  *
- *  It uses dispatch_source and dispatch_io to process the non-blocking I/O. The users' completion
- *  block is dispatched to the queue of user's choice and they are scheduled in the order of data
- *  received; so if the user has a serial queue, the handler block will be scheduled in the order of
- *  data received. It is fine to block the handler block; the handler block will be continuousely to
- *  be scheduled to the user's queue.
+ *  It uses dispatch I/O API to process the non-blocking I/O operations. The channel manages a
+ *  header frame to ensure the integrity of each data block received. If two consecutive receiving
+ *  blocks are scheduled at once, it may interrupt how the channel interpret the header frame. The
+ *  caller shall schedule another receiving callback only after the previous one is completed.
+ *
+ *  TODO(haowoo): Rename this to EDODispatchChannel as it is a wrapper around dispatch_io_t.
  */
 @interface EDOSocketChannel : NSObject <EDOChannel>
 
-/**
- *  Convenience creation method. See -initWithSocket:.
- *
- *  @param socket The established socket from the @c EDOSocketConnectedBlock callback.
- *  @return An instance of EDOSocketChannel.
- */
-+ (instancetype)channelWithSocket:(EDOSocket *)socket;
+/** Convenience creation method. See -initWithSocket:. */
++ (nullable instancetype)channelWithSocket:(EDOSocket *)socket;
 
 /**
  *  Initializes a channel with the established socket.
  *
  *  @param socket The established socket from the @c EDOSocketConnectedBlock callback.
+ *  @return An instance of @c EDOSocketChannel on success; @c nil if the @c socket is invalid.
  */
-- (instancetype)initWithSocket:(EDOSocket *)socket;
+- (nullable instancetype)initWithSocket:(EDOSocket *)socket;
 
 /**
- *  Releases the ownership of the underlying socket and returns it.
+ *  Initializes a channel with the given dispatch I/O channel.
  *
- *  It is not guaranteed to return a valid socket; it returns what the underlying socket is and
- *  the channel becomes invalid.
+ *  @param channel The established channel.
+ *  @return An instance of @c EDOSocketChannel.
  */
-- (dispatch_fd_t)releaseSocket;
+- (instancetype)initWithDispatchIO:(dispatch_io_t)channel;
 
 @end
 

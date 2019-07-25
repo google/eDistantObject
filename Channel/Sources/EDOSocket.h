@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,6 +72,13 @@ typedef void (^EDOSocketConnectedBlock)(EDOSocket *_Nullable socket, UInt16 list
  *  reset it to -1, the invalid socket descriptor.
  */
 - (dispatch_fd_t)releaseSocket;
+
+/**
+ *  Release the ownership of the underlying socket and return as a @c dispatch_io_t.
+ *
+ *  @return An instance of @c dispatch_ic_t if the underlying socket is valid, @c nil otherwise.
+ */
+- (nullable dispatch_io_t)releaseAsDispatchIO;
 
 /** Invalidate by closing its associated socket file descriptor. */
 - (void)invalidate;
