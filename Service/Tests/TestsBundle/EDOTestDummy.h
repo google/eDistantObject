@@ -40,6 +40,7 @@ typedef struct EDOTestDummyStruct {
 @property int value;
 @property void (^block)(void);
 @property(readonly, weak) EDOTestDummy *weakDummyInTest;
+@property(nonatomic) id<NSCoding> valueObject;
 
 - (instancetype)initWithValue:(int)value;
 

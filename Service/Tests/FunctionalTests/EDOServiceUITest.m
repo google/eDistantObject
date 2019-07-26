@@ -24,6 +24,7 @@
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOServiceError.h"
+#import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -342,6 +343,22 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
   EDOHostNamingService *localService = EDOHostNamingService.sharedService;
   XCTAssertFalse([localService start]);
+}
+
+/** Tests passing local object to remote dummy using pass by value. */
+- (void)testPassByValueWithLocalObject {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  NSArray<NSString *> *localArray = @[ @"foo" ];
+  dummy.valueObject = [localArray passByValue];
+  NSArray<NSString *> *remoteArray = (NSArray *)dummy.valueObject;
+  XCTAssertEqualObjects(localArray[0], remoteArray[0]);
+  NSString *remoteClassName = [dummy returnClassNameWithObject:remoteArray];
+  // Ensure that in the remote side, the object is passed by value instead of EDOObject.
+  XCTAssertNotEqualObjects(remoteClassName, @"EDOObject");
+  NSString *localClassName = NSStringFromClass(object_getClass(remoteArray));
+  // Ensure that in the local side, the object is fetched by reference as normal.
+  XCTAssertEqualObjects(localClassName, @"EDOObject");
 }
 
 @end
