@@ -353,9 +353,11 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   dummy.valueObject = [localArray passByValue];
   NSArray<NSString *> *remoteArray = (NSArray *)dummy.valueObject;
   XCTAssertEqualObjects(localArray[0], remoteArray[0]);
+
   NSString *remoteClassName = [dummy returnClassNameWithObject:remoteArray];
   // Ensure that in the remote side, the object is passed by value instead of EDOObject.
   XCTAssertNotEqualObjects(remoteClassName, @"EDOObject");
+
   NSString *localClassName = NSStringFromClass(object_getClass(remoteArray));
   // Ensure that in the local side, the object is fetched by reference as normal.
   XCTAssertEqualObjects(localClassName, @"EDOObject");
