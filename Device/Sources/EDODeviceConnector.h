@@ -57,7 +57,7 @@ extern NSString *const EDODeviceIDKey;
  *  @return The socket file descriptor connected to the target device and ready to use. -1 if
  *          any error occurred during the connection.
  */
-- (dispatch_fd_t)connectToDevice:(NSString *)deviceSerial
+- (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
                           onPort:(UInt16)port
                            error:(NSError **)error;
 

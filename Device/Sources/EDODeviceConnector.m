@@ -76,7 +76,7 @@ static const int64_t kDeviceDetectTime = 2;
   return result;
 }
 
-- (dispatch_fd_t)connectToDevice:(NSString *)deviceSerial
+- (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
                           onPort:(UInt16)port
                            error:(NSError **)error {
   if (![self.connectedDevices containsObject:deviceSerial]) {
@@ -85,7 +85,7 @@ static const int64_t kDeviceDetectTime = 2;
       *error = [NSError errorWithDomain:EDODeviceErrorDomain code:0 userInfo:nil];
     }
     NSLog(@"Device %@ is not detected.", deviceSerial);
-    return -1;
+    return NULL;
   }
   NSNumber *deviceID = _deviceInfo[deviceSerial];
 
@@ -121,7 +121,7 @@ static const int64_t kDeviceDetectTime = 2;
   if (error) {
     *error = connectError;
   }
-  return connectError ? -1 : [channel releaseSocket];
+  return connectError ? NULL : [channel releaseAsDispatchIO];
 }
 
 #pragma mark - Private
