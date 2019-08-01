@@ -54,10 +54,10 @@ extern NSString *const EDODeviceIDKey;
  *  @param port         The listen port number running on the target device.
  *  @param error        The out error indicating failures of connect to the listen port.
  *
- *  @return The socket file descriptor connected to the target device and ready to use. -1 if
+ *  @return The dispatch I/O channel connected to the target device and ready to use. @c NULL if
  *          any error occurred during the connection.
  */
-- (dispatch_fd_t)connectToDevice:(NSString *)deviceSerial
+- (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
                           onPort:(UInt16)port
                            error:(NSError **)error;
 

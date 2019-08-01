@@ -22,7 +22,6 @@
 #import "Device/Sources/EDOUSBMuxUtil.h"
 
 @implementation EDODeviceChannel {
-  dispatch_fd_t _socket;
   dispatch_io_t _dispatchChannel;
   dispatch_queue_t _queue;
 }
@@ -38,28 +37,16 @@
 - (instancetype)initInternal {
   self = [super init];
   if (self) {
-    _socket = -1;
     _queue = dispatch_queue_create("com.google.edo.deviceChannel", DISPATCH_QUEUE_CONCURRENT);
   }
   return self;
 }
 
-- (void)dealloc {
-  dispatch_fd_t socket = [self releaseSocket];
-  if (socket > -1) {
-    close(socket);
-  }
-}
-
-- (dispatch_fd_t)releaseSocket {
+- (dispatch_io_t)releaseAsDispatchIO {
   @synchronized(self) {
-    dispatch_fd_t socket = _socket;
-    _socket = -1;
-    if (_dispatchChannel) {
-      dispatch_io_close(_dispatchChannel, 0);
-      _dispatchChannel = nil;
-    }
-    return socket;
+    dispatch_io_t channel = _dispatchChannel;
+    _dispatchChannel = nil;
+    return channel;
   }
 }
 
@@ -194,8 +181,10 @@
     return NO;
   }
 
-  _socket = fd;
   _dispatchChannel = dispatch_io_create(DISPATCH_IO_STREAM, fd, _queue, ^(int error) {
+    if (error == 0) {
+      close(fd);
+    }
   });
   return _dispatchChannel != NULL;
 }
