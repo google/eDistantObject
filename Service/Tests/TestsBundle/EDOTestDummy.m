@@ -19,6 +19,7 @@
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOClientService.h"
+#import "Service/Sources/NSObject+EDOWeakObject.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 
 static const NSInteger kLargeArraySize = 1000;
@@ -40,7 +41,9 @@ static const NSInteger kLargeArraySize = 1000;
   return self;
 }
 
-- (instancetype)copyWithZone:(NSZone *)zone {
+#pragma mark - NSCopying
+
+- (instancetype)copyWithZone:(nullable NSZone *)zone {
   return self;
 }
 
@@ -187,6 +190,10 @@ static const NSInteger kLargeArraySize = 1000;
   return self;
 }
 
+- (instancetype)returnDeepCopy {
+  return [[EDOTestDummy alloc] initWithValue:self.value];
+}
+
 - (NSDictionary<NSString *, NSNumber *> *)returnDictionary {
   return @{ @"one" : @1, @"two" : @2, @"three" : @3, @"four" : @4 };
 }
@@ -328,37 +335,38 @@ static const NSInteger kLargeArraySize = 1000;
 
 + (void)enumerateSelector:(void (^)(SEL selector))block {
   SEL allSelectors[] = {
-    @selector(voidWithValuePlusOne),
-    @selector(voidWithInt:),
-    @selector(voidWithNumber:),
-    @selector(voidWithString:data:),
-    @selector(voidWithClass:),
-    @selector(voidWithStruct:),
-    @selector(voidWithId:),
-    @selector(voidWithValueOut:),
-    @selector(voidWithErrorOut:),
-    @selector(voidWithOutObject:),
-    @selector(voidWithValue:outSelf:),
+      @selector(voidWithValuePlusOne),
+      @selector(voidWithInt:),
+      @selector(voidWithNumber:),
+      @selector(voidWithString:data:),
+      @selector(voidWithClass:),
+      @selector(voidWithStruct:),
+      @selector(voidWithId:),
+      @selector(voidWithValueOut:),
+      @selector(voidWithErrorOut:),
+      @selector(voidWithOutObject:),
+      @selector(voidWithValue:outSelf:),
 
-    @selector(returnInt),
-    @selector(returnStruct),
-    @selector(returnNumber),
-    @selector(returnString),
-    @selector(returnData),
-    @selector(returnSelf),
-    @selector(returnClass),
-    @selector(returnDictionary),
-    @selector(returnArray),
-    @selector(returnSet),
-    @selector(returnIdNil),
+      @selector(returnInt),
+      @selector(returnStruct),
+      @selector(returnNumber),
+      @selector(returnString),
+      @selector(returnData),
+      @selector(returnSelf),
+      @selector(returnDeepCopy),
+      @selector(returnClass),
+      @selector(returnDictionary),
+      @selector(returnArray),
+      @selector(returnSet),
+      @selector(returnIdNil),
 
-    @selector(selWithThrow),
+      @selector(selWithThrow),
 
-    @selector(structWithStruct:),
-    @selector(returnIdWithInt:),
-    @selector(classsWithClass:),
-    @selector(returnNumberWithInt:value:),
-    @selector(returnBoolWithError:),
+      @selector(structWithStruct:),
+      @selector(returnIdWithInt:),
+      @selector(classsWithClass:),
+      @selector(returnNumberWithInt:value:),
+      @selector(returnBoolWithError:),
   };
 
   for (int i = 0; i < sizeof(allSelectors) / sizeof(SEL); ++i) {

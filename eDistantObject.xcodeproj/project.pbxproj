@@ -110,6 +110,7 @@
 		DC84AF0422D805C800D43E26 /* EDOWeakObject.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */; };
 		DC84AF0522D805EE00D43E26 /* EDODeallocationTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */; };
 		DC84AF0922D80A4C00D43E26 /* EDOWeakReferenceTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */; };
+		DC9BF6C222DFC8AF00E135B8 /* NSObject+EDOWeakObject.m in Sources */ = {isa = PBXBuildFile; fileRef = DC9BF6C122DFC8AE00E135B8 /* NSObject+EDOWeakObject.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -387,6 +388,8 @@
 		DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOWeakObject.m; path = Service/Sources/EDOWeakObject.m; sourceTree = "<group>"; };
 		DC84AF0022D572BF00D43E26 /* EDODeallocationTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDODeallocationTracker.h; path = Service/Sources/EDODeallocationTracker.h; sourceTree = "<group>"; };
 		DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOWeakReferenceTest.m; path = Service/Tests/UnitTests/EDOWeakReferenceTest.m; sourceTree = "<group>"; };
+		DC9BF6C022DFC8AD00E135B8 /* NSObject+EDOWeakObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOWeakObject.h"; path = "Service/Sources/NSObject+EDOWeakObject.h"; sourceTree = "<group>"; };
+		DC9BF6C122DFC8AE00E135B8 /* NSObject+EDOWeakObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+EDOWeakObject.m"; path = "Service/Sources/NSObject+EDOWeakObject.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -539,6 +542,8 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				DC9BF6C022DFC8AD00E135B8 /* NSObject+EDOWeakObject.h */,
+				DC9BF6C122DFC8AE00E135B8 /* NSObject+EDOWeakObject.m */,
 				DC84AF0022D572BF00D43E26 /* EDODeallocationTracker.h */,
 				DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */,
 				DC84AEFD22D572BD00D43E26 /* EDOWeakObject.h */,
@@ -1235,6 +1240,7 @@
 				C5A2F0802134D6C100421D72 /* NSObject+EDOValue.m in Sources */,
 				C862C6E42253D70D00EABE99 /* EDOServiceError.m in Sources */,
 				C5A2F0722134D6C100421D72 /* EDOObject+EDOParameter.m in Sources */,
+				DC9BF6C222DFC8AF00E135B8 /* NSObject+EDOWeakObject.m in Sources */,
 				C5A2F06C2134D6A000421D72 /* EDOHostService+Handlers.m in Sources */,
 				C5A2F0762134D6C100421D72 /* EDOObjectReleaseMessage.m in Sources */,
 			);

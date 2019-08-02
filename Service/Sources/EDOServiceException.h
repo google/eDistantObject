@@ -21,8 +21,14 @@ NS_ASSUME_NONNULL_BEGIN
 /** The generic eDO service exception, usually containing an embedded NSError object. */
 FOUNDATION_EXPORT NSExceptionName const EDOServiceGenericException;
 
+/** The remoteWeak interface misuse exception, usually used in NSException. */
+FOUNDATION_EXPORT NSExceptionName const EDOWeakObjectRemoteWeakMisuseException;
+
 /** The weak eDO object release exception, usually used in NSException. */
 FOUNDATION_EXPORT NSExceptionName const EDOWeakObjectWeakReleaseException;
+
+/** The weak reference block object exception, usually used in NSException. */
+FOUNDATION_EXPORT NSExceptionName const EDOWeakReferenceBlockObjectException;
 
 /** Key in userInfo, describing the embedded NSError object. */
 FOUNDATION_EXPORT NSString *const EDOExceptionUnderlyingErrorKey;

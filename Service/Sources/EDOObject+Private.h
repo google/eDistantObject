@@ -38,6 +38,8 @@ typedef int64_t EDOPointerType;
 @property(readonly, assign) EDOPointerType remoteClass;
 /** Whether the @c EDOObject is from the same process. */
 @property(readonly) BOOL isLocalEdo;
+/** Whether the @c EDOObject is weakly referenced. */
+@property(readonly) BOOL weaklyReferenced;
 
 /** Create an object with the given local target and port the session listens on. */
 + (instancetype)objectWithTarget:(id)target port:(EDOServicePort *)port;

@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDODeallocationTracker.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
@@ -28,6 +29,12 @@
 @implementation EDOWeakObject
 
 - (instancetype)initWithWeakObject:(id)weakObject {
+  if ([EDOBlockObject isBlock:weakObject]) {
+    // TODO(b/138126290): Currently, RemoteWeak doesn't support block weak references.
+    [[NSException exceptionWithName:EDOWeakReferenceBlockObjectException
+                             reason:@"RemoteWeak doesn't support weak references for block object."
+                           userInfo:nil] raise];
+  }
   _weakObject = weakObject;
   return self;
 }
@@ -60,8 +67,9 @@
                                  service:(EDOHostService *)service
                                 hostPort:(EDOHostPort *)hostPort {
   EDOParameter *parameter = [super edo_parameterForTarget:target service:service hostPort:hostPort];
-  [EDODeallocationTracker enableTrackingForObject:self hostPort:target.servicePort.hostPort];
-
+  if ([[target class] isEqual:[EDOObject class]]) {
+    [EDODeallocationTracker enableTrackingForObject:self hostPort:target.servicePort.hostPort];
+  }
   return parameter;
 }
 

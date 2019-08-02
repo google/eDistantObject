@@ -14,14 +14,16 @@
 // limitations under the License.
 //
 
-#import "Service/Sources/EDOServiceException.h"
+#import "Service/Sources/NSObject+EDOWeakObject.h"
 
-NSExceptionName const EDOServiceGenericException = @"EDOServiceGenericException";
-NSExceptionName const EDOWeakObjectRemoteWeakMisuseException =
-    @"EDOWeakObjectRemoteWeakMisuseException";
-NSExceptionName const EDOWeakObjectWeakReleaseException = @"EDOWeakReleasedException";
-NSExceptionName const EDOWeakReferenceBlockObjectException =
-    @"EDOWeakReferenceBlockObjectException";
+#include <objc/runtime.h>
 
-NSString *const EDOExceptionUnderlyingErrorKey = @"EDOUnderlyingErrorKey";
-NSString *const EDOExceptionPortKey = @"EDOExceptionPortKey";
+#import "Service/Sources/EDOWeakObject.h"
+
+@implementation NSObject (EDOWeakObject)
+
+- (instancetype)remoteWeak {
+  return (id)[[EDOWeakObject alloc] initWithWeakObject:self];
+}
+
+@end

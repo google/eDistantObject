@@ -24,6 +24,7 @@
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/EDOWeakObject.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
 
 // Box the value type directly into NSValue, the other types into a EDOObject, and the nil value.
@@ -340,6 +341,12 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           [argument getValue:&obj];
           obj = [EDOClientService unwrappedObjectFromObject:obj];
           obj = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:obj];
+
+          // Add weakly referenced object to the host dictionary.
+          if ([[obj class] isEqual:[EDOObject class]] && ((EDOObject *)obj).weaklyReferenced) {
+            [service addWeakObject:obj];
+          }
+
           [invocation setArgument:&obj atIndex:curArgIdx];
         } else {
           NSUInteger valueSize = 0;
@@ -359,7 +366,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           id __unsafe_unretained obj;
           [invocation getReturnValue:&obj];
           returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
-                                              : BOX_VALUE(obj, target, service, hostPort);
+                                              : BOX_VALUE(obj, nil, service, hostPort);
           if (CheckIfMethodRetainsReturn(request.selectorName.UTF8String)) {
             // We need to do an extra release here because the method return is not autoreleased,
             // and because the invocation is dynamically created, ARC won't insert an extra release
@@ -387,7 +394,7 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
           continue;
         }
         // TODO(ynzhang): add device serial info.
-        [outValues addObject:BOX_VALUE(outObjects[curArgIdx], target, service, hostPort)];
+        [outValues addObject:BOX_VALUE(outObjects[curArgIdx], nil, service, hostPort)];
       }
     } @catch (NSException *e) {
       // TODO(haowoo): Add more error info for non-user exception errors.

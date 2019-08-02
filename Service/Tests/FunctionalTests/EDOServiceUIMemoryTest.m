@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
 
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOServiceException.h"
+#import "Service/Sources/NSObject+EDOValueObject.h"
+#import "Service/Sources/NSObject+EDOWeakObject.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -184,6 +187,111 @@
   }
   // The test shouldn't crash if the app is gone.
   XCTAssertNil(weakReference);
+}
+
+/** Tests the remoteWeak function retains the weakly referenced object during its use. */
+- (void)testWeakObjectReferenceRetain {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:13];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  id local = [[NSObject alloc] init];
+
+  // Originally, without remoteWeak, weakDelegate would return nil.
+  remoteDummy.weakDelegate = local;
+  XCTAssertNil(remoteDummy.weakDelegate);
+
+  // RemoteWeak will retain the local.
+  remoteDummy.weakDelegate = [local remoteWeak];
+  XCTAssertNotNil(remoteDummy.weakDelegate);
+  [service invalidate];
+}
+
+/** Tests the remoteWeak function retains the weakly referenced object during its use and releases
+ * once the underlying object is released. */
+- (void)testWeakObjectReferenceRetainAndRelease {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:13];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  EDOTestDummy *remoteDummy;
+  @autoreleasepool {
+    id local = [[NSObject alloc] init];
+    remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+    // Original usage:
+    // remoteDummy.weakDelegate = local;
+    remoteDummy.weakDelegate = [local remoteWeak];
+    XCTAssertNotNil(remoteDummy.weakDelegate);
+  }
+  XCTAssertNil(remoteDummy.weakDelegate);
+  [service invalidate];
+}
+
+/** Tests the remoteWeak returns the same value when using on a local object.  */
+- (void)testRemoteWeakToLocalObject {
+  EDOTestDummyInTest *dummy = [[EDOTestDummyInTest alloc] init];
+  XCTAssertEqual([[dummy remoteWeak] value], [dummy value]);
+}
+
+/** Tests assigning remoteWeak to EDOObject throws the right exception. */
+- (void)testRemoteWeakToEDOObjectWithLocalReference {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:13];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  XCTAssertThrowsSpecificNamed([remoteDummy remoteWeak], NSException,
+                               EDOWeakObjectRemoteWeakMisuseException);
+  [service invalidate];
+}
+
+/** Tests assigning the same underlying object to multiple localReferences doesn't crash the
+ * process. */
+- (void)testRemoteWeakToMultipleEDOObjectWithLocalReferences {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:13];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  EDOTestDummy *remoteDummy;
+  EDOTestDummy *remoteDummy2;
+  @autoreleasepool {
+    id local = [[NSObject alloc] init];
+    remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+    remoteDummy2 = [remoteDummy returnDeepCopy];
+    remoteDummy.weakDelegate = [local remoteWeak];
+    XCTAssertNotNil(remoteDummy.weakDelegate);
+    remoteDummy2.weakDelegate = [local remoteWeak];
+    XCTAssertNotNil(remoteDummy2.weakDelegate);
+  }
+  XCTAssertNil(remoteDummy.weakDelegate);
+  XCTAssertNil(remoteDummy2.weakDelegate);
+  [service invalidate];
+}
+
+/** Tests assigning the same underlying object to multiple localReferences doesn't crash the
+ * process. */
+- (void)testRemoteWeakToEDOObjectWithMultipleLocalReferences {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:13];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  EDOTestDummy *remoteDummy;
+  @autoreleasepool {
+    id local1 = [[NSObject alloc] init];
+    id local2 = [[NSObject alloc] init];
+    remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+    remoteDummy.weakDelegate = [local1 remoteWeak];
+    remoteDummy.weakDelegate = [local2 remoteWeak];
+    XCTAssertNotNil(remoteDummy.weakDelegate);
+  }
+  XCTAssertNil(remoteDummy.weakDelegate);
+  [service invalidate];
 }
 
 @end

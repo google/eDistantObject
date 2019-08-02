@@ -31,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @see -[NSObject edo_parameterForTarget:service:hostPort:].
  */
-- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+- (EDOParameter *)edo_parameterForTarget:(nullable EDOObject *)target
                                  service:(EDOHostService *)service
                                 hostPort:(nullable EDOHostPort *)hostPort;
 

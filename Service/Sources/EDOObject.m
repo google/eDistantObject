@@ -23,9 +23,11 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/EDOValueObject.h"
+#import "Service/Sources/EDOWeakObject.h"
 
 static NSString *const kEDOObjectCoderPortKey = @"edoServicePort";
 static NSString *const kEDOObjectCoderRemoteAddressKey = @"edoRemoteAddress";
@@ -74,8 +76,19 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   return [self.processUUID isEqualToString:[EDOObject edo_processUUID]];
 }
 
+- (BOOL)weaklyReferenced {
+  return [self.className isEqualToString:@"EDOWeakObject"];
+}
+
 - (id)returnByValue {
   return [[EDOValueObject alloc] initWithRemoteObject:self];
+}
+
+- (id)remoteWeak {
+  [[NSException exceptionWithName:EDOWeakObjectRemoteWeakMisuseException
+                           reason:@"Calling remoteWeak on a remote object."
+                         userInfo:nil] raise];
+  return self;
 }
 
 // No-op when called on a remote object.

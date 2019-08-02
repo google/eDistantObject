@@ -38,7 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
  *                  @c hostPort is not the same as the service.hostPort, for example, when the
  *                  service is connecting via usbmuxd.
  */
-- (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
+- (EDOParameter *)edo_parameterForTarget:(nullable EDOObject *)target
                                  service:(EDOHostService *)service
                                 hostPort:(nullable EDOHostPort *)hostPort;
 

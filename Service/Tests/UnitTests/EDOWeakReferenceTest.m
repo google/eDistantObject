@@ -24,7 +24,10 @@
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOWeakObject.h"
+#import "Service/Sources/NSObject+EDOValueObject.h"
+#import "Service/Sources/NSObject+EDOWeakObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
+#import "Service/Tests/TestsBundle/EDOTestValueType.h"
 
 static const NSTimeInterval kTestTimeoutInterval = 10.0;
 
@@ -324,6 +327,67 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
 
   [releaseMock stopMocking];
   [hostService invalidate];
+}
+
+/**
+ * Tests API for weak object reference that remoteWeak invocation and nested invocation works.
+ */
+- (void)testRemoteWeakAPI {
+  EDOTestDummy *object = [[EDOTestDummy alloc] init];
+  XCTAssertTrue([[[object remoteWeak] class] isEqual:[EDOWeakObject class]]);
+  XCTAssertEqual(((EDOWeakObject *)[object remoteWeak]).weakObject, object);
+  XCTAssertEqual(((EDOWeakObject *)[[object remoteWeak] remoteWeak]).weakObject, object);
+}
+
+/**
+ * Tests API for weak object reference that remoteWeak invocation works with EDOValueObject.
+ */
+- (void)testRemoteWeakWrapsWithEDOValueObject {
+  EDOTestValueType *object = [[EDOTestValueType alloc] init];
+  EDOTestValueType *valueObject = [object passByValue];
+
+  XCTAssertTrue([[[valueObject remoteWeak] class] isEqual:[EDOWeakObject class]]);
+  XCTAssertEqual(((EDOWeakObject *)[valueObject remoteWeak]).weakObject, object);
+}
+
+/**
+ * Tests API for weak object reference that remoteWeak works with PassByValue.
+ */
+- (void)testPassByValueWithRemoteWeak {
+  EDOTestDummy *dummyOnBackground = [[EDOTestDummy alloc] init];
+  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
+  XCTAssertEqual([dummyOnBackground returnCountWithArray:[[array remoteWeak] passByValue]], 4);
+  XCTAssertEqual([dummyOnBackground returnCountWithArray:[[array passByValue] remoteWeak]], 4);
+}
+
+/**
+ * Tests API for weak object reference that remoteWeak works with nested PassByValue.
+ */
+- (void)testPassByValueNestedWithRemoteWeak {
+  EDOTestDummy *dummyOnBackground = [[EDOTestDummy alloc] init];
+  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
+  XCTAssertEqual(
+      [dummyOnBackground returnCountWithArray:[[[array passByValue] passByValue] remoteWeak]], 4);
+  XCTAssertEqual(
+      [dummyOnBackground returnCountWithArray:[[[array remoteWeak] passByValue] passByValue]], 4);
+  XCTAssertEqual(
+      [dummyOnBackground returnCountWithArray:[[[array passByValue] remoteWeak] passByValue]], 4);
+  XCTAssertEqual(
+      [dummyOnBackground returnCountWithArray:[[[array remoteWeak] passByValue] remoteWeak]], 4);
+  XCTAssertEqual(
+      [dummyOnBackground returnCountWithArray:[[[array passByValue] remoteWeak] remoteWeak]], 4);
+  XCTAssertEqual(
+      [dummyOnBackground returnCountWithArray:[[[array remoteWeak] remoteWeak] passByValue]], 4);
+}
+
+/** Tests when the remoteWeak function is called on weakly referenced block object, an exception is
+ * thrown. */
+- (void)testWeakObjectReferenceBlockObjectCatchesException {
+  void (^localBlock)(void) = ^{
+    [self awakeFromNib];
+  };
+  XCTAssertThrowsSpecificNamed([localBlock remoteWeak], NSException,
+                               EDOWeakReferenceBlockObjectException);
 }
 
 #pragma mark - Helper methods

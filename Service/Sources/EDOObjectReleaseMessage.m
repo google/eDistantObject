@@ -75,7 +75,7 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
     EDOObjectReleaseRequest *releaseRequest = (EDOObjectReleaseRequest *)request;
     EDOPointerType edoRemoteAddress = releaseRequest.remoteAddress;
     if (releaseRequest.weaklyReferenced) {
-      // TODO(yaqiji): Add case for weak object's release.
+      [service removeWeakObjectWithAddress:edoRemoteAddress];
     } else {
       [service removeObjectWithAddress:edoRemoteAddress];
     }

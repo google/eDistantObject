@@ -40,6 +40,7 @@ typedef struct EDOTestDummyStruct {
 @property int value;
 @property void (^block)(void);
 @property(readonly, weak) EDOTestDummy *weakDummyInTest;
+@property(weak) id weakDelegate;
 @property(nonatomic) id<NSCoding> valueObject;
 
 - (instancetype)initWithValue:(int)value;
@@ -68,6 +69,7 @@ typedef struct EDOTestDummyStruct {
 - (NSString *)returnString;
 - (NSData *)returnData;
 - (EDOTestDummy *)returnSelf;
+- (instancetype)returnDeepCopy;
 - (NSDictionary<NSString *, NSNumber *> *)returnDictionary;
 - (NSArray<NSNumber *> *)returnArray;
 - (NSArray<NSNumber *> *)returnLargeArray;

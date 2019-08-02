@@ -58,6 +58,23 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress;
 
 /**
+ *  Removes a weak EDOObject with the specified address in the host cache for weak objects.
+ *
+ *  @param remoteAddress The @c EDOPointerType containing the object address.
+ *  @return @c YES if an object was removed; @c NO otherwise.
+ */
+- (BOOL)removeWeakObjectWithAddress:(EDOPointerType)remoteAddress;
+
+/**
+ *  Adds a weak EDOObject to the host cache for weak objects, so that it gets retained and will not
+ *  be released immediately.
+ *
+ *  @param object The @c EDOObject containing the underlying object address.
+ *  @return @c YES if the weak EDOObject is owned by the weak object cache.
+ */
+- (BOOL)addWeakObject:(EDOObject *)object;
+
+/**
  *  Starts receiving requests and handling them from @c channel.
  *
  *  This will properly handle all incoming requests for the given channel, which will be strongly
