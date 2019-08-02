@@ -34,4 +34,18 @@ FOUNDATION_EXPORT NSErrorUserInfoKey const EDOChannelFetchFailedCode;
  */
 FOUNDATION_EXPORT NSErrorUserInfoKey const EDOChannelPortKey;
 
+/** Error code for the channel forwarder. */
+typedef NS_ENUM(NSUInteger, EDOForwarderError) {
+  /** Indicates the initial handshake fails. */
+  EDOForwarderErrorHandshake = -1000,
+  /** Indicates the port received is not serializable. */
+  EDOForwarderErrorPortSerialization,
+  /** Indicates the forwarder fails to establish the connection with the given port. */
+  EDOForwarderErrorPortConnection,
+  /** Indicates the multiplexer closes or errors on the channel. */
+  EDOForwarderErrorMultiplerxerClosed,
+  /** Indicates the forwarded channel closes or errors on the channel. */
+  EDOForwarderErrorForwardedChannelClosed,
+};
+
 #endif
