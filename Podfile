@@ -1,4 +1,4 @@
-#  Copyright 2018 Google Inc.
+#  Copyright 2018 Google LLC.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,32 +12,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 platform :ios, '9.0'
 
-target 'TestsHost' do
-  pod 'OCMock', '3.4.1'
-end
+ocmock_targets = %w(TestsHost TestsBundle ServiceTests ServicePerfTests DeviceUnitTests)
 
-target 'TestsBundle' do
-  pod 'OCMock', '3.4.1'
-end
-
-target 'ServiceTests' do
-  pod 'OCMock', '3.4.1'
-end
-
-target 'ServicePerfTests' do
-  pod 'OCMock', '3.4.1'
-end
-
-target 'DeviceUnitTests' do
-  pod 'OCMock', '3.4.1'
-end
-
-post_install do |installer_representation|
-  installer_representation.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
-    end
+ocmock_targets.each do |t|
+  target t do
+    pod 'OCMock', '3.4.1'
   end
 end
+
