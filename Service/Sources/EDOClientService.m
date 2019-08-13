@@ -100,7 +100,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
-    EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+    EDOHostService *service = [EDOHostService serviceForCurrentOriginatingQueue];
     // If there is a service for the current queue, we check if the object belongs to this queue.
     // Otherwise, we send EDOObjectAlive message to another service running in the same process.
     if ([service.port match:edoObject.servicePort]) {
@@ -220,7 +220,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
                                         onPort:(EDOHostPort *)port {
   // TODO(b/119416282): We still run the executor even for the other requests before the deadlock
   //                    issue is fixed.
-  EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+  EDOHostService *service = [EDOHostService serviceForCurrentExecutingQueue];
   return [self sendSynchronousRequest:request onPort:port withExecutor:service.executor];
 }
 

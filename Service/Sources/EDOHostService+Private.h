@@ -31,6 +31,9 @@ NS_ASSUME_NONNULL_BEGIN
 /** The executor to handle the request. */
 @property(readonly) EDOExecutor *executor;
 
+/** Gets the @c EDOHostService for the current running queue as an executing queue. */
++ (nullable instancetype)serviceForCurrentExecutingQueue;
+
 /**
  *  Wraps a distant object for the given local object and host port.
  *

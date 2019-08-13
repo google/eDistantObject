@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2018 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,28 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly, nonatomic) EDOServicePort *port;
 
 /**
+ *  The dispatch queues associated to remote invocations for wrapping parameters to remote objects.
+ *
+ *  The originating queue is the queue where the client makes a remote invocation and wraps local
+ *  objects into remote objects. If the queue doesn't have a service, a temporary service is created
+ *  to wrap objects. However, as this temporary service goes out of scope after the remote call
+ *  returns, those wrapped objects cannot be re-used again remotely. In order to have the automatic
+ *  wrapped objects outlive the method scope, a user must add the queue to a service's
+ *  @c originatingQueues.
+ *
+ *  One queue can only have one service, the latter one will override the previous assigned one.
+ */
+@property(nonatomic, null_resettable) NSArray<dispatch_queue_t> *originatingQueues;
+
+/**
+ *  The dispatch queue that the remote invocation will be dispatched to run on.
+ *
+ *  TODO(haowoo): The queue currently holds a strong reference of the service due to early design.
+ *                The queue should not hold the strong reference.
+ */
+@property(nonatomic, readonly, nullable) dispatch_queue_t executingQueue;
+
+/**
  *  Creates a service with the object and its associated execution queue.
  *
  *  @note Once the service is up and running, @c EDOClientService can be used to retrieve the root
@@ -68,19 +90,19 @@ NS_ASSUME_NONNULL_BEGIN
                                     queue:(nullable dispatch_queue_t)queue;
 
 /**
- *  Gets the EDOHostService associated with the given dispatch queue if any.
+ *  Gets the @c EDOHostService for the given @c queue.
  *
- *  @param queue The dispatch queue to retrieve the EDOHostService.
+ *  @param queue The originating dispatch queue to wrap a remote object.
  *  @return The instance of EDOHostService if it has been set up, or @nil if not.
  */
-+ (instancetype)serviceForQueue:(dispatch_queue_t)queue;
++ (nullable instancetype)serviceForOriginatingQueue:(dispatch_queue_t)queue;
 
 /**
- *  Gets the EDOHostService associated with the current running dispatch queue, if any.
+ *  Gets the @c EDOHostService for the current running dispatch queue.
  *
- *  @return The instance of EDOHostService if it has been set up, or @nil if not.
+ *  @return The instance of EDOHostService if it has been set up, or @c nil if not.
  */
-+ (instancetype)serviceForCurrentQueue;
++ (nullable instancetype)serviceForCurrentOriginatingQueue;
 
 - (instancetype)init NS_UNAVAILABLE;
 

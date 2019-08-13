@@ -71,7 +71,8 @@
                 returnByValue:(BOOL)returnByValue {
   // Keep the service until the end of the invocation scope so the nested remote call can be made
   // using this service.
-  NS_VALID_UNTIL_END_OF_SCOPE EDOHostService *service = [EDOHostService serviceForCurrentQueue];
+  NS_VALID_UNTIL_END_OF_SCOPE EDOHostService *service =
+      [EDOHostService serviceForCurrentOriginatingQueue];
 
   // If there is no host service created for the current queue, a temporary queue is created only
   // within this invocation scope.

@@ -35,8 +35,38 @@
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
-// The context key for the executor for the dispatch queue.
+/**  The context key to save the service to the dispatch queue. This shall be removed later. */
 static const char *gServiceKey = "com.google.edo.servicekey";
+
+/** The context key to find the service for the originating queue. */
+static const char kEDOOriginatingQueueKey = '\0';
+
+/** The context key to find the service for the executing queue.*/
+static const char kEDOExecutingQueueKey = '\0';
+
+#pragma mark - EDODispatchQueueWeakRef
+
+/**
+ *  The weak object wrapper to hold a weak reference to be saved in a container like NSArray.
+ */
+@interface EDOWeakReference : NSObject
+/** The weak object it holds. */
+@property(nonatomic, weak, readonly) id object;
+@end
+
+@implementation EDOWeakReference
+
+- (instancetype)initWithObject:(id)object {
+  self = [super init];
+  if (self) {
+    _object = object;
+  }
+  return self;
+}
+
+@end
+
+#pragma mark - EDOHostService
 
 @interface EDOHostService ()
 /** The execution queue for the root object. */
@@ -69,16 +99,29 @@ static const char *gServiceKey = "com.google.edo.servicekey";
 @property(readwrite) BOOL registeredToDevice;
 @end
 
-@implementation EDOHostService
+@implementation EDOHostService {
+  /** The container for the weakly referenced originating queues*/
+  NSArray<EDOWeakReference *> *_originatingWeakQueues;
+}
 
 @synthesize port = _port;
 
-+ (instancetype)serviceForCurrentQueue {
-  return (__bridge EDOHostService *)(dispatch_get_specific(gServiceKey));
++ (instancetype)serviceForCurrentOriginatingQueue {
+  EDOWeakReference *weakRef =
+      (__bridge EDOWeakReference *)dispatch_get_specific(&kEDOOriginatingQueueKey);
+  return weakRef.object;
 }
 
-+ (instancetype)serviceForQueue:(dispatch_queue_t)queue {
-  return (__bridge EDOHostService *)(dispatch_queue_get_specific(queue, gServiceKey));
++ (instancetype)serviceForCurrentExecutingQueue {
+  EDOWeakReference *weakRef =
+      (__bridge EDOWeakReference *)dispatch_get_specific(&kEDOExecutingQueueKey);
+  return weakRef.object;
+}
+
++ (instancetype)serviceForOriginatingQueue:(dispatch_queue_t)queue {
+  EDOWeakReference *weakRef =
+      (__bridge EDOWeakReference *)dispatch_queue_get_specific(queue, &kEDOOriginatingQueueKey);
+  return weakRef.object;
 }
 
 + (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue {
@@ -130,7 +173,7 @@ static const char *gServiceKey = "com.google.edo.servicekey";
         dispatch_queue_create("com.google.edo.service.handlers", DISPATCH_QUEUE_SERIAL);
 
     _executionQueue = queue;
-    _executor = [EDOExecutor executorWithHandlers:[self class].handlers queue:queue];
+    _executor = [EDOExecutor executorWithHandlers:self.class.handlers queue:queue];
 
     // Only creates the listen socket when the port is given or the root object is given so we need
     // to serve them at launch.
@@ -145,11 +188,19 @@ static const char *gServiceKey = "com.google.edo.servicekey";
     }
 
     _rootLocalObject = object;
-    // Save itself to the queue.
+
+    // TODO(haowoo): The service should hold the executingQueue, but the executionQueue now still
+    //               holds the strong reference of the service, and we keep this behaviour for now
+    //               as the client is relying on this behavior.
     if (queue) {
       dispatch_queue_set_specific(queue, gServiceKey, (void *)CFBridgingRetain(self),
                                   (dispatch_function_t)CFBridgingRelease);
+
+      EDOWeakReference *selfRef = [[EDOWeakReference alloc] initWithObject:self];
+      dispatch_queue_set_specific(queue, &kEDOExecutingQueueKey, (void *)CFBridgingRetain(selfRef),
+                                  (dispatch_function_t)CFBridgingRelease);
     }
+    self.originatingQueues = nil;
   }
   return self;
 }
@@ -164,11 +215,9 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   }
   [EDOHostNamingService.sharedService removeServicePort:_port];
   [self.listenSocket invalidate];
-  // Retain the strong reference first to make sure atomicity.
-  dispatch_queue_t executionQueue = self.executionQueue;
-  if (executionQueue) {
-    dispatch_queue_set_specific(executionQueue, gServiceKey, NULL, NULL);
-  }
+
+  [self edo_removeServiceFromOriginatingQueues];
+
   NSLog(@"The EDOHostService (%p) is invalidated on port %d", self, _port.hostPort.port);
 }
 
@@ -184,7 +233,56 @@ static const char *gServiceKey = "com.google.edo.servicekey";
   return _port;
 }
 
+- (dispatch_queue_t)executingQueue {
+  return _executionQueue;
+}
+
+- (void)setOriginatingQueues:(NSArray<dispatch_queue_t> *)originatingQueues {
+  [self edo_removeServiceFromOriginatingQueues];
+
+  originatingQueues = originatingQueues ?: [[NSArray alloc] init];
+
+  // TODO(haowoo): Change to executingQueue entirely once we fix the ownership and remove weak.
+  dispatch_queue_t executingQueue = _executionQueue;
+  if (executingQueue) {
+    originatingQueues = [originatingQueues arrayByAddingObject:executingQueue];
+  }
+
+  NSMutableArray<EDOWeakReference *> *queues =
+      [NSMutableArray arrayWithCapacity:originatingQueues.count];
+  EDOWeakReference *selfRef = [[EDOWeakReference alloc] initWithObject:self];
+  for (dispatch_queue_t queue in originatingQueues) {
+    [queues addObject:[[EDOWeakReference alloc] initWithObject:queue]];
+    dispatch_queue_set_specific(queue, &kEDOOriginatingQueueKey, (void *)CFBridgingRetain(selfRef),
+                                (dispatch_function_t)CFBridgingRelease);
+  }
+  _originatingWeakQueues = [queues copy];
+}
+
+- (NSArray<dispatch_queue_t> *)originatingQueues {
+  NSMutableArray<dispatch_queue_t> *queues = [[NSMutableArray alloc] init];
+  for (EDOWeakReference *weakQueue in _originatingWeakQueues) {
+    dispatch_queue_t queue = weakQueue.object;
+    if (!queue) {
+      continue;
+    }
+    [queues addObject:queue];
+  }
+  return [queues copy];
+}
+
 #pragma mark - Private
+
+- (void)edo_removeServiceFromOriginatingQueues {
+  for (EDOWeakReference *weakQueue in _originatingWeakQueues) {
+    dispatch_queue_t queue = weakQueue.object;
+    if (!queue) {
+      continue;
+    }
+    dispatch_queue_set_specific(queue, &kEDOOriginatingQueueKey, NULL, NULL);
+  }
+  _originatingWeakQueues = nil;
+}
 
 - (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(EDOHostPort *)hostPort {
   // TODO(haowoo): The edoObject shouldn't be shared across different services, currently there is

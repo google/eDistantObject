@@ -56,12 +56,6 @@
 }
 
 - (void)runWithBlock:(void (^)(void))executeBlock {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  NSAssert(!self.executionQueue || dispatch_get_current_queue() == self.executionQueue,
-           @"Only run the executor from the tracked queue.");
-#pragma clang diagnostic pop
-
   // Create the waited queue so it can also process the requests while waiting for the response
   // when the incoming request is dispatched to the same queue.
   EDOBlockingQueue<EDOExecutorMessage *> *messageQueue = [[EDOBlockingQueue alloc] init];

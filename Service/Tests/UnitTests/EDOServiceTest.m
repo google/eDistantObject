@@ -80,18 +80,70 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
   dispatch_sync(testQueue, ^{
-    XCTAssertEqual(hostService, [EDOHostService serviceForCurrentQueue]);
-    XCTAssertEqual(hostService, [EDOHostService serviceForQueue:testQueue]);
+    XCTAssertEqual(hostService, [EDOHostService serviceForCurrentOriginatingQueue]);
+    XCTAssertEqual(hostService, [EDOHostService serviceForOriginatingQueue:testQueue]);
   });
-  XCTAssertEqual(hostService, [EDOHostService serviceForQueue:testQueue]);
+  XCTAssertEqual(hostService, [EDOHostService serviceForOriginatingQueue:testQueue]);
+}
+
+- (void)testServiceWithNonassignedeExecutingQueue {
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:nil];
+  // TODO(haowoo): This should be 1 once we fix the ownership.
+  XCTAssertEqual(hostService.originatingQueues.count, 0);
+}
+
+- (void)testExecutingQueueIsOriginatingQueue {
+  dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  XCTAssertTrue([hostService.originatingQueues containsObject:testQueue]);
+}
+
+- (void)testServiceCanHaveOtherExecutingQueue {
+  dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+
+  @autoreleasepool {
+    dispatch_queue_t testQueue2 = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+    hostService.originatingQueues = @[ testQueue2 ];
+    XCTAssertTrue([hostService.originatingQueues containsObject:testQueue]);
+    XCTAssertTrue([hostService.originatingQueues containsObject:testQueue2]);
+  }
+
+  // Service doesn't hold the originating queue.
+  XCTAssertEqual(hostService.originatingQueues.count, 1);
+}
+
+- (void)testServiceCanGetFromOriginatingQueue {
+  dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+  dispatch_queue_t testQueue2 = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  XCTAssertEqual(hostService, [EDOHostService serviceForOriginatingQueue:testQueue]);
+
+  hostService.originatingQueues = @[ testQueue2 ];
+  XCTAssertEqual(hostService, [EDOHostService serviceForOriginatingQueue:testQueue]);
+  XCTAssertEqual(hostService, [EDOHostService serviceForOriginatingQueue:testQueue2]);
+  dispatch_sync(testQueue2, ^{
+    XCTAssertEqual(hostService, [EDOHostService serviceForCurrentOriginatingQueue]);
+  });
+}
+
+- (void)testServiceCanGetFromExecutingQueue {
+  dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  dispatch_sync(testQueue, ^{
+    XCTAssertEqual(hostService, [EDOHostService serviceForCurrentOriginatingQueue]);
+    XCTAssertEqual(hostService, [EDOHostService serviceForCurrentExecutingQueue]);
+  });
 }
 
 - (void)testServiceLifecycleIsBoundToQueue {
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   self.weakQueue = testQueue;
   self.weakService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
-  XCTAssertNotNil([EDOHostService serviceForQueue:testQueue]);
-  XCTAssertEqual(self.weakService, [EDOHostService serviceForQueue:testQueue]);
+  XCTAssertNotNil([EDOHostService serviceForOriginatingQueue:testQueue]);
+  XCTAssertEqual(self.weakService, [EDOHostService serviceForOriginatingQueue:testQueue]);
 
   // The dispatch queue library may delegate its dealloc and callback to a different queue/thread.
   XCTKVOExpectation *expectServiceNil = [[XCTKVOExpectation alloc] initWithKeyPath:@"weakService"
@@ -117,7 +169,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   OCMExpect([(EDOHostService *)serviceMock port]).andForwardToRealObject();
 
   dispatch_sync(testQueue, ^{
-    XCTAssertNil([EDOHostService serviceForCurrentQueue]);
+    XCTAssertNil([EDOHostService serviceForCurrentOriginatingQueue]);
     // eDO will wrap the block into a remote object which would create a temporary service.
     // The service shouldn't initialize the listen socket (by calling -port), until it is later to
     // wrap the block object (by calling -distantObjectForLocalObject:hostPort:), in the
@@ -141,7 +193,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   OCMReject([(EDOHostService *)serviceMock port]);
 
   dispatch_sync(testQueue, ^{
-    XCTAssertNil([EDOHostService serviceForCurrentQueue]);
+    XCTAssertNil([EDOHostService serviceForCurrentOriginatingQueue]);
     // Whether eDO creates a temporary service or not, it shouldn't initialize the listen socket by
     // calling -port.
     [dummyOnBackground voidWithInt:0];
