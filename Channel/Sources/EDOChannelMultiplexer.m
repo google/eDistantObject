@@ -50,7 +50,7 @@ static const int64_t kEDOGetChannelTimeout = 5 * NSEC_PER_SEC;
   _listenSocket = [EDOSocket
       listenWithTCPPort:port.port
                   queue:nil
-         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *serviceError) {
+         connectedBlock:^(EDOSocket *socket, NSError *serviceError) {
            EDOSocketChannel *channel = [EDOSocketChannel channelWithSocket:socket];
 
            // Sends the deviceIdentifier to ACK the connection.

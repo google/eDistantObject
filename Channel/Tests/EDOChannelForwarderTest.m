@@ -246,7 +246,7 @@
   return [EDOSocket
       listenWithTCPPort:0
                   queue:nil
-         connectedBlock:^(EDOSocket *socket, UInt16 _, NSError *error) {
+         connectedBlock:^(EDOSocket *socket, NSError *error) {
            EDOSocketChannel *channel = [EDOSocketChannel channelWithSocket:socket];
            [channel receiveDataWithHandler:^(id<EDOChannel> _, NSData *data, NSError *error) {
              [channel sendData:data withCompletionHandler:nil];
@@ -264,7 +264,7 @@
     dispatch_semaphore_t waitConnect = dispatch_semaphore_create(0);
     [EDOSocket connectWithTCPPort:port.port
                             queue:nil
-                   connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                   connectedBlock:^(EDOSocket *socket, NSError *error) {
                      if (!socket.valid) {
                        return;
                      }
@@ -284,16 +284,8 @@
 - (EDOMultiplexerConnectBlock)multiplexerConnectBlock {
   UInt16 port = _multiplexer.port.port;
   return ^id<EDOChannel> {
-    __block id<EDOChannel> channel;
-    dispatch_semaphore_t waitConnect = dispatch_semaphore_create(0);
-    [EDOSocket connectWithTCPPort:port
-                            queue:nil
-                   connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
-                     channel = [EDOSocketChannel channelWithSocket:socket];
-                     dispatch_semaphore_signal(waitConnect);
-                   }];
-    dispatch_semaphore_wait(waitConnect, DISPATCH_TIME_FOREVER);
-    return channel;
+    EDOSocket *socket = [EDOSocket socketWithTCPPort:port queue:nil error:nil];
+    return [EDOSocketChannel channelWithSocket:socket];
   };
 }
 

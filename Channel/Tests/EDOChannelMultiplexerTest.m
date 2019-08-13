@@ -257,7 +257,7 @@
   UInt16 portNumber = port.port;
   __block id<EDOChannel> channel;
   dispatch_semaphore_t waitConnect = dispatch_semaphore_create(0);
-  EDOSocketConnectedBlock block = ^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+  EDOSocketConnectedBlock block = ^(EDOSocket *socket, NSError *error) {
     channel = [EDOSocketChannel channelWithSocket:socket];
     if (handShaked) {
       [channel receiveDataWithHandler:^(id<EDOChannel> _, NSData *data, NSError *error) {

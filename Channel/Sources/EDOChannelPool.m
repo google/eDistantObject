@@ -129,8 +129,8 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 #pragma mark - Private
 
 - (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
-  __block id<EDOChannel> channel;
-  __block NSError *connectionError;
+  id<EDOChannel> channel;
+  NSError *connectionError;
   if (port.deviceSerialNumber) {
     dispatch_io_t deviceChannel =
         [EDODeviceConnector.sharedConnector connectToDevice:port.deviceSerialNumber
@@ -140,17 +140,10 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
       channel = [[EDOSocketChannel alloc] initWithDispatchIO:deviceChannel];
     }
   } else {
-    dispatch_semaphore_t lock = dispatch_semaphore_create(0);
-    [EDOSocket connectWithTCPPort:port.port
-                            queue:nil
-                   connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *socketError) {
-                     if (socket) {
-                       channel = [EDOSocketChannel channelWithSocket:socket];
-                     }
-                     connectionError = socketError;
-                     dispatch_semaphore_signal(lock);
-                   }];
-    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
+    EDOSocket *socket = [EDOSocket socketWithTCPPort:port.port queue:nil error:&connectionError];
+    if (socket) {
+      channel = [EDOSocketChannel channelWithSocket:socket];
+    }
   }
   if (error) {
     *error = connectionError;
@@ -166,7 +159,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
   _serviceRegistrationSocket = [EDOSocket
       listenWithTCPPort:0
                   queue:_serviceConnectionQueue
-         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *serviceError) {
+         connectedBlock:^(EDOSocket *socket, NSError *serviceError) {
            if (serviceError) {
              // Only log the error for now, it is fine to ignore any error for the incoming
              // connection as the eDO will continue to function without this setup.

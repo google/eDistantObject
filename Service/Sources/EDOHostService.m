@@ -440,7 +440,7 @@ static const char kEDOExecutingQueueKey = '\0';
   __weak EDOHostService *weakSelf = self;
   return [EDOSocket listenWithTCPPort:port
                                 queue:nil
-                       connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                       connectedBlock:^(EDOSocket *socket, NSError *error) {
                          EDOHostService *strongSelf = weakSelf;
                          if (!strongSelf) {
                            // TODO(haowoo): Add more info to the response when the service becomes

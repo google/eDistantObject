@@ -122,7 +122,7 @@
   XCTestExpectation *expectation = [self expectationWithDescription:@"HostChannelSetupExpectation"];
   [EDOSocket connectWithTCPPort:serviceConnectionPort
                           queue:dispatch_get_main_queue()
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    hostChannel = [EDOSocketChannel channelWithSocket:socket];
                    NSData *data = [dummyServiceName dataUsingEncoding:NSUTF8StringEncoding];
                    [hostChannel sendData:data

@@ -25,9 +25,8 @@
 #include <sys/un.h>
 
 // The 'nil' completion block that does nothing.
-static EDOSocketConnectedBlock gNoOpHandlerBlock =
-    ^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
-    };
+static EDOSocketConnectedBlock gNoOpHandlerBlock = ^(EDOSocket *socket, NSError *error) {
+};
 
 #pragma mark - Socket help functions
 /**
@@ -61,7 +60,7 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
                                                     EDOSocketConnectedBlock block) {
   if (block) {
     dispatch_async(queue, ^{
-      block(nil, 0, [NSError errorWithDomain:NSPOSIXErrorDomain code:code userInfo:nil]);
+      block(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:code userInfo:nil]);
     });
   }
 }
@@ -73,6 +72,26 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
 }
 
 @dynamic valid;
+
++ (nullable instancetype)socketWithTCPPort:(UInt16)port
+                                     queue:(dispatch_queue_t _Nullable)queue
+                                     error:(NSError *_Nullable *_Nullable)error {
+  __block EDOSocket *connectedSocket;
+  __block NSError *connectionError;
+  dispatch_semaphore_t waitLock = dispatch_semaphore_create(0);
+  [self connectWithTCPPort:port
+                     queue:queue
+            connectedBlock:^(EDOSocket *socket, NSError *socketError) {
+              connectedSocket = socket;
+              connectionError = socketError;
+              dispatch_semaphore_signal(waitLock);
+            }];
+  dispatch_semaphore_wait(waitLock, DISPATCH_TIME_FOREVER);
+  if (error) {
+    *error = connectionError;
+  }
+  return connectedSocket;
+}
 
 - (instancetype)initWithSocket:(dispatch_fd_t)socket {
   self = [super init];
@@ -166,7 +185,7 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
       // https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/NetworkingOverview/CommonPitfalls/CommonPitfalls.html
       int on = 1;
       setsockopt(socketFD, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
-      block([EDOSocket socketWithSocket:socketFD], port, nil);
+      block([EDOSocket socketWithSocket:socketFD], nil);
     }
 
     // Once connected, we don't need this source any more; so we don't track this internally.
@@ -228,14 +247,13 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
     return nil;
   }
 
-  return [EDOListenSocket
-      listenSocketWithSocket:socketFD
-              connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
-                // dispatch the block to the user's queue
-                dispatch_async(queue, ^{
-                  block(socket, listenPort, nil);
-                });
-              }];
+  return [EDOListenSocket listenSocketWithSocket:socketFD
+                                  connectedBlock:^(EDOSocket *socket, NSError *error) {
+                                    // dispatch the block to the user's queue
+                                    dispatch_async(queue, ^{
+                                      block(socket, nil);
+                                    });
+                                  }];
 }
 
 @end

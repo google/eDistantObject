@@ -18,7 +18,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class EDOSocket;
 @class EDOSocketPort;
+
+/**
+ *  @typedef EDOSocketConnectedBlock
+ *  The completion block for when the connection is established.
+ *
+ *  @param socket     The established socket, it is nil if any error occurs.
+ *  @param error      The error why the socket fails to create if there is any.
+ */
+typedef void (^EDOSocketConnectedBlock)(EDOSocket *_Nullable socket, NSError *_Nullable error);
 
 /**
  *  The opaque socket wrapper used to create a socket channel.
@@ -40,15 +50,29 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) EDOSocketPort *socketPort;
 
 /**
- *  @typedef EDOSocketConnectedBlock
- *  The completion block for when the connection is established.
+ *  Connects to localhost on the given port asynchronously.
  *
- *  @param socket     The established socket, it is nil if any error occurs.
- *  @param listenPort The listen port that the socket is connected to.
- *  @param error      The error why the socket fails to create if there is any.
+ *  @param port  The port number.
+ *  @param queue The queue where the completion block will be dispatched to. If @c nil, it creates a
+ *               serial queue.
+ *  @param block The block to be invoked after the connection is established.
  */
-typedef void (^EDOSocketConnectedBlock)(EDOSocket *_Nullable socket, UInt16 listenPort,
-                                        NSError *_Nullable error);
++ (void)connectWithTCPPort:(UInt16)port
+                     queue:(dispatch_queue_t _Nullable)queue
+            connectedBlock:(EDOSocketConnectedBlock _Nullable)block;
+
+/**
+ *  Creates a socket that connects to the given port synchronously.
+ *
+ *  @param port  The port number.
+ *  @param queue The queue where the completion block will be dispatched to. If @c nil, it creates a
+ *               serial queue.
+ *  @param error The error if it fails to connect.
+ *  @return An instance of @c EDOSocket that connects to the given port, @c nil if failed.
+ */
++ (nullable instancetype)socketWithTCPPort:(UInt16)port
+                                     queue:(dispatch_queue_t _Nullable)queue
+                                     error:(NSError *_Nullable *_Nullable)error;
 
 /**
  *  Init with a socket descriptor.
@@ -82,21 +106,6 @@ typedef void (^EDOSocketConnectedBlock)(EDOSocket *_Nullable socket, UInt16 list
 
 /** Invalidate by closing its associated socket file descriptor. */
 - (void)invalidate;
-
-/**
- *  Connect to localhost on the given port.
- *
- *  This is an asynchronous call. The established endpoint is returned in the completion block to be
- *  used for creating the @c EDOSocketChannel.
- *
- *  @param port  The port number.
- *  @param queue The queue where the completion block will be dispatched to. If @c nil, it creates a
- *               serial queue.
- *  @param block The block that will be called once the connection is established.
- */
-+ (void)connectWithTCPPort:(UInt16)port
-                     queue:(dispatch_queue_t _Nullable)queue
-            connectedBlock:(EDOSocketConnectedBlock _Nullable)block;
 
 /**
  *  Create a @c EDOSocket listening on the given port.

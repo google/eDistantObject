@@ -39,7 +39,7 @@
   // Test if the connection completes.
   [EDOSocket connectWithTCPPort:host.socketPort.port
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    XCTAssertEqualObjects(socket.socketPort.IPAddress, @"127.0.0.1");
                    XCTAssertNil(error);
                    [expectConnected fulfill];
@@ -53,11 +53,10 @@
 
 - (void)testConnectHostError {
   // Create a listen socket and invalidate it so no one can connect to it.
-  EDOSocket *host =
-      [EDOSocket listenWithTCPPort:0
-                             queue:nil
-                    connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error){
-                    }];
+  EDOSocket *host = [EDOSocket listenWithTCPPort:0
+                                           queue:nil
+                                  connectedBlock:^(EDOSocket *socket, NSError *error){
+                                  }];
   XCTAssertNotEqual(host.socketPort.port, 0);
   XCTAssertEqualObjects(host.socketPort.IPAddress, @"127.0.0.1");
   [host invalidate];
@@ -72,7 +71,7 @@
       [self expectationWithDescription:@"Failed to connect to the host"];
   [EDOSocket connectWithTCPPort:host.socketPort.port
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    XCTAssertNil(socket);
                    XCTAssertEqualObjects(error.domain, NSPOSIXErrorDomain);
                    XCTAssertEqual(error.code, ECONNREFUSED);
@@ -93,7 +92,7 @@
   // Test if the connection completes.
   [EDOSocket connectWithTCPPort:1234
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    XCTAssertEqualObjects(socket.socketPort.IPAddress, @"127.0.0.1");
                    XCTAssertNil(error);
                    [expectConnected fulfill];
@@ -112,7 +111,7 @@
   XCTestExpectation *expectError = [self expectationWithDescription:@"Connection is rejected"];
   [EDOSocket connectWithTCPPort:1234
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    XCTAssertNotNil(error);
                    [expectError fulfill];
                  }];
@@ -125,7 +124,7 @@
   NS_VALID_UNTIL_END_OF_SCOPE EDOSocket *host = [EDOSocket
       listenWithTCPPort:0
                   queue:nil
-         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *err) {
+         connectedBlock:^(EDOSocket *socket, NSError *err) {
            remoteClient = [EDOSocketChannel channelWithSocket:socket];
            [expectConnected fulfill];
 
@@ -165,7 +164,7 @@
   NS_VALID_UNTIL_END_OF_SCOPE EDOSocket *host =
       [EDOSocket listenWithTCPPort:0
                              queue:nil
-                    connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                    connectedBlock:^(EDOSocket *socket, NSError *error) {
                       [expectIncoming fulfill];
                       EDOSocketChannel *client = [EDOSocketChannel channelWithSocket:socket];
                       [client sendData:replyHugeData withCompletionHandler:nil];
@@ -176,7 +175,7 @@
   NSMutableArray<NSData *> *receivedData = [[NSMutableArray alloc] init];
   [EDOSocket connectWithTCPPort:host.socketPort.port
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    [expectConnected fulfill];
                    XCTAssertNil(error);
                    // Holds it until received the data.
@@ -211,7 +210,7 @@
   NS_VALID_UNTIL_END_OF_SCOPE EDOSocket *host = [EDOSocket
       listenWithTCPPort:0
                   queue:nil
-         connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+         connectedBlock:^(EDOSocket *socket, NSError *error) {
            [expectIncoming fulfill];
            EDOSocketChannel *client = [EDOSocketChannel channelWithSocket:socket];
            [client receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data, NSError *error) {
@@ -228,7 +227,7 @@
   // Connect to the host and send the data
   [EDOSocket connectWithTCPPort:host.socketPort.port
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    [expectConnected fulfill];
                    XCTAssertNil(error);
 
@@ -258,7 +257,7 @@
   // Test if the connection completes.
   [EDOSocket connectWithTCPPort:host.socketPort.port
                           queue:nil
-                 connectedBlock:^(EDOSocket *socket, UInt16 listenPort, NSError *error) {
+                 connectedBlock:^(EDOSocket *socket, NSError *error) {
                    [expectConnected fulfill];
                    remoteConn = [EDOSocketChannel channelWithSocket:socket];
                    [remoteConn receiveDataWithHandler:^(id<EDOChannel> channel, NSData *data,

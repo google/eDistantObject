@@ -60,7 +60,7 @@ static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
     while (nconns > 0) {
       EDOSocket *socket = [strongSelf accept:socketFD];
       if (socket) {
-        block(socket, socket.socketPort.port, nil);
+        block(socket, nil);
       }
       --nconns;
     }
