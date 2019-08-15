@@ -42,6 +42,12 @@ NS_ASSUME_NONNULL_BEGIN
 /** The device serial number string. @c nil if the connection is not to a physical iOS device. */
 @property(readonly, nonatomic, nullable) NSString *deviceSerialNumber;
 
+/** Whether to require a multiplexer to connect to the destination. */
+@property(readonly, nonatomic) BOOL requiresMultiplexer;
+
+/** Whether to require to connect to usbmuxd for the device connections. */
+@property(readonly, nonatomic) BOOL connectsDevice;
+
 /** The data representation of the host port. */
 @property(readonly, nonatomic) NSData *data;
 

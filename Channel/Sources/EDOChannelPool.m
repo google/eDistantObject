@@ -131,7 +131,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 - (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
   id<EDOChannel> channel;
   NSError *connectionError;
-  if (port.deviceSerialNumber) {
+  if (port.connectsDevice) {
     dispatch_io_t deviceChannel =
         [EDODeviceConnector.sharedConnector connectToDevice:port.deviceSerialNumber
                                                      onPort:port.port

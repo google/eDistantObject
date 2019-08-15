@@ -16,6 +16,11 @@
 
 #import "Channel/Sources/EDOHostPort.h"
 
+#import <TargetConditionals.h>
+
+/** The device identifer for the host that @c EDOHostPort targets to . */
+static NSString *const kEDOHostPortHostIdentifier = @"host";
+
 static NSString *const kEDOHostPortCoderPortKey = @"port";
 static NSString *const kEDOHostPortCoderNameKey = @"serviceName";
 static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
@@ -74,7 +79,27 @@ typedef struct EDOHostPortData_s {
   if (self) {
     _port = port;
     _name = name;
-    _deviceSerialNumber = [deviceSerialNumber copy];
+    // The deviceSerialNumber identifies whether it is on a real device or a host device:
+    // 1) If @c deviceSerialNumber is not given or @c nil, then it targets to the local host;
+    // 2) If @c deviceSerialNumber is "host", then it targets to the mac host and requires the
+    //    multiplexer to connect if it runs on a real device;
+    // 3) If @c deviceSerialNumber is neither @c nil nor "host", then it targets to a real device
+    //    UUID.
+    // TODO(haowoo): This should be renamed to deviceUUID or deviceIdentifier.
+    if (deviceSerialNumber) {
+      _deviceSerialNumber = [deviceSerialNumber copy];
+    } else {
+      if (@available(macOS 10.10, *)) {
+        _deviceSerialNumber = kEDOHostPortHostIdentifier;
+      } else if (@available(iOS 2.0, *)) {
+#if TARGET_OS_SIMULATOR
+        // The simulator is running on the mac host and considered to be a host destination.
+        _deviceSerialNumber = kEDOHostPortHostIdentifier;
+#else
+        _deviceSerialNumber = nil;
+#endif
+      }
+    }
   }
   return self;
 }
@@ -83,6 +108,10 @@ typedef struct EDOHostPortData_s {
   self = [super init];
   if (self) {
     const char *bytes = data.bytes;
+    if (!bytes) {
+      return nil;
+    }
+
     const EDOHostPortData_t *header = data.bytes;
     if (header->size != data.length || header->nameOffset != sizeof(EDOHostPortData_t) ||
         header->serialOffset > data.length) {
@@ -124,6 +153,30 @@ typedef struct EDOHostPortData_s {
   return [NSString stringWithFormat:@"EDOHostPort (%@) with port (%d) and serial number (%@)",
                                     self.name ?: @"no name", self.port,
                                     self.deviceSerialNumber ?: @"no serial"];
+}
+
+- (BOOL)requiresMultiplexer {
+#if TARGET_OS_SIMULATOR || TARGET_OS_MAC
+  // We never need a multiplexer on the host as we can connect to any device from the host.
+  return NO;
+#else
+  // If we are running on the real device, we can only check if the port is targeting to a host,
+  // for others, we will only assume it's from the same device as we don't exchange the device info
+  // with other devices and processes, and we currently can't tell if the deviceIdentifier is
+  // coming from the same device or other device.
+  return [self.deviceSerialNumber isEqualToString:kEDOHostPortHostIdentifier];
+#endif
+}
+
+- (BOOL)connectsDevice {
+#if TARGET_OS_SIMULATOR || TARGET_OS_MAC
+  // @c YES if we have a serial number and it targets to a device UUID, not a host.
+  return self.deviceSerialNumber &&
+         ![self.deviceSerialNumber isEqualToString:kEDOHostPortHostIdentifier];
+#else
+  // If we are running on the real device, we can't connect to the device directly.
+  return NO;
+#endif
 }
 
 #pragma mark - Object Equality
