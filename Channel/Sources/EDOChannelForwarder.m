@@ -55,7 +55,7 @@ static EDOChannelReceiveHandler GetForwarderReceiveHandler(id<EDOChannel> multip
     // The forwarded host closes or errors.
     if (error || !data) {
       [multiplexerChannel invalidate];
-      errorHandler(EDOForwarderErrorMultiplerxerClosed);
+      errorHandler(EDOForwarderErrorForwardedChannelClosed);
       return;
     }
 
@@ -139,12 +139,14 @@ static EDOChannelReceiveHandler GetForwarderReceiveHandler(id<EDOChannel> multip
   EDOChannelReceiveHandler portHandler = ^(id<EDOChannel> channel, NSData *data, NSError *error) {
     if (error || !data) {
       errorHandler(EDOForwarderErrorPortSerialization);
+      return;
     }
     EDOHostPort *hostPort = data ? [[EDOHostPort alloc] initWithData:data] : nil;
     if (!hostPort) {
       // Close the channel for invalid port data.
       [channel invalidate];
       errorHandler(EDOForwarderErrorPortSerialization);
+      return;
     }
 
     id<EDOChannel> forwardChannel = hostConnectBlock(hostPort);
