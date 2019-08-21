@@ -23,9 +23,11 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOWeakObject.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
+#import "Service/Sources/NSObject+EDOValue.h"
 
 // Box the value type directly into NSValue, the other types into a EDOObject, and the nil value.
 #define BOX_VALUE(__value, __target, __service, __hostPort)                               \
@@ -45,8 +47,19 @@ static NSString *const kEDOInvocationCoderReturnValueKey = @"returnValue";
 static NSString *const kEDOInvocationCoderOutValuesKey = @"outValues";
 static NSString *const kEDOInvocationCoderExceptionKey = @"exception";
 
+/** The list of method families that should retain the returned object. */
+typedef NS_ENUM(NSUInteger, EDOMethodFamily) {
+  EDOMethodFamilyNone,
+  EDOMethodFamilyAlloc,
+  EDOMethodFamilyCopy,
+  EDOMethodFamilyNew,
+  EDOMethodFamilyMutableCopy,
+};
+
 /** A struct representing an Objective-C method family. */
 typedef struct MethodFamily {
+  /** The method family type. */
+  EDOMethodFamily family;
   /** The prefix identifying the method family. */
   const char *prefix;
   /** The length of the prefix of the method family. */
@@ -54,25 +67,29 @@ typedef struct MethodFamily {
 } MethodFamily;
 
 /** The helper macro to define a @c MethodFamily above. */
-#define METHOD_FAMILY(__str) ((MethodFamily){.prefix = (__str), .length = sizeof(__str) - 1})
+#define METHOD_FAMILY(__family, __str) \
+  ((MethodFamily){.family = (__family), .prefix = (__str), .length = sizeof(__str) - 1})
 
 /** The methods family that should retain the returned object. */
 const MethodFamily kRetainReturnsMethodsFamily[] = {
-    METHOD_FAMILY("alloc"),
-    METHOD_FAMILY("copy"),
-    METHOD_FAMILY("new"),
-    METHOD_FAMILY("mutableCopy"),
+    METHOD_FAMILY(EDOMethodFamilyAlloc, "alloc"),
+    METHOD_FAMILY(EDOMethodFamilyCopy, "copy"),
+    METHOD_FAMILY(EDOMethodFamilyNew, "new"),
+    METHOD_FAMILY(EDOMethodFamilyMutableCopy, "mutableCopy"),
 };
 
 /**
- *  Check if the method belongs to the ns_returns_retained family.
+ *  Gets the family type of the method belonging to the ns_returns_retained family.
  *
  *  More info here:
  *  https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values.
+ *
+ *  @param methodName The method name.
+ *  @return The method family type.
  */
-static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
+static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
   if (!methodName) {
-    return NO;
+    return EDOMethodFamilyNone;
   }
 
   /**
@@ -93,8 +110,9 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
   // the ns_returns_retained attribute.
   BOOL matchesMethodFamily = NO;
   int familySize = sizeof(kRetainReturnsMethodsFamily) / sizeof(kRetainReturnsMethodsFamily);
-  for (int i = 0; i < familySize; i++) {
-    MethodFamily family = kRetainReturnsMethodsFamily[i];
+  int methodIdx = 0;
+  for (; methodIdx < familySize; methodIdx++) {
+    MethodFamily family = kRetainReturnsMethodsFamily[methodIdx];
     if (strncmp(methodName, family.prefix, family.length) == 0) {
       methodName += family.length;
       matchesMethodFamily = YES;
@@ -103,11 +121,15 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
   }
 
   if (!matchesMethodFamily) {
-    return NO;
+    return EDOMethodFamilyNone;
   }
 
   // It should end or be followed by a character other than a lowercase letter.
-  return *methodName == '\0' || !islower(*methodName);
+  if (*methodName == '\0' || !islower(*methodName)) {
+    return kRetainReturnsMethodsFamily[methodIdx].family;
+  } else {
+    return EDOMethodFamilyNone;
+  }
 }
 
 #pragma mark - EDOInvocationRequest extension
@@ -152,7 +174,8 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
     _returnValue = value;
     _exception = exception;
     _outValues = outValues;
-    _returnRetained = CheckIfMethodRetainsReturn(request.selectorName.UTF8String);
+    _returnRetained =
+        MethodTypeOfRetainsReturn(request.selectorName.UTF8String) != EDOMethodFamilyNone;
   }
   return self;
 }
@@ -365,13 +388,37 @@ static BOOL CheckIfMethodRetainsReturn(const char *methodName) {
         if (EDO_IS_OBJECT_OR_CLASS(returnType)) {
           id __unsafe_unretained obj;
           [invocation getReturnValue:&obj];
-          returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
-                                              : BOX_VALUE(obj, nil, service, hostPort);
-          if (CheckIfMethodRetainsReturn(request.selectorName.UTF8String)) {
+          EDOMethodFamily family = MethodTypeOfRetainsReturn(request.selectorName.UTF8String);
+          if (family == EDOMethodFamilyAlloc &&
+              (request.returnByValue || [obj edo_isEDOValueType])) {
+            // We cannot serialize and deserialize the result from +alloc as it is not properly
+            // initialized yet.
+            NSString *reason =
+                [NSString stringWithFormat:@"Attempting to pass the result from +alloc method "
+                                            "family (%@) by value for the target (%@).",
+                                           request.selectorName, target];
+            invocationException = [NSException exceptionWithName:EDOServiceAllocValueTypeException
+                                                          reason:reason
+                                                        userInfo:nil];
+            returnValue = nil;
+          } else {
+            returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
+                                                : BOX_VALUE(obj, nil, service, hostPort);
+          }
+          if (family != EDOMethodFamilyNone) {
             // We need to do an extra release here because the method return is not autoreleased,
             // and because the invocation is dynamically created, ARC won't insert an extra release
             // for us.
-            CFBridgingRelease((__bridge void *)obj);
+            if (invocationException) {
+              // We send this to autorelease pool so it can live for another cycle before the actual
+              // exception is propagated to the client. For example, if the result from +alloc will
+              // get dealloc, and it can crash because -init is not invoked yet, the crash in
+              // -dealloc may override our EDO crash, to display a partial information to the
+              // client.
+              CFAutorelease((__bridge void *)obj);
+            } else {
+              CFBridgingRelease((__bridge void *)obj);
+            }
           }
         } else if (EDO_IS_POINTER(returnType)) {
           // TODO(haowoo): Handle this early and populate the exception.

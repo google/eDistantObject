@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOServiceException.h"
 
 NSExceptionName const EDOServiceGenericException = @"EDOServiceGenericException";
+NSExceptionName const EDOServiceAllocValueTypeException = @"EDOServiceAllocValueTypeException";
 NSExceptionName const EDOWeakObjectRemoteWeakMisuseException =
     @"EDOWeakObjectRemoteWeakMisuseException";
 NSExceptionName const EDOWeakObjectWeakReleaseException = @"EDOWeakReleasedException";

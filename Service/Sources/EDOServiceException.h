@@ -21,6 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 /** The generic eDO service exception, usually containing an embedded NSError object. */
 FOUNDATION_EXPORT NSExceptionName const EDOServiceGenericException;
 
+/** The value type exception when -alloc is invoked on a value type. */
+FOUNDATION_EXPORT NSExceptionName const EDOServiceAllocValueTypeException;
+
 /** The remoteWeak interface misuse exception, usually used in NSException. */
 FOUNDATION_EXPORT NSExceptionName const EDOWeakObjectRemoteWeakMisuseException;
 

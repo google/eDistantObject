@@ -75,6 +75,15 @@
   XCTAssertEqual(testDummy3.value, 30);
 }
 
+- (void)testAllocRemoteValueType {
+  XCTAssertThrowsSpecificNamed([[EDO_REMOTE_CLASS(NSData, EDOTEST_APP_SERVICE_PORT) alloc] init],
+                               NSException, EDOServiceAllocValueTypeException);
+  XCTAssertThrowsSpecificNamed(
+      [[EDO_REMOTE_CLASS(EDOTestDummy, EDOTEST_APP_SERVICE_PORT) returnByValue] alloc], NSException,
+      EDOServiceAllocValueTypeException);
+  XCTAssertNoThrow([EDO_REMOTE_CLASS(NSData, EDOTEST_APP_SERVICE_PORT) data]);
+}
+
 // Test that the remote objects are resolved to be local objects if they are coming back to their
 // origin.
 - (void)testEDOResolveToLocalAddress {
