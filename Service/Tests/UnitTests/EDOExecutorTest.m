@@ -122,6 +122,58 @@
   [self waitForExpectationsWithTimeout:0.1 * numRuns handler:nil];
 }
 
+- (void)testSendRequestWithNestedExecutorProcessingStressfully {
+  NS_VALID_UNTIL_END_OF_SCOPE dispatch_queue_t queue = [self testQueue];
+  XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
+  const NSInteger numThreadsHighQos = 6;
+  const NSInteger numThreadsLowQos = 3;
+  const NSInteger numRuns = 100;
+  expectFinish.expectedFulfillmentCount = numThreadsHighQos + numThreadsLowQos;
+
+  __block void (^handlerBlock)(void);
+  EDORequestHandler handler =
+      ^EDOServiceResponse *(EDOServiceRequest *request, id _Nullable context) {
+    handlerBlock();
+    return [[EDOServiceResponse alloc] initWithMessageID:request.messageID];
+  };
+  EDOExecutor *executor = [EDOExecutor executorWithHandlers:@{@"EDOServiceRequest" : handler}
+                                                      queue:queue];
+  handlerBlock = ^{
+    [executor runWithBlock:^{
+    }];
+  };
+
+  EDOServiceRequest *testRequest = [[EDOServiceRequest alloc] init];
+  dispatch_async(queue, ^{
+    [executor runWithBlock:^{
+      dispatch_group_t requestsGroup = dispatch_group_create();
+      for (NSInteger i = 0; i < numThreadsHighQos; ++i) {
+        dispatch_group_enter(requestsGroup);
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+          for (NSInteger j = 0; j < numRuns; ++j) {
+            [executor handleRequest:testRequest context:nil];
+          }
+          dispatch_group_leave(requestsGroup);
+          [expectFinish fulfill];
+        });
+      }
+      for (NSInteger i = 0; i < numThreadsLowQos; ++i) {
+        dispatch_group_enter(requestsGroup);
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+          for (NSInteger j = 0; j < numRuns; ++j) {
+            [executor handleRequest:testRequest context:nil];
+          }
+          dispatch_group_leave(requestsGroup);
+          [expectFinish fulfill];
+        });
+      }
+      dispatch_group_wait(requestsGroup, DISPATCH_TIME_FOREVER);
+    }];
+  });
+  [self waitForExpectationsWithTimeout:0.1 * numRuns * (numThreadsHighQos + numThreadsLowQos)
+                               handler:nil];
+}
+
 #pragma mark - Test helper methods
 
 /** Create an executor to handle an EDOServiceResponse. */

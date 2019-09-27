@@ -23,8 +23,8 @@
 #import "Service/Sources/EDOTimingFunctions.h"
 
 @interface EDOExecutor ()
-// The message queue to process the requests and responses.
-@property EDOBlockingQueue<EDOExecutorMessage *> *messageQueue;
+// The message queues to process the requests that are attached to this executor.
+@property NSMutableArray<EDOBlockingQueue<EDOExecutorMessage *> *> *messageQueueStack;
 // The isolation queue for synchronization.
 @property(readonly) dispatch_queue_t isolationQueue;
 @end
@@ -51,6 +51,7 @@
     _isolationQueue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
     _executionQueue = queue;
     _requestHandlers = handlers;
+    _messageQueueStack = [[NSMutableArray alloc] init];
   }
   return self;
 }
@@ -63,7 +64,7 @@
   // Set the message queue to process the request that will be received and dispatched to this
   // queue while waiting for the response to come back.
   dispatch_sync(self.isolationQueue, ^{
-    self.messageQueue = messageQueue;
+    [self.messageQueueStack addObject:messageQueue];
   });
 
   // Schedule the handler in the background queue so it won't block the current thread. After the
@@ -86,17 +87,15 @@
     // not ready to process
 
     [self edo_handleMessage:message];
-
-    // Reset the message queue in case that the nested invocation in -[edo_handleMessage:] clears
-    // it after its handling.
-    // Note: We only need to make sure the message queue can process any nested request, which shall
-    //       come before the response is received. If any request comes after the response is
-    //       received, this request will be dispatched async'ly.
-    dispatch_sync(self.isolationQueue, ^{
-      self.messageQueue = messageQueue;
-    });
   }
 
+  dispatch_sync(self.isolationQueue, ^{
+    // If messageQueue has not been popped out from stack yet, pop it out here to avoid memleak.
+    NSMutableArray<EDOBlockingQueue<EDOExecutorMessage *> *> *stack = self.messageQueueStack;
+    if (stack.lastObject == messageQueue) {
+      [stack removeLastObject];
+    }
+  });
   NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
 }
 
@@ -108,29 +107,41 @@
            @"Only enqueue a request from a non-tracked queue.");
 #pragma clang diagnostic pop
 
-  __block BOOL messageHandled = YES;
   EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request service:context];
-  dispatch_sync(self.isolationQueue, ^{
-    EDOBlockingQueue<EDOExecutorMessage *> *messageQueue = self.messageQueue;
-    if (![messageQueue appendObject:message]) {
-      dispatch_queue_t executionQueue = self.executionQueue;
-      if (executionQueue) {
-        dispatch_async(self.executionQueue, ^{
-          [self edo_handleMessage:message];
-        });
-      } else {
-        messageHandled = NO;
-      }
+  if (![self enqueueMessage:message]) {
+    dispatch_queue_t executionQueue = self.executionQueue;
+    if (executionQueue) {
+      dispatch_async(self.executionQueue, ^{
+        [self edo_handleMessage:message];
+      });
+    } else {
+      NSAssert(NO, @"The message is not handled because the execution queue is already released.");
     }
-  });
-
-  // Assertion outside the dispatch queue in order to populate the exceptions.
-  NSAssert(messageHandled,
-           @"The message is not handled because the execution queue is already released.");
+  }
   return [message waitForResponse];
 }
 
 #pragma mark - Private
+
+/**
+ *  Append @c message to a message queue that will be executed on the execution queue.
+ *
+ *  @param message The message to be enqueued.
+ *
+ *  @return @c YES if message is enqueued to a message queue; @c NO if no message queue is
+ *          available.
+ */
+- (BOOL)enqueueMessage:(EDOExecutorMessage *)message {
+  __block BOOL messageEnqueued = NO;
+  dispatch_sync(self.isolationQueue, ^{
+    NSMutableArray<EDOBlockingQueue<EDOExecutorMessage *> *> *stack = self.messageQueueStack;
+    while (stack.count > 0 && ![stack.lastObject appendObject:message]) {
+      [stack removeLastObject];
+    }
+    messageEnqueued = stack.count > 0;
+  });
+  return messageEnqueued;
+}
 
 /** Handle the request and set the response for the @c message. */
 - (void)edo_handleMessage:(EDOExecutorMessage *)message {
