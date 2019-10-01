@@ -34,6 +34,9 @@ NS_ASSUME_NONNULL_BEGIN
 /** The port to identify the service. */
 @property(readonly, nonatomic) EDOServicePort *port;
 
+/** Whether the host service is up and running. */
+@property(readonly, nonatomic, getter=isValid) BOOL valid;
+
 /**
  *  The dispatch queues associated to remote invocations for wrapping parameters to remote objects.
  *

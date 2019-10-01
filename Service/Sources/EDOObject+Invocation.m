@@ -73,11 +73,13 @@
   // using this service.
   NS_VALID_UNTIL_END_OF_SCOPE EDOHostService *service =
       [EDOHostService serviceForCurrentOriginatingQueue];
+  BOOL useTemporaryService = NO;
 
   // If there is no host service created for the current queue, a temporary queue is created only
   // within this invocation scope.
   if (!service) {
     service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+    useTemporaryService = YES;
   }
 
   EDOInvocationRequest *request = [EDOInvocationRequest requestWithInvocation:invocation
@@ -85,10 +87,20 @@
                                                                      selector:selector
                                                                 returnByValue:returnByValue
                                                                       service:service];
+
+  EDOExecutor *executor = [EDOHostService serviceForCurrentExecutingQueue].executor;
+
+  // If we create a temp service, use it as the executor.
+  if (useTemporaryService && service.valid) {
+    NSAssert(!executor, @"The executor from the temporary service is conflicting with the executor "
+                        @"from the executing queue.");
+    executor = service.executor;
+  }
+
   EDOInvocationResponse *response =
       (EDOInvocationResponse *)[EDOClientService sendSynchronousRequest:request
                                                                  onPort:self.servicePort.hostPort
-                                                           withExecutor:service.executor];
+                                                           withExecutor:executor];
 
   if (response.exception) {
     // Populate the exception.

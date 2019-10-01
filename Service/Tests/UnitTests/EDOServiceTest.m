@@ -160,6 +160,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 
   EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  XCTAssertFalse(service.valid);
   id serviceMock = OCMPartialMock(service);
   [serviceMock setExpectationOrderMatters:YES];
   OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
@@ -177,6 +178,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
     [dummyOnBackground voidWithBlock:^{
     }];
   });
+  XCTAssertTrue(service.valid);
 
   OCMVerifyAll(serviceMock);
   [serviceMock stopMocking];

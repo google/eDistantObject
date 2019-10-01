@@ -218,6 +218,11 @@ static const char kEDOExecutingQueueKey = '\0';
 
   [self edo_removeServiceFromOriginatingQueues];
 
+  // Remove the service from the executing queue.
+  if (_executionQueue) {
+    dispatch_queue_set_specific(_executionQueue, &kEDOExecutingQueueKey, NULL, NULL);
+  }
+
   NSLog(@"The EDOHostService (%p) is invalidated on port %d", self, _port.hostPort.port);
 }
 
@@ -231,6 +236,10 @@ static const char kEDOExecutingQueueKey = '\0';
           _port.hostPort.port);
   }
   return _port;
+}
+
+- (BOOL)isValid {
+  return _listenSocket.valid;
 }
 
 - (dispatch_queue_t)executingQueue {
