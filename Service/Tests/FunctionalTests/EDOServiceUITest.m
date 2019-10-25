@@ -140,6 +140,31 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   [service invalidate];
 }
 
+- (void)testMultiplexInvocationStressfully {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  XCTAssertEqualObjects([remoteDummy class], NSClassFromString(@"EDOObject"));
+
+  const int kStressTestAttempts = 5;
+  const int kConcurrentNumber = 15;
+  EDOTestDummyInTest *dummy = [[EDOTestDummyInTest alloc] initWithValue:8];
+
+  for (int i = 0; i < kStressTestAttempts; ++i) {
+    XCTestExpectation *nestedCallExpectation =
+        [self expectationWithDescription:@"nested invocation completed."];
+    // The inner dispatch_apply performs actual stressful execution, and the test considers deadlock
+    // will happen if dispatch_apply cannot complete within the timeout.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      dispatch_apply(kConcurrentNumber, DISPATCH_APPLY_AUTO, ^(size_t iteration) {
+        [remoteDummy callBackToTest:dummy withValue:7];
+      });
+      [nestedCallExpectation fulfill];
+    });
+    [self waitForExpectations:@[ nestedCallExpectation ] timeout:5.f];
+  }
+}
+
 - (void)testDispatchAsyncEarlyReturn {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOHostService *service =
