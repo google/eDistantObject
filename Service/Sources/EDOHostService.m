@@ -334,7 +334,11 @@ static const char kEDOExecutingQueueKey = '\0';
 
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  __block NSObject *object NS_VALID_UNTIL_END_OF_SCOPE;
   dispatch_sync(_localObjectsSyncQueue, ^{
+    // Transfer the ownership of local object to the outer queue, where the object should be
+    // released.
+    object = self.localObjects[edoKey];
     [self.localObjects removeObjectForKey:edoKey];
   });
   return YES;
@@ -413,7 +417,14 @@ static const char kEDOExecutingQueueKey = '\0';
           // needed for this request. The request handler will process this request
           // properly in its own queue.
           if ([request class] == [EDOObjectReleaseRequest class]) {
-            [EDOObjectReleaseRequest requestHandler](request, strongSelf);
+            dispatch_queue_t executionQueue = strongSelf.executionQueue;
+            if (executionQueue) {
+              dispatch_async(executionQueue, ^{
+                [EDOObjectReleaseRequest requestHandler](request, weakSelf);
+              });
+            } else {
+              [EDOObjectReleaseRequest requestHandler](request, strongSelf);
+            }
           } else {
             // Health check for the channel.
             [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];

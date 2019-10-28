@@ -25,6 +25,7 @@
 @property NSNumber *value;
 @property EDOTestDummyInTest *dummyInTest;
 @property void (^block)(void);
+@property(nullable) void (^deallocHandlerBlock)(void);
 
 - (instancetype)initWithValue:(int)value;
 

@@ -39,6 +39,12 @@
   return self;
 }
 
+- (void)dealloc {
+  if (_deallocHandlerBlock) {
+    _deallocHandlerBlock();
+  }
+}
+
 - (int)callTestDummy:(EDOTestDummy *)dummy {
   return self.value.intValue + [dummy returnIdWithInt:10].value + 3;
 }
@@ -59,4 +65,5 @@
     self.block();
   }
 }
+
 @end

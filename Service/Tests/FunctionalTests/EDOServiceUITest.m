@@ -388,4 +388,33 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   XCTAssertEqualObjects(localClassName, @"EDOObject");
 }
 
+/** Tests local object is released on the execution queue if it is released by EDOHostService. */
+- (void)testLocalObjectReleaseOnHostExecutionQueue {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  __block EDOTestDummyInTest *dummy = [[EDOTestDummyInTest alloc] init];
+  __weak EDOTestDummyInTest *weakDummy = dummy;
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+
+  XCTestExpectation *expectation = [self expectationWithDescription:@"dummy is released on main."];
+  dummy.deallocHandlerBlock = ^{
+    XCTAssertTrue([NSThread isMainThread]);
+    [expectation fulfill];
+  };
+  dummy.block = ^{
+    dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      dummy = nil;
+    });
+  };
+
+  [remoteDummy returnPlus10AndAsyncExecuteBlock:dummy];
+  [self waitForExpectations:@[ expectation ] timeout:2.0f];
+  XCTAssertNil(weakDummy);
+
+  [service invalidate];
+}
+
 @end
