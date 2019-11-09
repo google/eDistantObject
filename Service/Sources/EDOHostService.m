@@ -428,7 +428,8 @@ static const char kEDOExecutingQueueKey = '\0';
           } else {
             // Health check for the channel.
             [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
-            EDOServiceResponse *response = [strongSelf.executor handleRequest:request context:self];
+            EDOServiceResponse *response = [strongSelf.executor handleRequest:request
+                                                                      context:strongSelf];
 
             NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
             [targetChannel sendData:responseData withCompletionHandler:nil];
