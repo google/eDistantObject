@@ -270,7 +270,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
 
       if (executor) {
         // if the current queue has a pending request, send it over.
-        [executor runWithBlock:^{
+        [executor loopWithBlock:^{
           responseData = [self sendRequestData:requestData withChannel:channel];
         }];
       } else {

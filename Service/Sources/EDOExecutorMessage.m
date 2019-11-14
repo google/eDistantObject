@@ -15,55 +15,42 @@
 //
 
 #import "Service/Sources/EDOExecutorMessage.h"
+#include <stdatomic.h>
 
 @implementation EDOExecutorMessage {
-  /** The response for the request. */
-  EDOServiceResponse *_response;
+  /** The execution block to be processed by the executor. */
+  void (^_executeBlock)(void);
+  /** The boolean to indicate if execution has started. */
+  atomic_flag _started;
+  /** The boolean to indicate if the message is handled. */
+  BOOL _completed;
   /** The lock to signal after the request is processed and response is sent. */
   dispatch_semaphore_t _waitLock;
-  /** The dispatch_once token to assign the response. */
-  dispatch_once_t _responseOnceToken;
 }
 
-+ (instancetype)messageWithRequest:(EDOServiceRequest *)request
-                           service:(EDOHostService *)service {
-  return [[self alloc] initWithRequest:request service:service];
-}
-
-+ (instancetype)emptyMessage {
-  return [[self alloc] initWithRequest:nil service:nil];
-}
-
-- (instancetype)initWithRequest:(EDOServiceRequest *)request
-                        service:(EDOHostService *)service {
+- (instancetype)initWithBlock:(void (^)(void))executeBlock {
   self = [super init];
   if (self) {
-    _request = request;
-    _service = service;
+    _executeBlock = executeBlock;
     _waitLock = dispatch_semaphore_create(0L);
   }
   return self;
 }
 
-- (BOOL)isEmpty {
-  return self.request == nil;
-}
-
-- (EDOServiceResponse *)waitForResponse {
-  if (!_response) {
+- (void)waitForCompletion {
+  if (!_completed) {
     dispatch_semaphore_wait(_waitLock, DISPATCH_TIME_FOREVER);
   }
-  return _response;
 }
 
-- (BOOL)assignResponse:(EDOServiceResponse *)response {
-  __block BOOL assigned = NO;
-  dispatch_once(&_responseOnceToken, ^{
-    self->_response = response;
-    assigned = YES;
+- (BOOL)executeBlock {
+  if (!atomic_flag_test_and_set(&_started)) {
+    self->_executeBlock();
+    self->_completed = YES;
     dispatch_semaphore_signal(self->_waitLock);
-  });
-  return assigned;
+    return YES;
+  };
+  return NO;
 }
 
 @end

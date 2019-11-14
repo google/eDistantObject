@@ -16,19 +16,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "Service/Sources/EDOServiceRequest.h"
-
 NS_ASSUME_NONNULL_BEGIN
 
-/** The request handlers from the class name to the handler block. */
-typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
-
 /**
- *  The executor to handle the requests.
+ *  The executor to handle other tasks while waiting for an asynchronous task to complete.
  *
- *  The executor is running a while-loop and handling the requests using the message queue. The
- *  closeHandler is used to close the message queue and thus stops the executor to run. When the
- *  request is to be handled by the executor, it will enqueue the request to the message queue,
+ *  The executor is running a while-loop and handling other tasks using the message queue. When a
+ *  task is to be handled by the executor, it will enqueue the task to the message queue,
  *  which will be picked up by the executor when it is running a while-loop; if it is not running
  *  a while-loop, it will be dispatch to the execution queue to process it.
  */
@@ -37,46 +31,39 @@ typedef NSDictionary<NSString *, EDORequestHandler> EDORequestHandlers;
 /** The dispatch queue to handle the request if it is not running. */
 @property(readonly, nonatomic, weak) dispatch_queue_t executionQueue;
 
-/** The request handlers. */
-@property(readonly, nonatomic) EDORequestHandlers *requestHandlers;
-
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Creates the executor with the given dispatch queue.
+ *  Initializes the executor with the given dispatch queue.
  *
  *  The executor will keep track of the dispatch queue weakly, and assigned itself to its context
  *  under the key "com.google.executorkey"; the dispatch queue holds its reference so it shares the
  *  same lifecycle as the queue (you can safely discard the returned value).
  *
  *  @remark If the dispatch queue is already assigned one executor, it will be replaced.
- *  @param handlers The request handler map.
  *  @param queue    The dispatch queue to associate with the executor.
  *
  *  @return The @c EDOExecutor associated with the dispatch queue.
  */
-+ (instancetype)executorWithHandlers:(EDORequestHandlers *)handlers
-                               queue:(nullable dispatch_queue_t)queue;
+- (instancetype)initWithQueue:(nullable dispatch_queue_t)queue NS_DESIGNATED_INITIALIZER;
 
 /**
- *  Runs the while-loop to handle requests from the message queue synchronously.
+ *  Runs the while-loop to handle exeuctions from EDOExecutor::handleBlock: until the execution
+ *  of @c excuteBlock completes.
  *
- *  @note The executor will continue to wait on the messages until the @c executeBlock is finished.
+ *  @note The executor keep waiting on the messages until the @c executeBlock is finished.
  *  @param executeBlock The block to execute in the background queue.
  */
-- (void)runWithBlock:(void (^)(void))executeBlock;
+- (void)loopWithBlock:(void (^)(void))executeBlock;
 
 /**
- *  Handles the request at once with the given context.
+ *  Attaches @c executeBlock for execution.
  *
  *  @note If the executor is running the while-loop, the request will be enqueued to process,
  *        or it will dispatch to the @c executionQueue to process.
- *  @param request The request to handle.
- *  @param context The context that will be passed to the handler along with the request.
- *
- *  @return The response for the given request.
+ *  @param executeBlock The block to be handled and executed.
  */
-- (EDOServiceResponse *)handleRequest:(EDOServiceRequest *)request context:(nullable id)context;
+- (void)handleBlock:(void (^)(void))executeBlock;
 
 @end
 

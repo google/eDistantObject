@@ -32,6 +32,7 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/EDOTimingFunctions.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
@@ -173,7 +174,7 @@ static const char kEDOExecutingQueueKey = '\0';
         dispatch_queue_create("com.google.edo.service.handlers", DISPATCH_QUEUE_SERIAL);
 
     _executionQueue = queue;
-    _executor = [EDOExecutor executorWithHandlers:self.class.handlers queue:queue];
+    _executor = [[EDOExecutor alloc] initWithQueue:queue];
 
     // Only creates the listen socket when the port is given or the root object is given so we need
     // to serve them at launch.
@@ -428,9 +429,19 @@ static const char kEDOExecutingQueueKey = '\0';
           } else {
             // Health check for the channel.
             [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
-            EDOServiceResponse *response = [strongSelf.executor handleRequest:request
-                                                                      context:strongSelf];
+            NSString *requestClassName = NSStringFromClass([request class]);
+            EDORequestHandler handler = EDOHostService.handlers[requestClassName];
+            __block EDOServiceResponse *response = nil;
+            if (handler) {
+              __weak EDOServiceRequest *weakRequest = request;
+              [strongSelf.executor handleBlock:^{
+                uint64_t currentTime = mach_absolute_time();
+                response = handler(weakRequest, weakSelf);
+                response.duration = EDOGetMillisecondsSinceMachTime(currentTime);
+              }];
+            }
 
+            response = response ?: [EDOErrorResponse unhandledErrorResponseForRequest:request];
             NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
             [targetChannel sendData:responseData withCompletionHandler:nil];
           }

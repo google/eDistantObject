@@ -27,37 +27,23 @@ NS_ASSUME_NONNULL_BEGIN
  *  The message being sent to the EDOExecutor to process.
  */
 @interface EDOExecutorMessage : NSObject
-/** The request to be processed by the executor. */
-@property(readonly, nonatomic, nullable) EDOServiceRequest *request;
-/** The service where the request is received from. */
-@property(readonly, nonatomic, nullable) EDOHostService *service;
-/** Whether the message has a request. */
-@property(readonly, nonatomic, getter=isEmpty) BOOL empty;
-
-/** Creates an instance of EDOExecutorMessage with the given request and service. */
-+ (instancetype)messageWithRequest:(nullable EDOServiceRequest *)request
-                           service:(nullable EDOHostService *)service;
-
-/** Creates an empty message that doesn't contain a request. */
-+ (instancetype)emptyMessage;
 
 - (instancetype)init NS_UNAVAILABLE;
 
-/** Initializes the message with the given request and service. */
-- (instancetype)initWithRequest:(nullable EDOServiceRequest *)request
-                        service:(nullable EDOHostService *)service NS_DESIGNATED_INITIALIZER;
+/** Initializes the message with the given execution block. */
+- (instancetype)initWithBlock:(void (^)(void))executeBlock NS_DESIGNATED_INITIALIZER;
 
-/** Waits infinitely until the response is set. */
-- (EDOServiceResponse *)waitForResponse;
+/** Waits infinitely until the message is handled. */
+- (void)waitForCompletion;
 
 /**
- *  Assigns the response and signals the wait thread if any thread is waiting.
+ * Invokes the execution block held by the message. Once it completes the invocation, the message
+ * will be marked as handled.
  *
- *  @param response The response for the message.
- *  @return YES if the response is assigned for the first time; NO otherwise.
- *  @note The response can only be assigned once and no new value will be applied afterwards.
+ * @return YES if the block is executed; NO otherwise.
+ * @note The block can only be executed once.
  */
-- (BOOL)assignResponse:(EDOServiceResponse *)response;
+- (BOOL)executeBlock;
 
 @end
 

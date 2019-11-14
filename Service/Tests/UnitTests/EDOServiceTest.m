@@ -21,7 +21,9 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -700,6 +702,21 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   // The port 0 is reserved and should always fail to connect to it.
   [EDOClientService rootObjectWithPort:0];
   [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testServiceRecordProcessTime {
+  dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+  EDOHostService *hostService = [EDOHostService serviceWithPort:2234
+                                                     rootObject:self
+                                                          queue:testQueue];
+  EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:2234];
+  EDOServiceResponse *response =
+      [EDOClientService sendSynchronousRequest:[EDOObjectRequest requestWithHostPort:port]
+                                        onPort:port];
+  XCTAssertTrue([response isKindOfClass:[EDOObjectResponse class]]);
+  // Assert the duration is within the reasonable range (0ms, 1000ms].
+  XCTAssertTrue(response.duration > 0 && response.duration <= 1000);
+  [hostService invalidate];
 }
 
 #pragma mark - Helper methods

@@ -17,54 +17,37 @@
 #import <XCTest/XCTest.h>
 
 #import "Service/Sources/EDOExecutor.h"
-#import "Service/Sources/EDOServiceRequest.h"
 
 @interface EDOExecutorTest : XCTestCase
 @end
 
 @implementation EDOExecutorTest
 
-- (void)testExecutorHandleMessageAndContext {
-  NSObject *context = [[NSObject alloc] init];
-  dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:context];
-
-  [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:context]];
-}
-
 - (void)testExecutorNotRunningToHandleMessageWithoutQueue {
-  EDOExecutor *executor = [self executorWithQueue:nil context:nil];
+  EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:nil];
 
-  XCTAssertThrowsSpecificNamed([executor handleRequest:[[EDOServiceRequest alloc] init]
-                                               context:nil],
+  XCTAssertThrowsSpecificNamed([executor handleBlock:^{
+                               }],
                                NSException, NSInternalInconsistencyException);
 }
 
 - (void)testExecutorNotRunningToHandleMessageWithQueue {
   dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:nil];
-
-  [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
-}
-
-- (void)testExecutorRecordProcessTime {
-  dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:nil delay:1];
-
-  EDOServiceResponse *response = [executor handleRequest:[[EDOServiceRequest alloc] init]
-                                                 context:nil];
-  [self verifyResponse:response];
-  // Assert the duration is within the reasonable range [1000ms, 1500ms].
-  XCTAssertTrue(response.duration >= 1000 && response.duration <= 1500);
+  EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:queue];
+  __block BOOL executed = NO;
+  [executor handleBlock:^{
+    executed = YES;
+  }];
+  XCTAssertTrue(executed);
 }
 
 - (void)testExecutorFinishRunningAfterClosingMessageQueue {
   dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:nil];
+  EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:queue];
 
   XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
   dispatch_async(queue, ^{
-    [executor runWithBlock:^{
+    [executor loopWithBlock:^{
     }];
     // Only fulfills the exepectation after the executor finishes the run.
     [expectFinish fulfill];
@@ -75,29 +58,32 @@
 
 - (void)testExecutorHandleMessageAfterClosingQueue {
   dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:nil];
+  EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:queue];
 
   XCTestExpectation *expectClose = [self expectationWithDescription:@"The queue is closed."];
   dispatch_async(queue, ^{
-    [executor runWithBlock:^{
+    [executor loopWithBlock:^{
       [expectClose fulfill];
     }];
   });
 
   [self waitForExpectationsWithTimeout:1 handler:nil];
-  [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
+  [executor handleBlock:^{
+  }];
 }
 
 - (void)testSendRequestWithExecutorProcessingStressfully {
   NS_VALID_UNTIL_END_OF_SCOPE dispatch_queue_t queue = [self testQueue];
-  EDOExecutor *executor = [self executorWithQueue:queue context:nil];
+  EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:queue];
 
   XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
   expectFinish.expectedFulfillmentCount = 3;
+  __block NSInteger numIncrements = 0;
   NSInteger numRuns = 1000;
   dispatch_async(queue, ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
-      [executor runWithBlock:^{
+      [executor loopWithBlock:^{
+        ++numIncrements;
       }];
     }
     [expectFinish fulfill];
@@ -109,17 +95,22 @@
   // 3. the request is received after the while-loop tarts.
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
-      [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
+      [executor handleBlock:^{
+        ++numIncrements;
+      }];
     }
     [expectFinish fulfill];
   });
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
-      [self verifyResponse:[executor handleRequest:[[EDOServiceRequest alloc] init] context:nil]];
+      [executor handleBlock:^{
+        ++numIncrements;
+      }];
     }
     [expectFinish fulfill];
   });
   [self waitForExpectationsWithTimeout:0.1 * numRuns handler:nil];
+  XCTAssertEqual(numIncrements, 3 * numRuns);
 }
 
 - (void)testSendRequestWithNestedExecutorProcessingStressfully {
@@ -130,28 +121,20 @@
   const NSInteger numRuns = 100;
   expectFinish.expectedFulfillmentCount = numThreadsHighQos + numThreadsLowQos;
 
-  __block void (^handlerBlock)(void);
-  EDORequestHandler handler =
-      ^EDOServiceResponse *(EDOServiceRequest *request, id _Nullable context) {
-    handlerBlock();
-    return [[EDOServiceResponse alloc] initWithMessageID:request.messageID];
-  };
-  EDOExecutor *executor = [EDOExecutor executorWithHandlers:@{@"EDOServiceRequest" : handler}
-                                                      queue:queue];
-  handlerBlock = ^{
-    [executor runWithBlock:^{
+  EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:queue];
+  void (^handlerBlock)(void) = ^{
+    [executor loopWithBlock:^{
     }];
   };
 
-  EDOServiceRequest *testRequest = [[EDOServiceRequest alloc] init];
   dispatch_async(queue, ^{
-    [executor runWithBlock:^{
+    [executor loopWithBlock:^{
       dispatch_group_t requestsGroup = dispatch_group_create();
       for (NSInteger i = 0; i < numThreadsHighQos; ++i) {
         dispatch_group_enter(requestsGroup);
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
           for (NSInteger j = 0; j < numRuns; ++j) {
-            [executor handleRequest:testRequest context:nil];
+            [executor handleBlock:handlerBlock];
           }
           dispatch_group_leave(requestsGroup);
           [expectFinish fulfill];
@@ -161,7 +144,7 @@
         dispatch_group_enter(requestsGroup);
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
           for (NSInteger j = 0; j < numRuns; ++j) {
-            [executor handleRequest:testRequest context:nil];
+            [executor handleBlock:handlerBlock];
           }
           dispatch_group_leave(requestsGroup);
           [expectFinish fulfill];
@@ -175,29 +158,6 @@
 }
 
 #pragma mark - Test helper methods
-
-/** Create an executor to handle an EDOServiceResponse. */
-- (EDOExecutor *)executorWithQueue:(dispatch_queue_t)queue context:(id)context {
-  return [self executorWithQueue:queue context:context delay:0];
-}
-
-/** Create an executor to delay @c seconds to handle an EDOServiceResponse. */
-- (EDOExecutor *)executorWithQueue:(dispatch_queue_t)queue context:(id)context delay:(int)seconds {
-  NSError *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:100 userInfo:nil];
-  EDORequestHandler requestHandler = ^(EDOServiceRequest *request, id handlerContext) {
-    XCTAssertEqual(context, handlerContext);
-    sleep(seconds);
-    return [EDOErrorResponse errorResponse:error forRequest:request];
-  };
-  return [EDOExecutor executorWithHandlers:@{@"EDOServiceRequest" : requestHandler} queue:queue];
-}
-
-- (void)verifyResponse:(EDOServiceResponse *)response {
-  EDOErrorResponse *errorResponse = (EDOErrorResponse *)response;
-  XCTAssertTrue([response isKindOfClass:[EDOErrorResponse class]]);
-  XCTAssertEqual(errorResponse.error.code, 100);
-  XCTAssertEqualObjects(errorResponse.error.domain, NSPOSIXErrorDomain);
-}
 
 /** Create a dispatch queue with the current testname. */
 - (dispatch_queue_t)testQueue {

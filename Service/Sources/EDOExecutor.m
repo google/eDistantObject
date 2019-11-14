@@ -17,10 +17,7 @@
 #import "Service/Sources/EDOExecutor.h"
 
 #import "Channel/Sources/EDOBlockingQueue.h"
-#import "Channel/Sources/EDOChannel.h"
 #import "Service/Sources/EDOExecutorMessage.h"
-#import "Service/Sources/EDOMessage.h"
-#import "Service/Sources/EDOTimingFunctions.h"
 
 @interface EDOExecutor ()
 // The message queues to process the requests that are attached to this executor.
@@ -31,8 +28,8 @@
 
 @implementation EDOExecutor
 
-+ (instancetype)executorWithHandlers:(EDORequestHandlers *)handlers queue:(dispatch_queue_t)queue {
-  return [[self alloc] initWithHandlers:handlers queue:queue];
++ (instancetype)executorWithQueue:(dispatch_queue_t)queue {
+  return [[self alloc] initWithQueue:queue];
 }
 
 /**
@@ -44,19 +41,18 @@
  *  @param handlers The request handlers.
  *  @param queue The dispatch queue to associate with the executor.
  */
-- (instancetype)initWithHandlers:(EDORequestHandlers *)handlers queue:(dispatch_queue_t)queue {
+- (instancetype)initWithQueue:(dispatch_queue_t)queue {
   self = [super init];
   if (self) {
     NSString *queueName = [NSString stringWithFormat:@"com.google.edo.executor[%p]", self];
     _isolationQueue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
     _executionQueue = queue;
-    _requestHandlers = handlers;
     _messageQueueStack = [[NSMutableArray alloc] init];
   }
   return self;
 }
 
-- (void)runWithBlock:(void (^)(void))executeBlock {
+- (void)loopWithBlock:(void (^)(void))executeBlock {
   // Create the waited queue so it can also process the requests while waiting for the response
   // when the incoming request is dispatched to the same queue.
   EDOBlockingQueue<EDOExecutorMessage *> *messageQueue = [[EDOBlockingQueue alloc] init];
@@ -84,9 +80,7 @@
     if (!message) {
       break;
     }
-    // not ready to process
-
-    [self edo_handleMessage:message];
+    [message executeBlock];
   }
 
   dispatch_sync(self.isolationQueue, ^{
@@ -99,7 +93,7 @@
   NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
 }
 
-- (EDOServiceResponse *)handleRequest:(EDOServiceRequest *)request context:(id)context {
+- (void)handleBlock:(void (^)(void))executeBlock {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   // TODO(haowoo): Replace with dispatch_assert_queue once the minimum support is iOS 10+.
@@ -107,18 +101,18 @@
            @"Only enqueue a request from a non-tracked queue.");
 #pragma clang diagnostic pop
 
-  EDOExecutorMessage *message = [EDOExecutorMessage messageWithRequest:request service:context];
+  EDOExecutorMessage *message = [[EDOExecutorMessage alloc] initWithBlock:executeBlock];
   if (![self enqueueMessage:message]) {
     dispatch_queue_t executionQueue = self.executionQueue;
     if (executionQueue) {
       dispatch_async(self.executionQueue, ^{
-        [self edo_handleMessage:message];
+        [message executeBlock];
       });
     } else {
       NSAssert(NO, @"The message is not handled because the execution queue is already released.");
     }
   }
-  return [message waitForResponse];
+  [message waitForCompletion];
 }
 
 #pragma mark - Private
@@ -141,22 +135,6 @@
     messageEnqueued = stack.count > 0;
   });
   return messageEnqueued;
-}
-
-/** Handle the request and set the response for the @c message. */
-- (void)edo_handleMessage:(EDOExecutorMessage *)message {
-  // The handler mapping from the request class name to the handler block.
-  NSString *className = NSStringFromClass([message.request class]);
-  EDORequestHandler handler = self.requestHandlers[className];
-  EDOServiceResponse *response = nil;
-  if (handler) {
-    uint64_t currentTime = mach_absolute_time();
-    response = handler(message.request, message.service);
-    response.duration = EDOGetMillisecondsSinceMachTime(currentTime);
-  }
-
-  response = response ?: [EDOErrorResponse unhandledErrorResponseForRequest:message.request];
-  [message assignResponse:response];
 }
 
 @end
