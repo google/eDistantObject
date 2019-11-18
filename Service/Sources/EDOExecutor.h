@@ -57,13 +57,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)loopWithBlock:(void (^)(void))executeBlock;
 
 /**
- *  Attaches @c executeBlock for execution.
+ *  Attaches @c executeBlock for execution and waits for execution completes.
  *
  *  @note If the executor is running the while-loop, the request will be enqueued to process,
  *        or it will dispatch to the @c executionQueue to process.
- *  @param executeBlock The block to be handled and executed.
+ *  @param      executeBlock   The block to be handled and executed.
+ *  @param[out] error          Error that will be populated on failure.
+ *
+ *  @return @c YES if the block is successfully executed by the executor; @c NO otherwise, in which
+ *          case the block won't get invoked.
  */
-- (void)handleBlock:(void (^)(void))executeBlock;
+- (BOOL)handleBlock:(void (^)(void))executeBlock error:(NSError *_Nullable *_Nullable)errorOrNil;
 
 @end
 

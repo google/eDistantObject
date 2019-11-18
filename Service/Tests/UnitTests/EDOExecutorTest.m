@@ -17,8 +17,12 @@
 #import <XCTest/XCTest.h>
 
 #import "Service/Sources/EDOExecutor.h"
+#import "Service/Sources/EDOServiceError.h"
 
 @interface EDOExecutorTest : XCTestCase
+
+@property(readonly) void (^emptyBlock)(void);
+
 @end
 
 @implementation EDOExecutorTest
@@ -26,18 +30,22 @@
 - (void)testExecutorNotRunningToHandleMessageWithoutQueue {
   EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:nil];
 
-  XCTAssertThrowsSpecificNamed([executor handleBlock:^{
-                               }],
-                               NSException, NSInternalInconsistencyException);
+  NSError *error;
+  XCTAssertFalse([executor handleBlock:self.emptyBlock error:&error]);
+  XCTAssertEqualObjects(error.domain, EDOServiceErrorDomain);
+  XCTAssertEqual(error.code, EDOServiceErrorRequestNotHandled);
+  XCTAssertTrue([error.userInfo.description containsString:@"execution queue is already released"]);
 }
 
 - (void)testExecutorNotRunningToHandleMessageWithQueue {
   dispatch_queue_t queue = [self testQueue];
   EDOExecutor *executor = [[EDOExecutor alloc] initWithQueue:queue];
   __block BOOL executed = NO;
-  [executor handleBlock:^{
-    executed = YES;
-  }];
+  [executor
+      handleBlock:^{
+        executed = YES;
+      }
+            error:nil];
   XCTAssertTrue(executed);
 }
 
@@ -47,8 +55,7 @@
 
   XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
   dispatch_async(queue, ^{
-    [executor loopWithBlock:^{
-    }];
+    [executor loopWithBlock:self.emptyBlock];
     // Only fulfills the exepectation after the executor finishes the run.
     [expectFinish fulfill];
   });
@@ -68,8 +75,7 @@
   });
 
   [self waitForExpectationsWithTimeout:1 handler:nil];
-  [executor handleBlock:^{
-  }];
+  [executor handleBlock:self.emptyBlock error:nil];
 }
 
 - (void)testSendRequestWithExecutorProcessingStressfully {
@@ -95,17 +101,21 @@
   // 3. the request is received after the while-loop tarts.
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
-      [executor handleBlock:^{
-        ++numIncrements;
-      }];
+      [executor
+          handleBlock:^{
+            ++numIncrements;
+          }
+                error:nil];
     }
     [expectFinish fulfill];
   });
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
-      [executor handleBlock:^{
-        ++numIncrements;
-      }];
+      [executor
+          handleBlock:^{
+            ++numIncrements;
+          }
+                error:nil];
     }
     [expectFinish fulfill];
   });
@@ -134,7 +144,7 @@
         dispatch_group_enter(requestsGroup);
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
           for (NSInteger j = 0; j < numRuns; ++j) {
-            [executor handleBlock:handlerBlock];
+            [executor handleBlock:handlerBlock error:nil];
           }
           dispatch_group_leave(requestsGroup);
           [expectFinish fulfill];
@@ -144,7 +154,7 @@
         dispatch_group_enter(requestsGroup);
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
           for (NSInteger j = 0; j < numRuns; ++j) {
-            [executor handleBlock:handlerBlock];
+            [executor handleBlock:handlerBlock error:nil];
           }
           dispatch_group_leave(requestsGroup);
           [expectFinish fulfill];
@@ -158,6 +168,11 @@
 }
 
 #pragma mark - Test helper methods
+
+- (void (^)(void))emptyBlock {
+  return ^{
+  };
+}
 
 /** Create a dispatch queue with the current testname. */
 - (dispatch_queue_t)testQueue {

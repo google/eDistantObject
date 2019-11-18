@@ -432,13 +432,18 @@ static const char kEDOExecutingQueueKey = '\0';
             NSString *requestClassName = NSStringFromClass([request class]);
             EDORequestHandler handler = EDOHostService.handlers[requestClassName];
             __block EDOServiceResponse *response = nil;
+            NSError *error;
             if (handler) {
               __weak EDOServiceRequest *weakRequest = request;
-              [strongSelf.executor handleBlock:^{
+              void (^requestHandler)(void) = ^{
                 uint64_t currentTime = mach_absolute_time();
                 response = handler(weakRequest, weakSelf);
                 response.duration = EDOGetMillisecondsSinceMachTime(currentTime);
-              }];
+              };
+              BOOL isHandled = [strongSelf.executor handleBlock:requestHandler error:&error];
+              if (!isHandled) {
+                response = [EDOErrorResponse errorResponse:error forRequest:request];
+              }
             }
 
             response = response ?: [EDOErrorResponse unhandledErrorResponseForRequest:request];

@@ -18,6 +18,7 @@
 
 #import "Channel/Sources/EDOBlockingQueue.h"
 #import "Service/Sources/EDOExecutorMessage.h"
+#import "Service/Sources/EDOServiceError.h"
 
 @interface EDOExecutor ()
 // The message queues to process the requests that are attached to this executor.
@@ -93,7 +94,7 @@
   NSAssert(messageQueue.empty, @"The message queue contains stale requests.");
 }
 
-- (void)handleBlock:(void (^)(void))executeBlock {
+- (BOOL)handleBlock:(void (^)(void))executeBlock error:(NSError *_Nullable *_Nullable)errorOrNil {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   // TODO(haowoo): Replace with dispatch_assert_queue once the minimum support is iOS 10+.
@@ -109,10 +110,18 @@
         [message executeBlock];
       });
     } else {
-      NSAssert(NO, @"The message is not handled because the execution queue is already released.");
+      if (errorOrNil) {
+        NSString *reason =
+            @"The message is not handled because the execution queue is already released.";
+        *errorOrNil = [NSError errorWithDomain:EDOServiceErrorDomain
+                                          code:EDOServiceErrorRequestNotHandled
+                                      userInfo:@{@"reason" : reason}];
+      }
+      return NO;
     }
   }
   [message waitForCompletion];
+  return YES;
 }
 
 #pragma mark - Private
