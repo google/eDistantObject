@@ -39,7 +39,6 @@
  *  The executor is associated with the dispatch queue and saved to its context. It shares the same
  *  life cycle as the dispatch queue and it only holds the weak reference of the designated queue.
  *
- *  @param handlers The request handlers.
  *  @param queue The dispatch queue to associate with the executor.
  */
 - (instancetype)initWithQueue:(dispatch_queue_t)queue {
