@@ -109,7 +109,7 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
   // Skip the first component if it begins with a method family that is implicitly annotated with
   // the ns_returns_retained attribute.
   BOOL matchesMethodFamily = NO;
-  int familySize = sizeof(kRetainReturnsMethodsFamily) / sizeof(kRetainReturnsMethodsFamily);
+  int familySize = sizeof(kRetainReturnsMethodsFamily) / sizeof(MethodFamily);
   int methodIdx = 0;
   for (; methodIdx < familySize; methodIdx++) {
     MethodFamily family = kRetainReturnsMethodsFamily[methodIdx];
