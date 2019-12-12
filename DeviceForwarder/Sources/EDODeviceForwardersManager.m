@@ -59,12 +59,12 @@ static const int kEDODeviceRetryIntervalInSeconds = 1;
   _deviceIdentifier = nil;
 
   dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
-  __weak typeof(self) weakSelf = self;
+  __weak EDODeviceForwardersManager *weakSelf = self;
 
   __block int retryCount = kEDODeviceConnectMaxRetries;
   __block __weak void (^weakRetryBlock)(void);
   void (^retryBlock)(void) = ^{
-    typeof(self) strongSelf = weakSelf;
+    EDODeviceForwardersManager *strongSelf = weakSelf;
     if (!strongSelf) {
       return;
     }
@@ -111,9 +111,9 @@ static const int kEDODeviceRetryIntervalInSeconds = 1;
     [_forwarders addObject:forwarder];
   }
 
-  __weak typeof(self) weakSelf = self;
+  __weak EDODeviceForwardersManager *weakSelf = self;
   EDOForwarderErrorHandler errorHandler = ^(EDOForwarderError errorCode) {
-    typeof(self) strongSelf = weakSelf;
+    EDODeviceForwardersManager *strongSelf = weakSelf;
     if (strongSelf) {
       @synchronized(strongSelf->_forwarders) {
         [strongSelf->_forwarders removeObject:forwarder];
@@ -159,7 +159,7 @@ static const int kEDODeviceRetryIntervalInSeconds = 1;
 
 /** Gets a block that handles the incoming EDOHostPort to forward. */
 - (EDOHostChannelConnectBlock)hostConnectBlock {
-  __weak typeof(self) weakSelf = self;
+  __weak EDODeviceForwardersManager *weakSelf = self;
   return ^(EDOHostPort *port) {
     id<EDOChannel> channel;
     NSError *connectionError;
