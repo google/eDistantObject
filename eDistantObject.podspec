@@ -15,6 +15,7 @@ Pod::Spec.new do |s|
                              Service/Sources/EDOClientServiceStatsCollector.h
                              Service/Sources/EDOHostNamingService.h
                              Service/Sources/EDOHostService.h
+                             Service/Sources/EDORemoteException.h
                              Service/Sources/EDORemoteVariable.h
                              Service/Sources/EDOServiceError.h
                              Service/Sources/EDOServiceException.h
