@@ -23,6 +23,7 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
@@ -413,6 +414,31 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   [remoteDummy returnPlus10AndAsyncExecuteBlock:dummy];
   [self waitForExpectations:@[ expectation ] timeout:2.0f];
   XCTAssertNil(weakDummy);
+
+  [service invalidate];
+}
+
+- (void)testRemoteExceptionRevealsInformation {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+
+  EDORemoteException *remoteException;
+  @try {
+    [dummy selWithThrow];
+  } @catch (EDORemoteException *exception) {
+    remoteException = exception;
+  }
+  XCTAssertNotNil(remoteException);
+  XCTAssertEqualObjects(remoteException.name, @"Dummy Just Throw 5");
+  XCTAssertEqualObjects(remoteException.reason, @"Just Throw");
+  NSString *callStackSymbols = [remoteException.callStackSymbols componentsJoinedByString:@"|"];
+  XCTAssertTrue([callStackSymbols containsString:@"testRemoteExceptionRevealsInformation"]);
+  XCTAssertTrue([callStackSymbols containsString:@"[EDOTestDummy selWithThrow]"]);
+  XCTAssertTrue([callStackSymbols containsString:@"TestsHost"]);
 
   [service invalidate];
 }

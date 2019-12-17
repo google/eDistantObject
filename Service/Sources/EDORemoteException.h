@@ -19,7 +19,7 @@
 @class EDOObject;
 
 /** The data object that holds an exception being thrown in remote invocation. */
-@interface EDORemoteException : NSObject
+@interface EDORemoteException : NSObject <NSSecureCoding>
 
 /** The name of the exception being thrown in the remote invocation. */
 @property(nonatomic, readonly) NSExceptionName name;
@@ -36,5 +36,8 @@
 - (instancetype)initWithName:(NSExceptionName)name
                       reason:(NSString *)reason
             callStackSymbols:(NSArray<NSString *> *)callStackSymbols NS_DESIGNATED_INITIALIZER;
+
+/** @see -[NSCoding initWithCoder:]. */
+- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @end

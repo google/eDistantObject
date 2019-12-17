@@ -132,6 +132,19 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
   }
 }
 
+static EDORemoteException *CreateRemoteException(id localException) {
+  if (!localException) {
+    return nil;
+  }
+  NSArray<NSString *> *exceptionStackTrace = [localException callStackSymbols];
+  NSArray<NSString *> *currentStackTrace = [NSThread callStackSymbols];
+  NSArray<NSString *> *majorStackTrace = [exceptionStackTrace
+      subarrayWithRange:NSMakeRange(0, exceptionStackTrace.count - currentStackTrace.count + 1)];
+  return [[EDORemoteException alloc] initWithName:[localException name]
+                                           reason:[localException reason]
+                                 callStackSymbols:majorStackTrace];
+}
+
 #pragma mark - EDOInvocationRequest extension
 
 @interface EDOInvocationRequest ()
@@ -156,7 +169,7 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
 }
 
 + (instancetype)responseWithReturnValue:(EDOBoxedValueType *)value
-                              exception:(NSException *)exception
+                              exception:(EDORemoteException *)exception
                               outValues:(NSArray<EDOBoxedValueType *> *)outValues
                              forRequest:(EDOInvocationRequest *)request {
   return [[self alloc] initWithReturnValue:value
@@ -166,7 +179,7 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
 }
 
 - (instancetype)initWithReturnValue:(EDOBoxedValueType *)value
-                          exception:(NSException *)exception
+                          exception:(EDORemoteException *)exception
                           outValues:(NSArray<EDOBoxedValueType *> *)outValues
                          forRequest:(EDOInvocationRequest *)request {
   self = [super initWithMessageID:request.messageID];
@@ -186,13 +199,7 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
     _returnRetained = [aDecoder decodeBoolForKey:kEDOInvocationCoderReturnRetainedKey];
     _returnValue = [aDecoder decodeObjectOfClass:[EDOParameter class]
                                           forKey:kEDOInvocationCoderReturnValueKey];
-    // TODO(haowoo): The exception doesn't conform to NSSecureCoding, so when NSKeyedUnarchiver
-    // deserializes this class with requiresSecureCoding = YES, this will throw an exception.
-    // Because of this, we currently can't set requiresSecureCoding to be YES when deserializing the
-    // EDOInvocationResponse; we should provide a serializable EDOException that will propagate
-    // exception information. However here we still use the -[decodeObjectOfClass:forKey:] to keep
-    // our code consistent with the Apple documentation.
-    _exception = [aDecoder decodeObjectOfClass:[NSException class]
+    _exception = [aDecoder decodeObjectOfClass:[EDORemoteException class]
                                         forKey:kEDOInvocationCoderExceptionKey];
     NSSet *anyClasses =
         [NSSet setWithObjects:[EDOBlockObject class], [NSObject class], [EDOObject class], nil];
@@ -297,7 +304,7 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
     SEL sel = NSSelectorFromString(request.selectorName);
 
     EDOBoxedValueType *returnValue;
-    NSException *invocationException;
+    id invocationException;
     NSMutableArray<EDOBoxedValueType *> *outValues = [[NSMutableArray alloc] init];
 
     @try {
@@ -443,13 +450,13 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
         // TODO(ynzhang): add device serial info.
         [outValues addObject:BOX_VALUE(outObjects[curArgIdx], nil, service, hostPort)];
       }
-    } @catch (NSException *e) {
+    } @catch (id e) {
       // TODO(haowoo): Add more error info for non-user exception errors.
       invocationException = e;
     }
 
     return [EDOInvocationResponse responseWithReturnValue:returnValue
-                                                exception:invocationException
+                                                exception:CreateRemoteException(invocationException)
                                                 outValues:(outValues.count > 0 ? outValues : nil)
                                                forRequest:request];
   };
