@@ -23,6 +23,7 @@ NSExceptionName const EDOWeakObjectRemoteWeakMisuseException =
 NSExceptionName const EDOWeakObjectWeakReleaseException = @"EDOWeakReleasedException";
 NSExceptionName const EDOWeakReferenceBlockObjectException =
     @"EDOWeakReferenceBlockObjectException";
+NSExceptionName const EDOParameterTypeException = @"EDOParameterTypeException";
 
 NSString *const EDOExceptionUnderlyingErrorKey = @"EDOUnderlyingErrorKey";
 NSString *const EDOExceptionPortKey = @"EDOExceptionPortKey";

@@ -33,6 +33,9 @@ FOUNDATION_EXPORT NSExceptionName const EDOWeakObjectWeakReleaseException;
 /** The weak reference block object exception, usually used in NSException. */
 FOUNDATION_EXPORT NSExceptionName const EDOWeakReferenceBlockObjectException;
 
+/** The eDO parameter type check exception, usually used in NSException.*/
+FOUNDATION_EXPORT NSExceptionName const EDOParameterTypeException;
+
 /** Key in userInfo, describing the embedded NSError object. */
 FOUNDATION_EXPORT NSString *const EDOExceptionUnderlyingErrorKey;
 

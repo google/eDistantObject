@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7685673323A1C10200EDBDB4 /* EDORemoteException.m in Sources */ = {isa = PBXBuildFile; fileRef = 7685673123A1C10100EDBDB4 /* EDORemoteException.m */; };
-		7685673523A1C11F00EDBDB4 /* EDORemoteExceptionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */; };
+		7690BE9423A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m in Sources */ = {isa = PBXBuildFile; fileRef = 7690BE9323A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m */; };
 		C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */; };
 		C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */; };
 		C52D859A2220C4AB00E86E60 /* EDODeviceDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */; };
@@ -233,6 +233,8 @@
 		7685673123A1C10100EDBDB4 /* EDORemoteException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteException.m; path = Service/Sources/EDORemoteException.m; sourceTree = "<group>"; };
 		7685673223A1C10100EDBDB4 /* EDORemoteException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORemoteException.h; path = Service/Sources/EDORemoteException.h; sourceTree = "<group>"; };
 		7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteExceptionTest.m; path = Service/Tests/UnitTests/EDORemoteExceptionTest.m; sourceTree = "<group>"; };
+		7690BE9223A9CCBC00C00D02 /* NSObject+EDOBlacklistedType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOBlacklistedType.h"; path = "Service/Sources/NSObject+EDOBlacklistedType.h"; sourceTree = "<group>"; };
+		7690BE9323A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+EDOBlacklistedType.m"; path = "Service/Sources/NSObject+EDOBlacklistedType.m"; sourceTree = "<group>"; };
 		C52D85772220ADBB00E86E60 /* EDODeviceDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceDetector.h; path = Device/Sources/EDODeviceDetector.h; sourceTree = "<group>"; };
 		C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceDetector.m; path = Device/Sources/EDODeviceDetector.m; sourceTree = "<group>"; };
 		C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDOUSBMuxUtil.m; path = Device/Sources/EDOUSBMuxUtil.m; sourceTree = "<group>"; };
@@ -557,6 +559,8 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7690BE9223A9CCBC00C00D02 /* NSObject+EDOBlacklistedType.h */,
+				7690BE9323A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m */,
 				7685673223A1C10100EDBDB4 /* EDORemoteException.h */,
 				7685673123A1C10100EDBDB4 /* EDORemoteException.m */,
 				DC9BF6C022DFC8AD00E135B8 /* NSObject+EDOWeakObject.h */,
@@ -1231,6 +1235,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7690BE9423A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m in Sources */,
 				C5A2F0682134D6A000421D72 /* EDOClassMessage.m in Sources */,
 				C8A5E007213F896000D28052 /* NSBlock+EDOInvocation.m in Sources */,
 				C5A2F0732134D6C100421D72 /* EDOObject+Invocation.m in Sources */,

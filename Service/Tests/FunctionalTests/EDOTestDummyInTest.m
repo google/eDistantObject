@@ -67,3 +67,11 @@
 }
 
 @end
+
+@implementation EDOBlacklistedTestDummyInTest
+
+- (EDOTestDummyInTest *)makeAnotherDummy:(int)value {
+  return [[EDOBlacklistedTestDummyInTest alloc] initWithValue:0];
+}
+
+@end
