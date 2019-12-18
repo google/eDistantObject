@@ -132,19 +132,6 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
   }
 }
 
-static EDORemoteException *CreateRemoteException(id localException) {
-  if (!localException) {
-    return nil;
-  }
-  NSArray<NSString *> *exceptionStackTrace = [localException callStackSymbols];
-  NSArray<NSString *> *currentStackTrace = [NSThread callStackSymbols];
-  NSArray<NSString *> *majorStackTrace = [exceptionStackTrace
-      subarrayWithRange:NSMakeRange(0, exceptionStackTrace.count - currentStackTrace.count + 1)];
-  return [[EDORemoteException alloc] initWithName:[localException name]
-                                           reason:[localException reason]
-                                 callStackSymbols:majorStackTrace];
-}
-
 #pragma mark - EDOInvocationRequest extension
 
 @interface EDOInvocationRequest ()
@@ -169,7 +156,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
 }
 
 + (instancetype)responseWithReturnValue:(EDOBoxedValueType *)value
-                              exception:(EDORemoteException *)exception
+                              exception:(NSException *)exception
                               outValues:(NSArray<EDOBoxedValueType *> *)outValues
                              forRequest:(EDOInvocationRequest *)request {
   return [[self alloc] initWithReturnValue:value
@@ -179,7 +166,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
 }
 
 - (instancetype)initWithReturnValue:(EDOBoxedValueType *)value
-                          exception:(EDORemoteException *)exception
+                          exception:(NSException *)exception
                           outValues:(NSArray<EDOBoxedValueType *> *)outValues
                          forRequest:(EDOInvocationRequest *)request {
   self = [super initWithMessageID:request.messageID];
@@ -199,7 +186,13 @@ static EDORemoteException *CreateRemoteException(id localException) {
     _returnRetained = [aDecoder decodeBoolForKey:kEDOInvocationCoderReturnRetainedKey];
     _returnValue = [aDecoder decodeObjectOfClass:[EDOParameter class]
                                           forKey:kEDOInvocationCoderReturnValueKey];
-    _exception = [aDecoder decodeObjectOfClass:[EDORemoteException class]
+    // TODO(haowoo): The exception doesn't conform to NSSecureCoding, so when NSKeyedUnarchiver
+    // deserializes this class with requiresSecureCoding = YES, this will throw an exception.
+    // Because of this, we currently can't set requiresSecureCoding to be YES when deserializing the
+    // EDOInvocationResponse; we should provide a serializable EDOException that will propagate
+    // exception information. However here we still use the -[decodeObjectOfClass:forKey:] to keep
+    // our code consistent with the Apple documentation.
+    _exception = [aDecoder decodeObjectOfClass:[NSException class]
                                         forKey:kEDOInvocationCoderExceptionKey];
     NSSet *anyClasses =
         [NSSet setWithObjects:[EDOBlockObject class], [NSObject class], [EDOObject class], nil];
@@ -304,7 +297,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
     SEL sel = NSSelectorFromString(request.selectorName);
 
     EDOBoxedValueType *returnValue;
-    id invocationException;
+    NSException *invocationException;
     NSMutableArray<EDOBoxedValueType *> *outValues = [[NSMutableArray alloc] init];
 
     @try {
@@ -450,13 +443,13 @@ static EDORemoteException *CreateRemoteException(id localException) {
         // TODO(ynzhang): add device serial info.
         [outValues addObject:BOX_VALUE(outObjects[curArgIdx], nil, service, hostPort)];
       }
-    } @catch (id e) {
+    } @catch (NSException *e) {
       // TODO(haowoo): Add more error info for non-user exception errors.
       invocationException = e;
     }
 
     return [EDOInvocationResponse responseWithReturnValue:returnValue
-                                                exception:CreateRemoteException(invocationException)
+                                                exception:invocationException
                                                 outValues:(outValues.count > 0 ? outValues : nil)
                                                forRequest:request];
   };

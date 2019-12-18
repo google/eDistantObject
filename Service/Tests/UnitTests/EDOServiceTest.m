@@ -22,7 +22,6 @@
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObjectMessage.h"
-#import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
@@ -396,7 +395,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertNoThrow([dummyOnBackground voidWithStruct:(EDOTestDummyStruct){.value = 11}]);
   XCTAssertEqual(self.rootObject.value, 39);
 
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:nil], EDORemoteException,
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:nil], EDOTestDummyException,
                                @"Dummy NilArg 39");
 
   XCTAssertNoThrow([dummyOnBackground voidWithClass:self.class]);
@@ -472,19 +471,19 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 
   self.rootObject.value = 13;
-  XCTAssertThrowsSpecificNamed([dummyOnBackground selWithThrow], EDORemoteException,
+  XCTAssertThrowsSpecificNamed([dummyOnBackground selWithThrow], EDOTestDummyException,
                                @"Dummy Just Throw 13");
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:nil], EDORemoteException,
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:nil], EDOTestDummyException,
                                @"Dummy NilArg 13");
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:dummyOnBackground], EDORemoteException,
-                               @"Dummy NonNilArg 13");
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:self.rootObject], EDORemoteException,
-                               @"Dummy EDOArg 13");
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithValueOut:nil], EDORemoteException,
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:dummyOnBackground],
+                               EDOTestDummyException, @"Dummy NonNilArg 13");
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithId:self.rootObject],
+                               EDOTestDummyException, @"Dummy EDOArg 13");
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithValueOut:nil], EDOTestDummyException,
                                @"Dummy NilOutArg 13");
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithErrorOut:nil], EDORemoteException,
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithErrorOut:nil], EDOTestDummyException,
                                @"Dummy NilErrorOut 13");
-  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithOutObject:nil], EDORemoteException,
+  XCTAssertThrowsSpecificNamed([dummyOnBackground voidWithOutObject:nil], EDOTestDummyException,
                                @"Dummy dummyOut is nil 13");
 }
 

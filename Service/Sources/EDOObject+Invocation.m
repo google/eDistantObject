@@ -16,54 +16,14 @@
 
 #import "Service/Sources/EDOObject.h"
 
-#include <objc/runtime.h>
-
 #import "Channel/Sources/EDOHostPort.h"
-#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOInvocationMessage.h"
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOParameter.h"
-#import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServicePort.h"
-
-static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteException *remoteException,
-                                                               EDOObject *target,
-                                                               NSInvocation *invocation) {
-  NSArray<NSString *> *currentStackTraces = [NSThread callStackSymbols];
-  NSUInteger eDOStackIndex = [currentStackTraces
-      indexOfObjectPassingTest:^BOOL(NSString *item, NSUInteger idx, BOOL *stop) {
-        return [item containsString:@"_CF_forwarding_prep_0"];
-      }];
-  // If the pattern symbol of eDO entrance is not found, we keep the whole eDO stacks, but we still
-  // remove the symbol of this helper C function.
-  if (eDOStackIndex == NSNotFound) {
-    eDOStackIndex = 0;
-  }
-  NSArray<NSString *> *localOutputStackTraces = [currentStackTraces
-      subarrayWithRange:NSMakeRange(eDOStackIndex + 1,
-                                    currentStackTraces.count - eDOStackIndex - 1)];
-  NSString *classInfo;
-  NSString *methodInfo;
-  if (object_getClass(target) == [EDOBlockObject class]) {
-    classInfo = @"__block_invoke";
-    methodInfo = ((EDOBlockObject *)target).signature;
-  } else {
-    classInfo = target.className;
-    methodInfo = NSStringFromSelector(invocation.selector);
-  }
-  NSString *separationSymbol =
-      [NSString stringWithFormat:@"|---- eDO invocation [%@ %@] ----|", classInfo, methodInfo];
-
-  NSMutableArray<NSString *> *fullStackTraces = [remoteException.callStackSymbols mutableCopy];
-  [fullStackTraces addObject:separationSymbol];
-  [fullStackTraces addObjectsFromArray:localOutputStackTraces];
-  return [[EDORemoteException alloc] initWithName:remoteException.name
-                                           reason:remoteException.reason
-                                 callStackSymbols:fullStackTraces];
-}
 
 /**
  *  The extension of EDOObject to handle the message forwarding.
@@ -146,7 +106,7 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
     // Populate the exception.
     // Note: we throw here rather than -[raise] because we can't make an assumption of what user's
     //       code will throw.
-    @throw RemoteExceptionWithLocalInformation(response.exception, self, invocation);  // NOLINT
+    @throw response.exception;  // NOLINT
   }
 
   NSUInteger returnBufSize = invocation.methodSignature.methodReturnLength;

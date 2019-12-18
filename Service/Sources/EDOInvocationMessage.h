@@ -17,7 +17,6 @@
 #import "Service/Sources/EDOServiceRequest.h"
 
 #import "Service/Sources/EDOObject+Private.h"
-#import "Service/Sources/EDORemoteException.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -76,7 +75,7 @@ typedef EDOParameter EDOBoxedValueType;
 @interface EDOInvocationResponse : EDOServiceResponse
 
 /** The exception if thrown remotely. */
-@property(readonly, nullable) EDORemoteException *exception;
+@property(readonly, nullable) NSException *exception;
 /** The boxed return value. */
 @property(readonly, nullable) EDOBoxedValueType *returnValue;
 /** The boxed values for out parameter. */

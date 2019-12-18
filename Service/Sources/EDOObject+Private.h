@@ -36,8 +36,6 @@ typedef int64_t EDOPointerType;
 @property(readonly, assign) EDOPointerType remoteAddress;
 /** The proxied object's class object in the remote. */
 @property(readonly, assign) EDOPointerType remoteClass;
-/** The proxied object's class name in the remote. */
-@property(readonly) NSString *className;
 /** Whether the @c EDOObject is from the same process. */
 @property(readonly) BOOL isLocalEdo;
 /** Whether the @c EDOObject is weakly referenced. */

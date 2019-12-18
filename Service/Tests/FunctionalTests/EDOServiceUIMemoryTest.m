@@ -18,7 +18,6 @@
 
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
-#import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Sources/NSObject+EDOWeakObject.h"
@@ -78,10 +77,10 @@
 
 - (void)testAllocRemoteValueType {
   XCTAssertThrowsSpecificNamed([[EDO_REMOTE_CLASS(NSData, EDOTEST_APP_SERVICE_PORT) alloc] init],
-                               EDORemoteException, EDOServiceAllocValueTypeException);
+                               NSException, EDOServiceAllocValueTypeException);
   XCTAssertThrowsSpecificNamed(
-      [[EDO_REMOTE_CLASS(EDOTestDummy, EDOTEST_APP_SERVICE_PORT) returnByValue] alloc],
-      EDORemoteException, EDOServiceAllocValueTypeException);
+      [[EDO_REMOTE_CLASS(EDOTestDummy, EDOTEST_APP_SERVICE_PORT) returnByValue] alloc], NSException,
+      EDOServiceAllocValueTypeException);
   XCTAssertNoThrow([EDO_REMOTE_CLASS(NSData, EDOTEST_APP_SERVICE_PORT) data]);
 }
 
