@@ -20,6 +20,8 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
+#import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
 @interface EDORemoteExceptionTest : XCTestCase
 @end
@@ -33,6 +35,21 @@
                               callStackSymbols:[NSThread callStackSymbols]];
   XCTAssertThrowsSpecificNamed([self throwInvocationException:exception], EDORemoteException,
                                @"dummy name");
+}
+
+- (void)testExceptionSerialization {
+  EDORemoteException *exception =
+      [[EDORemoteException alloc] initWithName:@"dummy name"
+                                        reason:@"dummy reason"
+                              callStackSymbols:[NSThread callStackSymbols]];
+
+  NSData *encodedData = [NSKeyedArchiver edo_archivedDataWithObject:exception];
+  exception = [NSKeyedUnarchiver edo_unarchiveObjectWithData:encodedData];
+
+  XCTAssertEqualObjects(exception.name, @"dummy name");
+  XCTAssertEqualObjects(exception.reason, @"dummy reason");
+  NSString *callStackSymbols = [exception.callStackSymbols componentsJoinedByString:@"|"];
+  XCTAssertTrue([callStackSymbols containsString:@"testExceptionSerialization"]);
 }
 
 - (void)throwInvocationException:(EDORemoteException *)exception {

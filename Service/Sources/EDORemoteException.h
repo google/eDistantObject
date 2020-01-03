@@ -19,22 +19,25 @@
 @class EDOObject;
 
 /** The data object that holds an exception being thrown in remote invocation. */
-@interface EDORemoteException : NSObject
-
-/** The name of the exception being thrown in the remote invocation. */
-@property(nonatomic, readonly) NSExceptionName name;
-
-/** The reason of the exception being thrown in the remote invocation. */
-@property(nonatomic, readonly) NSString *reason;
+@interface EDORemoteException : NSException <NSSecureCoding>
 
 /** The merged call stack traces of both client process and host process. */
 @property(nonatomic, readonly) NSArray<NSString *> *callStackSymbols;
 
+/** EDORemoteException cannot be initialized with default data members. */
 - (instancetype)init NS_UNAVAILABLE;
+
+/** EDORemoteException doesn't support transporting @c NSException::userInfo over processes. */
+- (instancetype)initWithName:(NSExceptionName)name
+                      reason:(NSString *)reason
+                    userInfo:(NSDictionary *)userInfo NS_UNAVAILABLE;
 
 /** Creates an exception with host-side only information. */
 - (instancetype)initWithName:(NSExceptionName)name
                       reason:(NSString *)reason
             callStackSymbols:(NSArray<NSString *> *)callStackSymbols NS_DESIGNATED_INITIALIZER;
+
+/** @see -[NSCoding initWithCoder:]. */
+- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @end
