@@ -405,9 +405,8 @@
                                                                       target:dummyLocal
                                                                     selector:@selector(voidWithId:)
                                                                    arguments:@[ nilValue ]];
-                                            XCTAssertEqualObjects(
-                                                response.exception,
-                                                [dummyLocal exceptionWithReason:@"NilArg"]);
+                                            XCTAssertEqualObjects(response.exception.reason,
+                                                                  @"NilArg");
                                           }
                                           {
                                             id nonNilArg = @"NonNil";
@@ -419,9 +418,8 @@
                                                                       target:dummyLocal
                                                                     selector:@selector(voidWithId:)
                                                                    arguments:@[ nonNilValue ]];
-                                            XCTAssertEqualObjects(
-                                                response.exception,
-                                                [dummyLocal exceptionWithReason:@"NonNilArg"]);
+                                            XCTAssertEqualObjects(response.exception.reason,
+                                                                  @"NonNilArg");
                                           }
 
                                           [blockExecuted fulfill];
