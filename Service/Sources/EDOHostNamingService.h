@@ -51,13 +51,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (UInt16)portForServiceWithName:(NSString *)name;
 
 /**
- *  Starts serving host port information by creating an @c EDOHostService on @c defaultPort.
+ *  Starts serving host port information by creating an @c EDOHostService on @c namingServerPort.
  *  Once started, any client can connect to the naming server on @c namingServerPort and query for
  *  hosted objects by name.
  *
  *  @return @c NO if fails to start serving on the default port.
  *
- *  @note  Only one @c EDOHostNamingService instance can start serving on a single machine.
+ *  @note Only one @c EDOHostNamingService instance can start serving on a single machine.
  */
 - (BOOL)start;
 
