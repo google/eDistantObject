@@ -380,9 +380,11 @@ static const char kEDOExecutingQueueKey = '\0';
           // the client socket is closed.
           NSLog(@"The channel (%p) with port %d is closed", targetChannel,
                 strongSelf.port.hostPort.port);
-          dispatch_sync(strongSelf.handlerSyncQueue, ^{
-            [strongSelf.handlerSet removeObject:strongHandlerBlock];
-          });
+          if (strongSelf.handlerSyncQueue) {
+            dispatch_sync(strongSelf.handlerSyncQueue, ^{
+              [strongSelf.handlerSet removeObject:strongHandlerBlock];
+            });
+          }
           return;
         }
         EDOServiceRequest *request;
@@ -409,9 +411,11 @@ static const char kEDOExecutingQueueKey = '\0';
           NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
           [targetChannel sendData:errorData
               withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {
-                dispatch_sync(strongSelf.handlerSyncQueue, ^{
-                  [strongSelf.handlerSet removeObject:strongHandlerBlock];
-                });
+                if (strongSelf.handlerSyncQueue) {
+                  dispatch_sync(strongSelf.handlerSyncQueue, ^{
+                    [strongSelf.handlerSet removeObject:strongHandlerBlock];
+                  });
+                }
               }];
         } else {
           // For release request, we don't handle it in executor since response is not
