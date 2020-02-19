@@ -368,99 +368,100 @@ static const char kEDOExecutingQueueKey = '\0';
   // This handler block will be executed recursively by calling itself at the end of the
   // block in order to accept new request after last one is executed.
   // It is the strong reference of @c weakHandlerBlock above.
-  EDOChannelReceiveHandler receiveHandler =
-      ^(id<EDOChannel> targetChannel, NSData *data, NSError *error) {
-        EDOChannelReceiveHandler strongHandlerBlock = weakHandlerBlock;
-        EDOHostService *strongSelf = weakSelf;
-        NSException *exception;
-        // TODO(haowoo): Add the proper error handler.
-        NSAssert(error == nil, @"Failed to receive the data (%d) for %@.",
-                 strongSelf.port.hostPort.port, error);
-        if (data == nil) {
-          // the client socket is closed.
-          NSLog(@"The channel (%p) with port %d is closed", targetChannel,
-                strongSelf.port.hostPort.port);
-          if (strongSelf.handlerSyncQueue) {
-            dispatch_sync(strongSelf.handlerSyncQueue, ^{
-              [strongSelf.handlerSet removeObject:strongHandlerBlock];
-            });
-          }
-          return;
-        }
-        EDOServiceRequest *request;
+  EDOChannelReceiveHandler receiveHandler = ^(id<EDOChannel> targetChannel, NSData *data,
+                                              NSError *error) {
+    EDOChannelReceiveHandler strongHandlerBlock = weakHandlerBlock;
+    EDOHostService *strongSelf = weakSelf;
+    NSException *exception;
+    // TODO(haowoo): Add the proper error handler.
+    NSAssert(error == nil, @"Failed to receive the data (%d) for %@.",
+             strongSelf.port.hostPort.port, error);
+    if (data == nil) {
+      // the client socket is closed.
+      NSLog(@"The channel (%p) with port %d is closed", targetChannel,
+            strongSelf.port.hostPort.port);
+      dispatch_queue_t handlerSyncQueue = strongSelf.handlerSyncQueue;
+      if (handlerSyncQueue) {
+        dispatch_sync(handlerSyncQueue, ^{
+          [strongSelf.handlerSet removeObject:strongHandlerBlock];
+        });
+      }
+      return;
+    }
+    EDOServiceRequest *request;
 
-        @try {
-          request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
-        } @catch (NSException *e) {
-          // TODO(haowoo): Handle exceptions in a better way.
-          exception = e;
-        }
-        if (![request matchesService:strongSelf.port]) {
-          // TODO(ynzhang): With better error handling, we may not throw exception in this
-          // case but return an error response.
-          NSError *error;
+    @try {
+      request = [NSKeyedUnarchiver edo_unarchiveObjectWithData:data];
+    } @catch (NSException *e) {
+      // TODO(haowoo): Handle exceptions in a better way.
+      exception = e;
+    }
+    if (![request matchesService:strongSelf.port]) {
+      // TODO(ynzhang): With better error handling, we may not throw exception in this
+      // case but return an error response.
+      NSError *error;
 
-          if (!request) {
-            // Error caused by the unarchiving process.
-            error = [NSError errorWithDomain:exception.reason code:0 userInfo:nil];
-          } else {
-            error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
-          }
-          EDOServiceResponse *errorResponse = [EDOErrorResponse errorResponse:error
-                                                                   forRequest:request];
-          NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
-          [targetChannel sendData:errorData
-              withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {
-                if (strongSelf.handlerSyncQueue) {
-                  dispatch_sync(strongSelf.handlerSyncQueue, ^{
-                    [strongSelf.handlerSet removeObject:strongHandlerBlock];
-                  });
-                }
-              }];
-        } else {
-          // For release request, we don't handle it in executor since response is not
-          // needed for this request. The request handler will process this request
-          // properly in its own queue.
-          if ([request class] == [EDOObjectReleaseRequest class]) {
-            dispatch_queue_t executionQueue = strongSelf.executionQueue;
-            if (executionQueue) {
-              dispatch_async(executionQueue, ^{
-                [EDOObjectReleaseRequest requestHandler](request, weakSelf);
+      if (!request) {
+        // Error caused by the unarchiving process.
+        error = [NSError errorWithDomain:exception.reason code:0 userInfo:nil];
+      } else {
+        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:nil];
+      }
+      EDOServiceResponse *errorResponse = [EDOErrorResponse errorResponse:error forRequest:request];
+      NSData *errorData = [NSKeyedArchiver edo_archivedDataWithObject:errorResponse];
+      [targetChannel sendData:errorData
+          withCompletionHandler:^(id<EDOChannel> _Nonnull _channel, NSError *_Nullable error) {
+            dispatch_queue_t handlerSyncQueue = strongSelf.handlerSyncQueue;
+            if (handlerSyncQueue) {
+              dispatch_sync(handlerSyncQueue, ^{
+                [strongSelf.handlerSet removeObject:strongHandlerBlock];
               });
-            } else {
-              [EDOObjectReleaseRequest requestHandler](request, strongSelf);
             }
-          } else {
-            // Health check for the channel.
-            [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
-            NSString *requestClassName = NSStringFromClass([request class]);
-            EDORequestHandler handler = EDOHostService.handlers[requestClassName];
-            __block EDOServiceResponse *response = nil;
-            NSError *error;
-            if (handler) {
-              __weak EDOServiceRequest *weakRequest = request;
-              void (^requestHandler)(void) = ^{
-                uint64_t currentTime = mach_absolute_time();
-                response = handler(weakRequest, weakSelf);
-                response.duration = EDOGetMillisecondsSinceMachTime(currentTime);
-              };
-              BOOL isHandled = [strongSelf.executor handleBlock:requestHandler error:&error];
-              if (!isHandled) {
-                response = [EDOErrorResponse errorResponse:error forRequest:request];
-              }
-            }
-
-            response = response ?: [EDOErrorResponse unhandledErrorResponseForRequest:request];
-            NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
-            [targetChannel sendData:responseData withCompletionHandler:nil];
-          }
-          if ([strongSelf edo_shouldReceiveData:channel]) {
-            [targetChannel receiveDataWithHandler:strongHandlerBlock];
+          }];
+    } else {
+      // For release request, we don't handle it in executor since response is not
+      // needed for this request. The request handler will process this request
+      // properly in its own queue.
+      if ([request class] == [EDOObjectReleaseRequest class]) {
+        dispatch_queue_t executionQueue = strongSelf.executionQueue;
+        if (executionQueue) {
+          dispatch_async(executionQueue, ^{
+            [EDOObjectReleaseRequest requestHandler](request, weakSelf);
+          });
+        } else {
+          [EDOObjectReleaseRequest requestHandler](request, strongSelf);
+        }
+      } else {
+        // Health check for the channel.
+        [targetChannel sendData:EDOClientService.pingMessageData withCompletionHandler:nil];
+        NSString *requestClassName = NSStringFromClass([request class]);
+        EDORequestHandler handler = EDOHostService.handlers[requestClassName];
+        __block EDOServiceResponse *response = nil;
+        NSError *error;
+        if (handler) {
+          __weak EDOServiceRequest *weakRequest = request;
+          void (^requestHandler)(void) = ^{
+            uint64_t currentTime = mach_absolute_time();
+            response = handler(weakRequest, weakSelf);
+            response.duration = EDOGetMillisecondsSinceMachTime(currentTime);
+          };
+          BOOL isHandled = [strongSelf.executor handleBlock:requestHandler error:&error];
+          if (!isHandled) {
+            response = [EDOErrorResponse errorResponse:error forRequest:request];
           }
         }
-        // Channel will be released and invalidated if service becomes invalid. So the
-        // recursive block will eventually finish after service is invalid.
-      };
+
+        response = response ?: [EDOErrorResponse unhandledErrorResponseForRequest:request];
+        NSData *responseData = [NSKeyedArchiver edo_archivedDataWithObject:response];
+        [targetChannel sendData:responseData withCompletionHandler:nil];
+      }
+      if ([strongSelf edo_shouldReceiveData:channel]) {
+        [targetChannel receiveDataWithHandler:strongHandlerBlock];
+      }
+    }
+    // Channel will be released and invalidated if service becomes invalid. So the
+    // recursive block will eventually finish after service is invalid.
+  };
   // Move the receiveHandler block to the heap by explicitly copying before assigning it to the
   // weak pointer as in the latest clang compiler, it's possible the weak pointer can be invalid if
   // the block hasn't been moved to the heap in time.
