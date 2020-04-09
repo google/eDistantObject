@@ -77,7 +77,6 @@
                                   onPort:100
                                    error:(NSError * __autoreleasing *)[OCMArg anyPointer]])
       .andDo(^(NSInvocation *invocation) {
-        [invocation retainArguments];
         void *returnValue = NULL;
         [invocation setReturnValue:&returnValue];
         if (--retries > 0) {
@@ -87,8 +86,7 @@
         EDOSocket *socket = [EDOSocket socketWithTCPPort:self->_multiplexer.port.port
                                                    queue:nil
                                                    error:nil];
-        // OCMock doesn't play well with the ARC, force it to retain and autorelease.
-        dispatch_io_t dispatchIO = [socket releaseAsDispatchIO];
+        __autoreleasing dispatch_io_t dispatchIO = [socket releaseAsDispatchIO];
         [invocation setReturnValue:&dispatchIO];
       });
 
