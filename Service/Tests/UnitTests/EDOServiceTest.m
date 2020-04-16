@@ -544,7 +544,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertNoThrow([dummyOnBackground voidWithInt:10]);
 
   OCMVerify([objectMock returnClassNameWithObject:[OCMArg isNotNil]]);
-  OCMVerify(objectMock.value);
+  OCMVerify([objectMock value]);
   OCMVerify([objectMock voidWithInt:10]);
 
   Class helperClass =
