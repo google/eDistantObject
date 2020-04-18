@@ -19,6 +19,7 @@
 
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObjectMessage.h"
@@ -692,15 +693,16 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 }
 
 - (void)testClientErrorHandlerNotNil {
-  EDOClientService.errorHandler = nil;
-  XCTAssertNotNil(EDOClientService.errorHandler);
+  EDOSetClientErrorHandler(nil);
+  EDOClientErrorHandler oldErrorHandler = EDOSetClientErrorHandler(nil);
+  XCTAssertNotNil(oldErrorHandler);
 }
 
 - (void)testClientErrorHandlerInvoked {
   XCTestExpectation *expectInvoke = [self expectationWithDescription:@"Error handler is invoked."];
-  [EDOClientService setErrorHandler:^(NSError *error) {
+  EDOSetClientErrorHandler(^(NSError *error) {
     [expectInvoke fulfill];
-  }];
+  });
   // The port 0 is reserved and should always fail to connect to it.
   [EDOClientService rootObjectWithPort:0];
   [self waitForExpectationsWithTimeout:1 handler:nil];

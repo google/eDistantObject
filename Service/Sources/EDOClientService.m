@@ -51,19 +51,18 @@ static const EDOClientErrorHandler kEDOClientDefaultErrorHandler = ^(NSError *er
 /** The global error handler for the client. */
 static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHandler;
 
+EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandler) {
+  // Move @c errorHandler to heap as the handler will be used globally.
+  errorHandler =
+      errorHandler ? (EDOClientErrorHandler)[errorHandler copy] : kEDOClientDefaultErrorHandler;
+  @synchronized([EDOClientService class]) {
+    EDOClientErrorHandler oldErrorHandler = gEDOClientErrorHandler;
+    gEDOClientErrorHandler = errorHandler;
+    return oldErrorHandler;
+  }
+}
+
 @implementation EDOClientService
-
-+ (void)setErrorHandler:(EDOClientErrorHandler)errorHandler {
-  @synchronized(self) {
-    gEDOClientErrorHandler = errorHandler ?: kEDOClientDefaultErrorHandler;
-  }
-}
-
-+ (EDOClientErrorHandler)errorHandler {
-  @synchronized(self) {
-    return gEDOClientErrorHandler;
-  }
-}
 
 + (id)rootObjectWithHostPort:(EDOHostPort *)hostPort {
   EDOObjectRequest *objectRequest = [EDOObjectRequest requestWithHostPort:hostPort];
@@ -249,7 +248,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
       NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
                                            code:EDOServiceErrorCannotConnect
                                        userInfo:userInfo];
-      self.errorHandler(error);
+      gEDOClientErrorHandler(error);
       return nil;
     }
 
@@ -319,7 +318,7 @@ static EDOClientErrorHandler gEDOClientErrorHandler = kEDOClientDefaultErrorHand
   NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
                                        code:EDOServiceErrorConnectTimeout
                                    userInfo:userInfo];
-  self.errorHandler(error);
+  gEDOClientErrorHandler(error);
   return nil;
 }
 

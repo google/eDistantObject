@@ -42,7 +42,7 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 @implementation EDOUITestAppUITests
 
 - (void)tearDown {
-  EDOClientService.errorHandler = nil;
+  EDOSetClientErrorHandler(nil);
   [super tearDown];
 }
 
@@ -259,10 +259,10 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 
   NSString *exceptionName = @"UITest Exception";
   __block NSError *currentError;
-  EDOClientService.errorHandler = ^(NSError *error) {
+  EDOSetClientErrorHandler(^(NSError *error) {
     currentError = error;
     [NSException raise:exceptionName format:@"%ld", (long)error.code];  // NOLINT
-  };
+  });
 
   XCTAssertThrowsSpecificNamed([EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT],
                                NSException, exceptionName);
@@ -273,10 +273,10 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 - (void)testRemoteObjectShouldFailAfterServiceTerminated {
   NSString *exceptionName = @"UITest Exception";
   __block NSError *currentError;
-  EDOClientService.errorHandler = ^(NSError *error) {
+  EDOSetClientErrorHandler(^(NSError *error) {
     currentError = error;
     [NSException raise:exceptionName format:@"%ld", (long)error.code];  // NOLINT
-  };
+  });
 
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];

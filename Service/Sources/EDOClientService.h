@@ -26,21 +26,28 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
 
 /**
+ *  Sets the error handler for the client, and returns the error handler that is previously set for
+ *  the client. The procedure is thread-safe.
+ *
+ *  The handler will be invoked if there is an error when sending a request. The default handler
+ *  throws an EDOServiceGenericException for any reported error. The exception's user info contains
+ *  the entry EDOUnderlyingErrorKey that embeds the @c NSError object.
+ *
+ *  @param errorHandler The error handler to be used for the client. If it's @c nil, the default
+ *                      handler will be used.
+ *
+ *  @return The old error handler that is set for the client previously, or the default handler
+ *          if it get called the first time.
+ */
+EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable errorHandler);
+
+/**
  *  The EDOClientService manages the communication to the remote objects in remote process.
  *
  *  The service manages the distant objects fetched from remote process. It provides API to make
  *  remote invocation to a @c EDOHostService running in the remote process.
  */
 @interface EDOClientService : NSObject
-
-/**
- *  The error handler for the client.
- *
- *  The handler will be invoked if there is an error when sending a request. The default handler
- *  throws an EDOServiceGenericException for any reported error. The exception's user info contains
- *  the entry EDOUnderlyingErrorKey that embeds the @c NSError object.
- */
-@property(class, atomic, null_resettable) EDOClientErrorHandler errorHandler;
 
 /**
  *  Gets the root object on the host port.
