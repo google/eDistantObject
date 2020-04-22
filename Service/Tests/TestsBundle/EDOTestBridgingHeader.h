@@ -15,3 +15,4 @@
 //
 
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
+#import "Service/Tests/TestsBundle/EDOTestDummy.h"

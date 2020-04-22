@@ -31,9 +31,8 @@ class EDOSwiftUITest: XCTestCase {
   func testRemoteInvocation() {
     launchAppWithPort(port:1234, value:10)
     let service = EDOHostService(port:2234, rootObject:self, queue:DispatchQueue.main)
-
-    let dummyClass = EDOTestClassDummy(value:20)
-    let testDummy = unsafeBitCast(dummyClass, to: EDOTestDummyExtension.self)
+    let hostPort = EDOHostPort(port:1234, name:nil, deviceSerialNumber:nil)
+    let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
     let swiftClass = testDummy.returnProtocol()
     XCTAssertEqual(swiftClass.returnString(), "Swift String")
 
@@ -46,8 +45,8 @@ class EDOSwiftUITest: XCTestCase {
 
   func testRemoteInvocationWithParameter() {
     launchAppWithPort(port:1234, value:10)
-    let dummyClass = EDOTestClassDummy(value:20)
-    let testDummy = unsafeBitCast(dummyClass, to: EDOTestDummyExtension.self)
+    let hostPort = EDOHostPort(port:1234, name:nil, deviceSerialNumber:nil)
+    let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
     let swiftClass = testDummy.returnProtocol()
     let data = ["a": 1, "b": 2] as NSDictionary
     XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data.passByValue()), 3)

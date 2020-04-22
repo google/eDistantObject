@@ -35,7 +35,7 @@ public class EDOTestSwiftClass : NSObject, EDOTestSwiftProtocol {
   }
 }
 
-extension EDOTestClassDummy : EDOTestDummyExtension {
+extension EDOTestDummy : EDOTestDummyExtension {
   open func returnProtocol() -> EDOTestSwiftProtocol {
     return EDOTestSwiftClass()
   }

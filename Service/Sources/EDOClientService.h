@@ -47,7 +47,7 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
  *  The service manages the distant objects fetched from remote process. It provides API to make
  *  remote invocation to a @c EDOHostService running in the remote process.
  */
-@interface EDOClientService : NSObject
+@interface EDOClientService<ObjectType> : NSObject
 
 /**
  *  Gets the root object on the host port.
@@ -55,7 +55,7 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
  *  @param hostPort The host port the service is running on.
  *  @return The remote root object.
  */
-+ (id)rootObjectWithHostPort:(EDOHostPort *)hostPort;
++ (ObjectType)rootObjectWithHostPort:(EDOHostPort *)hostPort;
 
 /**
  *  Gets the remote class object on the host port.
@@ -64,17 +64,17 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
  *  @param hostPort   The host port the service is running on.
  *  @return The remote @c Class object.
  */
-+ (id)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
++ (Class)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
 
 - (instancetype)init NS_UNAVAILABLE;
 
 #pragma mark - Deprecated APIs
 
 /** Retrieve the root object from the given host port of a service. */
-+ (id)rootObjectWithPort:(UInt16)port;
++ (ObjectType)rootObjectWithPort:(UInt16)port;
 
 /** Retrieve the root object from the given name of a service. */
-+ (id)rootObjectWithServiceName:(NSString *)serviceName;
++ (ObjectType)rootObjectWithServiceName:(NSString *)serviceName;
 
 /** Retrieve the class object from the given host port of a service. */
 + (Class)classObjectWithName:(NSString *)className port:(UInt16)port;

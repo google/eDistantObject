@@ -31,6 +31,8 @@ with as a protocol.
 
 For example:
 
+*   The common dependency that defines the protocols
+
 ```swift
 //  In Swift
 @objc
@@ -39,46 +41,46 @@ public protocol RemoteInterface {
 }
 
 @objc
-public protocol StubbedClassExtension {
+public protocol RootObjectExtension {
   func remoteInterface() -> RemoteInterface
 }
+```
 
-class ActualImplementation : RemoteInterface {
+*   The service side implementation
+
+```swift
+class ActualImplementation: RemoteInterface {
   func remoteFoo() -> Bar {
     // Your actual implementation.
   }
 }
 
 @objc
-extension AlreadyStubbedClass : StubbedClassExtension {
+extension RootObject: RootObjectExtension {
   // The client calling this method to require the remote object.
   func remoteInterface() -> RemoteInterface {
-    // return the actual implementation of RemoteInterface
+    return ActualImplementation()
   }
 }
 ```
 
-```objectivec
-// In Objective-C
-
-// Define a Objective-C bridge so Swift can extend.
-@interface AlreadyStubbedClass
-@end
-```
-
-In the code above, `AlreadyStubbedClass` is defined in Objective-C and will be
-imported as a regular eDistantObject in both Swift files. This will then be used
-as an entry point to return the protocol `RemoteInterface`. The remote
-invocation will be:
+*   The client side retrieving the remote objects
 
 ```swift
-RemoteInterface remote = unsafeCast(AlreadyStubbedClass.sharedClass, to:StubbedClassExtension.self).remoteInstance
+let rootObject = EDOClientService<RootObjectExtension>.rootObject(withPort: portNumber)
+let remote = rootObject.remoteInterface()
 remote.remoteFoo()
 ```
 
-Here the `unsafeCast` lets the compiler know the `AlreadyStubbedClass` has the
-extension. Working example is shown
+In the code above, `RootObject` is defined and implemented on the server side.
+This will then be used as an entry point to return the protocol
+`RootObjectExtension`.
+
+Working example is shown
 [here](../Service/Tests/FunctionalTests/EDOSwiftUITest.swift).
+
+Alternatively, you can extend the root object directly. It is up to the user how
+they want to organize their code structure.
 
 ### The block closure
 
