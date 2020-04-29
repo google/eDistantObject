@@ -157,7 +157,8 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
  * EDODeallocationTracker tracks the object and sends object release request when object is out of
  * scope.
  */
-- (void)testWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleased {
+// TODO(b/155329379): Reenable
+- (void)disabled_testWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleased {
   EDOWeakObject *weakObject;
   NSString *queueName = [NSString stringWithFormat:@"com.google.edotest.%@", self.name];
   dispatch_queue_t queue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
@@ -184,7 +185,8 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
  * EDOWeakObjects exist, the release of the underlying object will lead to multiple release requests
  * being sent.
  */
-- (void)testMultipleWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleased {
+// TODO(b/155329379): Reenable
+- (void)disabled_testMultipleWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleased {
   int numWeakObjects = 10;
   NSArray<EDOTestDummy *> *weakObjects;
 
@@ -228,7 +230,9 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
  * host ports. EDODeallocationTracker tracks the object and sends object release request when object
  * is out of scope.
  */
-- (void)testWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleasedWithMultipleHostPort {
+// TODO(b/155329379): Reenable
+- (void)
+    disabled_testWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleasedWithMultipleHostPort {
   int numWeakObjects = 10;
   NSArray<EDOTestDummy *> *weakObjects;
   NSMutableArray<EDOHostService *> *hostServices =
@@ -283,7 +287,8 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
  * Tests weak object sends release messsage when underlying object is out of scope on different
  * queues for concurrency.
  */
-- (void)testWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleasedOnDifferentQueues {
+// TODO(b/155329379): Reenable
+- (void)disabled_testWeakObjectSendReleaseMessageWhenUnderlyingObjectIsReleasedOnDifferentQueues {
   int numWeakObjects = 100;
   NSArray<EDOTestDummy *> *weakObjects;
 

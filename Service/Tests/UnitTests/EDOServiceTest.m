@@ -550,17 +550,19 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
   Class helperClass =
       EDO_REMOTE_CLASS(EDOProtocolMockTestHelper, self.serviceOnBackground.port.hostPort.port);
+  Class ocmArgClass = EDO_REMOTE_CLASS(OCMArg, self.serviceOnBackground.port.hostPort.port);
 
   id testProtocol = [helperClass createTestProtocol];
+  [[testProtocol expect] methodWithNothing];
+  [[testProtocol expect] methodWithObject:[ocmArgClass isNil]];
+  [[testProtocol expect] returnWithNothing];
+  [[testProtocol expect] returnWithObject:[ocmArgClass isNotNil]];
   [helperClass invokeMethodsWithProtocol:testProtocol];
 
+  OCMVerifyAll(testProtocol);
   // Let it resolve otherwise -[isEqual:] causes infinite loop from mocking.
   [self.serviceBackgroundMock stopMocking];
   [self.serviceMainMock stopMocking];
-  OCMVerify([testProtocol methodWithNothing]);
-  OCMVerify([testProtocol methodWithObject:[OCMArg isNil]]);
-  OCMVerify([testProtocol returnWithNothing]);
-  OCMVerify([testProtocol returnWithObject:[OCMArg isNotNil]]);
 }
 
 - (void)testEDODescription {
