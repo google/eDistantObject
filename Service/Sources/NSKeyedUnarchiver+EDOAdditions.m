@@ -24,18 +24,20 @@
     (defined(__TV_OS_VERSION_MAX_ALLOWED) && __TV_OS_VERSION_MAX_ALLOWED >= 120000) ||       \
     (defined(__WATCH_OS_VERSION_MAX_ALLOWED) && __WATCH_OS_VERSION_MAX_ALLOWED >= 120000) || \
     (defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 120000)
-  // Use instancesRespondToSelector check because it's possible that something loads this on a lower
-  // iOS version than what it was built with, in which case the availability macros fail to protect
-  // it.
-  SEL selector = @selector(initForReadingFromData:error:);
-  if ([NSKeyedUnarchiver instancesRespondToSelector:selector]) {
-    NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:data
-                                                                                error:nil];
-    unarchiver.decodingFailurePolicy = NSDecodingFailurePolicyRaiseException;
-    unarchiver.requiresSecureCoding = NO;
-    id object = [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
-    [unarchiver finishDecoding];
-    return object;
+  if (@available(iOS 11.0, macOS 10.13, tvOS 11.0, watchOS 4.0, *)) {
+    // Use instancesRespondToSelector check because it's possible that something loads this on a
+    // lower iOS version than what it was built with, in which case the availability macros fail to
+    // protect it.
+    SEL selector = @selector(initForReadingFromData:error:);
+    if ([NSKeyedUnarchiver instancesRespondToSelector:selector]) {
+      NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:data
+                                                                                  error:nil];
+      unarchiver.decodingFailurePolicy = NSDecodingFailurePolicyRaiseException;
+      unarchiver.requiresSecureCoding = NO;
+      id object = [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+      [unarchiver finishDecoding];
+      return object;
+    }
   }
 #endif
   // This API is deprecated in iOS 12/macOS 10.14, so we suppress warning here in case its
