@@ -35,6 +35,9 @@ static NSString *const kEDOObjectCoderRemoteClassKey = @"edoRemoteClass";
 static NSString *const kEDOObjectCoderClassNameKey = @"edoClassName";
 static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 
+/** Returns the boolean idicating if the two objects are from the same process. */
+static BOOL IsFromSameProcess(id object1, id object2);
+
 @interface EDOObject ()
 /** The port to connect to the local socket. */
 @property(readonly) EDOServicePort *servicePort;
@@ -171,8 +174,7 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
   if (self == object) {
     return YES;
   }
-  if ([object class] == [EDOObject class] &&
-      [self.processUUID isEqual:((EDOObject *)object).processUUID]) {
+  if (IsFromSameProcess(self, object)) {
     BOOL returnValue = NO;
     NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:_cmd];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
@@ -184,6 +186,27 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
     return returnValue;
   }
   return NO;
+}
+
+- (BOOL)isKindOfClass:(Class)aClass {
+  if (!IsFromSameProcess(self, aClass)) {
+    NSLog(@"EDO WARNING: %@'s class is being compared via isKindOfClass: with the class that "
+          @"doesn't belong to the process of the callee object. It will always return NO. To "
+          @"expect isKindOfClass: to return YES, please use a class object that is fetched by "
+          @"EDOClientService::classObjectWithName:hostPort:.",
+          self.className);
+    return NO;
+  }
+
+  NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:_cmd];
+  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+  invocation.target = self;
+  invocation.selector = _cmd;
+  [invocation setArgument:&aClass atIndex:2];
+  [self forwardInvocation:invocation];
+  BOOL returnValue = NO;
+  [invocation getReturnValue:&returnValue];
+  return returnValue;
 }
 
 - (NSUInteger)hash {
@@ -331,3 +354,10 @@ static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
 }
 
 @end
+
+static BOOL IsFromSameProcess(id object1, id object2) {
+  Class edoClass = [EDOObject class];
+  return ([object1 class] != edoClass && [object2 class] != edoClass) ||
+         ([object1 class] == edoClass && [object2 class] == edoClass &&
+          [((EDOObject *)object1).processUUID isEqual:((EDOObject *)object2).processUUID]);
+}

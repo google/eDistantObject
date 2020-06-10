@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOClientService.h"
@@ -326,6 +327,26 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   }
 
   free(methods);
+}
+
+/**
+ *  Verifies `isKindOfClass:` returns true only if the class object belongs to the callee process.
+ */
+- (void)testIsKindOfClassOnlyResolvesInSameProcess {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  // Create a local service so it can wrap and deref the any returned EDOObjects.
+  EDOHostService *service = [EDOHostService serviceWithPort:2234
+                                                 rootObject:[[EDOTestDummyInTest alloc] init]
+                                                      queue:dispatch_get_main_queue()];
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  NSArray<NSNumber *> *remoteArray = [remoteDummy returnArray];
+
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:EDOTEST_APP_SERVICE_PORT];
+  Class remoteArrayClass = [EDOClientService classObjectWithName:@"NSArray" hostPort:hostPort];
+  XCTAssertTrue([remoteArray isKindOfClass:remoteArrayClass]);
+  XCTAssertFalse([remoteArray isKindOfClass:[NSArray class]]);
+
+  [service invalidate];
 }
 
 - (void)testRemoteObjectCopy {
