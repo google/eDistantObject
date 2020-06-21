@@ -22,6 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
 @class EDOHostNamingService;
 @class EDOHostPort;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** The error handler for handling errors generated when sending client requests. */
 typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
 
@@ -40,6 +44,10 @@ typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
  *          if it get called the first time.
  */
 EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable errorHandler);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
 /**
  *  The EDOClientService manages the communication to the remote objects in remote process.
