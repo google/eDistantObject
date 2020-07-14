@@ -22,32 +22,28 @@
   void (^_executeBlock)(void);
   /** The boolean to indicate if execution has started. */
   atomic_flag _started;
-  /** The boolean to indicate if the message is handled. */
-  BOOL _completed;
   /** The lock to signal after the request is processed and response is sent. */
-  dispatch_semaphore_t _waitLock;
+  dispatch_group_t _executedGroup;
 }
 
 - (instancetype)initWithBlock:(void (^)(void))executeBlock {
   self = [super init];
   if (self) {
     _executeBlock = executeBlock;
-    _waitLock = dispatch_semaphore_create(0L);
+    _executedGroup = dispatch_group_create();
+    dispatch_group_enter(_executedGroup);
   }
   return self;
 }
 
 - (void)waitForCompletion {
-  if (!_completed) {
-    dispatch_semaphore_wait(_waitLock, DISPATCH_TIME_FOREVER);
-  }
+  dispatch_group_wait(_executedGroup, DISPATCH_TIME_FOREVER);
 }
 
 - (BOOL)executeBlock {
   if (!atomic_flag_test_and_set(&_started)) {
     self->_executeBlock();
-    self->_completed = YES;
-    dispatch_semaphore_signal(self->_waitLock);
+    dispatch_group_leave(self->_executedGroup);
     return YES;
   };
   return NO;

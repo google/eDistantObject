@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7674100E237E01FB00D43A15 /* EDOExecutorMessageTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 7674100D237E01FB00D43A15 /* EDOExecutorMessageTest.m */; };
 		7685673323A1C10200EDBDB4 /* EDORemoteException.m in Sources */ = {isa = PBXBuildFile; fileRef = 7685673123A1C10100EDBDB4 /* EDORemoteException.m */; };
 		7690BE9423A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m in Sources */ = {isa = PBXBuildFile; fileRef = 7690BE9323A9CCBD00C00D02 /* NSObject+EDOBlacklistedType.m */; };
 		C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */; };
@@ -230,6 +231,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7674100D237E01FB00D43A15 /* EDOExecutorMessageTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOExecutorMessageTest.m; path = Service/Tests/UnitTests/EDOExecutorMessageTest.m; sourceTree = "<group>"; };
 		7685673123A1C10100EDBDB4 /* EDORemoteException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteException.m; path = Service/Sources/EDORemoteException.m; sourceTree = "<group>"; };
 		7685673223A1C10100EDBDB4 /* EDORemoteException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORemoteException.h; path = Service/Sources/EDORemoteException.h; sourceTree = "<group>"; };
 		7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteExceptionTest.m; path = Service/Tests/UnitTests/EDORemoteExceptionTest.m; sourceTree = "<group>"; };
@@ -715,6 +717,7 @@
 		C5A2F02D2134D4B800421D72 /* UnitTests */ = {
 			isa = PBXGroup;
 			children = (
+				7674100D237E01FB00D43A15 /* EDOExecutorMessageTest.m */,
 				7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */,
 				DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */,
 				C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */,
