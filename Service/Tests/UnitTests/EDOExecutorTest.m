@@ -84,12 +84,12 @@
 
   XCTestExpectation *expectFinish = [self expectationWithDescription:@"The executor is finished."];
   expectFinish.expectedFulfillmentCount = 3;
-  __block NSInteger numIncrements = 0;
   NSInteger numRuns = 1000;
+  __block NSInteger numLoops = 0;
   dispatch_async(queue, ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
       [executor loopWithBlock:^{
-        ++numIncrements;
+        ++numLoops;
       }];
     }
     [expectFinish fulfill];
@@ -99,28 +99,32 @@
   // 1. the request is received before the executor starts
   // 2. the request is received after the executor starts but before the while-loop starts
   // 3. the request is received after the while-loop tarts.
+  __block NSInteger numHandlesHighPriority = 0;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
       [executor
           handleBlock:^{
-            ++numIncrements;
+            ++numHandlesHighPriority;
           }
                 error:nil];
     }
     [expectFinish fulfill];
   });
+  __block NSInteger numHandlesLowPriority = 0;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
     for (NSInteger i = 0; i < numRuns; ++i) {
       [executor
           handleBlock:^{
-            ++numIncrements;
+            ++numHandlesLowPriority;
           }
                 error:nil];
     }
     [expectFinish fulfill];
   });
   [self waitForExpectationsWithTimeout:0.1 * numRuns handler:nil];
-  XCTAssertEqual(numIncrements, 3 * numRuns);
+  XCTAssertEqual(numLoops, numRuns);
+  XCTAssertEqual(numHandlesHighPriority, numRuns);
+  XCTAssertEqual(numHandlesLowPriority, numRuns);
 }
 
 - (void)testSendRequestWithNestedExecutorProcessingStressfully {
