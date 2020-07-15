@@ -105,7 +105,7 @@
   if (![self enqueueMessage:message]) {
     dispatch_queue_t executionQueue = self.executionQueue;
     if (executionQueue) {
-      dispatch_async(self.executionQueue, ^{
+      dispatch_async(executionQueue, ^{
         [message executeBlock];
       });
     } else {

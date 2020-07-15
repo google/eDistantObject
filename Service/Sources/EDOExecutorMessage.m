@@ -30,6 +30,7 @@
   self = [super init];
   if (self) {
     _executeBlock = executeBlock;
+    atomic_flag_clear(&_started);
     _executedGroup = dispatch_group_create();
     dispatch_group_enter(_executedGroup);
   }
@@ -42,8 +43,8 @@
 
 - (BOOL)executeBlock {
   if (!atomic_flag_test_and_set(&_started)) {
-    self->_executeBlock();
-    dispatch_group_leave(self->_executedGroup);
+    _executeBlock();
+    dispatch_group_leave(_executedGroup);
     return YES;
   };
   return NO;

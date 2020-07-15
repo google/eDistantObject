@@ -62,7 +62,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  @note If the executor is running the while-loop, the request will be enqueued to process,
  *        or it will dispatch to the @c executionQueue to process.
  *  @param      executeBlock   The block to be handled and executed.
- *  @param[out] error          Error that will be populated on failure.
+ *  @param[out] errorOrNil     Error that will be populated on failure.
  *
  *  @return @c YES if the block is successfully executed by the executor; @c NO otherwise, in which
  *          case the block won't get invoked.
