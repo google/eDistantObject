@@ -34,6 +34,14 @@
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
 #import "Service/Tests/TestsBundle/EDOTestValueType.h"
 
+// IWYU pragma: no_include "OCMArg.h"
+// IWYU pragma: no_include "OCMFunctions.h"
+// IWYU pragma: no_include "OCMLocation.h"
+// IWYU pragma: no_include "OCMMacroState.h"
+// IWYU pragma: no_include "OCMRecorder.h"
+// IWYU pragma: no_include "OCMStubRecorder.h"
+// IWYU pragma: no_include "OCMockObject.h"
+
 static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 @interface EDOServiceTest : XCTestCase

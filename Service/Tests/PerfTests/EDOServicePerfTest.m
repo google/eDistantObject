@@ -20,9 +20,18 @@
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
+
+// IWYU pragma: no_include "OCMArg.h"
+// IWYU pragma: no_include "OCMFunctions.h"
+// IWYU pragma: no_include "OCMLocation.h"
+// IWYU pragma: no_include "OCMMacroState.h"
+// IWYU pragma: no_include "OCMRecorder.h"
+// IWYU pragma: no_include "OCMStubRecorder.h"
+// IWYU pragma: no_include "OCMockObject.h"
 
 /**
  *  Expose the benchmark API.
