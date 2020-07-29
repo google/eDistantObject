@@ -171,6 +171,7 @@
 }
 
 - (void)testMultipleForwarderCanConnectMultiplexerAndForward {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edo.test", DISPATCH_QUEUE_SERIAL);
   int numOfForwarders = 20;
   NS_VALID_UNTIL_END_OF_SCOPE NSMutableArray<id> *savedForwarders = [[NSMutableArray alloc] init];
   // Add the placeholders first.
@@ -187,7 +188,9 @@
 
       XCTAssertNotNil([forwarder startWithErrorHandler:^(EDOForwarderError errorCode){
       }]);
-      savedForwarders[idx] = forwarder;
+      dispatch_async(testQueue, ^{
+        savedForwarders[idx] = forwarder;
+      });
     });
   });
 

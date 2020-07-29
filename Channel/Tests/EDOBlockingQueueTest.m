@@ -78,6 +78,7 @@
 }
 
 - (void)testAddAndFetchObjectsConcurrently {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edo.test", DISPATCH_QUEUE_SERIAL);
   EDOBlockingQueue<NSObject *> *blockingQueue = [[EDOBlockingQueue alloc] init];
   NSArray<NSObject *> *objects = [self objects];
 
@@ -88,15 +89,20 @@
   }
 
   XCTestExpectation *expectFetchAll = [self expectationWithDescription:@"All objects are fetched."];
+  expectFetchAll.expectedFulfillmentCount = objects.count;
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
     dispatch_apply(objects.count, dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^(size_t idx) {
+      NSObject *object;
       if (idx % 2) {
-        fetchedObjects[idx] = [blockingQueue firstObjectWithTimeout:DISPATCH_TIME_FOREVER];
+        object = [blockingQueue firstObjectWithTimeout:DISPATCH_TIME_FOREVER];
       } else {
-        fetchedObjects[idx] = [blockingQueue lastObjectWithTimeout:DISPATCH_TIME_FOREVER];
+        object = [blockingQueue lastObjectWithTimeout:DISPATCH_TIME_FOREVER];
       }
+      dispatch_async(testQueue, ^{
+        fetchedObjects[idx] = object;
+        [expectFetchAll fulfill];
+      });
     });
-    [expectFetchAll fulfill];
   });
 
   dispatch_apply(objects.count, dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^(size_t idx) {
