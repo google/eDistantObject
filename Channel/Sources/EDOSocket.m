@@ -67,11 +67,27 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
 
 #pragma mark - EDOSocket implementation
 
+@interface EDOSocket ()
+
+/** The global serial queue for handling dispatch I/O's cleanup handler and closing socket. */
+@property(class, atomic, readonly) dispatch_queue_t closeSocketQueue;
+
+@end
+
 @implementation EDOSocket {
   dispatch_fd_t _socket;
 }
 
 @dynamic valid;
+
++ (dispatch_queue_t)closeSocketQueue {
+  static dispatch_queue_t closeSocketQueue;
+  static dispatch_once_t once_token;
+  dispatch_once(&once_token, ^{
+    closeSocketQueue = dispatch_queue_create("com.google.edo.CloseSocket", DISPATCH_QUEUE_SERIAL);
+  });
+  return closeSocketQueue;
+}
 
 + (nullable instancetype)socketWithTCPPort:(UInt16)port
                                      queue:(dispatch_queue_t _Nullable)queue
@@ -125,7 +141,7 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
     return NULL;
   }
 
-  dispatch_queue_t queue = dispatch_queue_create("com.google.edo.SocketIO", DISPATCH_QUEUE_SERIAL);
+  dispatch_queue_t queue = [self class].closeSocketQueue;
   dispatch_io_t channel = dispatch_io_create(DISPATCH_IO_STREAM, socket, queue, ^(int error) {
     if (error) {
       NSLog(@"Error (%d) when closing dispatch channel.", error);
