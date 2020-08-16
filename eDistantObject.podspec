@@ -27,6 +27,7 @@ Pod::Spec.new do |s|
                              Device/Sources/EDODeviceDetector.h
                            ]
 
+  # ${PODS_TARGET_SRCROOT} is needed for Pod lint which locates the local eDistantObject codebase.
   s.pod_target_xcconfig = { "HEADER_SEARCH_PATHS" => "${PODS_ROOT}/eDistantObject ${PODS_TARGET_SRCROOT}" }
   s.source_files = "Channel/Sources/*.{m,h}", "Device/Sources/*.{m,h}",
                    "Measure/Sources/*.{m,h}", "Service/Sources/*.{m,h}"
