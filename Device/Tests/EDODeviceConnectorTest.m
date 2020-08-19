@@ -13,12 +13,21 @@
 // limitations under the License.
 //
 
-#import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 
 #import "Device/Sources/EDODeviceConnector.h"
 #import "Device/Sources/EDODeviceDetector.h"
 #import "Device/Sources/EDOUSBMuxUtil.h"
+
+#import <OCMock/OCMock.h>
+
+// IWYU pragma: no_include "OCMArg.h"
+// IWYU pragma: no_include "OCMFunctions.h"
+// IWYU pragma: no_include "OCMLocation.h"
+// IWYU pragma: no_include "OCMMacroState.h"
+// IWYU pragma: no_include "OCMRecorder.h"
+// IWYU pragma: no_include "OCMStubRecorder.h"
+// IWYU pragma: no_include "OCMockObject.h"
 
 static NSString *const kFakeSerialNumber = @"fake_serial";
 

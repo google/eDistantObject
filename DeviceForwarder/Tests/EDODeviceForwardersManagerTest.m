@@ -16,7 +16,6 @@
 
 #import "DeviceForwarder/Sources/EDODeviceForwardersManager.h"
 
-#import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 
 #import "Channel/Sources/EDOChannel.h"
@@ -26,6 +25,8 @@
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Channel/Sources/EDOSocketPort.h"
 #import "Device/Sources/EDODeviceConnector.h"
+
+#import <OCMock/OCMock.h>
 
 // IWYU pragma: no_include "OCMArg.h"
 // IWYU pragma: no_include "OCMFunctions.h"

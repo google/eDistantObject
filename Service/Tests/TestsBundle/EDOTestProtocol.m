@@ -18,6 +18,14 @@
 
 #import <OCMock/OCMock.h>
 
+// IWYU pragma: no_include "OCMArg.h"
+// IWYU pragma: no_include "OCMFunctions.h"
+// IWYU pragma: no_include "OCMLocation.h"
+// IWYU pragma: no_include "OCMMacroState.h"
+// IWYU pragma: no_include "OCMRecorder.h"
+// IWYU pragma: no_include "OCMStubRecorder.h"
+// IWYU pragma: no_include "OCMockObject.h"
+
 @implementation EDOProtocolMockTestHelper
 
 + (id<EDOTestProtocol>)createTestProtocol {

@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-#import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 
 #import "Channel/Sources/EDOHostPort.h"
@@ -24,6 +23,8 @@
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
+
+#import <OCMock/OCMock.h>
 
 // IWYU pragma: no_include "OCMArg.h"
 // IWYU pragma: no_include "OCMFunctions.h"
