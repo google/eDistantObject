@@ -129,6 +129,7 @@ static NSString *const kFakeSerialNumber = @"fake_serial";
                        delay:(NSTimeInterval)delay
                 isAttachment:(BOOL)isAttachment {
   id mockDetector = OCMClassMock([EDODeviceDetector class]);
+  BOOL success = listenError == nil;
   OCMStub([mockDetector listenToBroadcastWithError:[OCMArg anyObjectRef] receiveHandler:OCMOCK_ANY])
       .andDo(^(NSInvocation *invocation) {
         __strong NSError **errorPointer;
@@ -160,7 +161,7 @@ static NSString *const kFakeSerialNumber = @"fake_serial";
                          }
                        });
       })
-      .andReturn(listenError == nil);
+      .andReturn(success);
   OCMStub([mockDetector cancel]).andDo(^(NSInvocation *invocation) {
     [mockDetector stopMocking];
   });
