@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
                              Service/Sources/EDOServiceError.h
                              Service/Sources/EDOServiceException.h
                              Service/Sources/EDOServicePort.h
-                             Service/Sources/NSObject+EDOBlacklistedType.h
+                             Service/Sources/NSObject+EDOBlockedType.h
                              Service/Sources/NSObject+EDOValueObject.h
                              Service/Sources/NSObject+EDOWeakObject.h
                              Device/Sources/EDODeviceConnector.h

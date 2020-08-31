@@ -19,25 +19,25 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  This category provides APIs to statically blacklist a class to be used in remote invocation.
+ *  This category provides APIs to statically block a class to be used in remote invocation.
  *
  *  It provides a way to prevent certain types of instances being created in the wrong process
  *  and sent to system APIs as a remote object. For example, iOS app cannot add a remote UIView
- *  as the subview of another native UIView. If a type is blacklisted in remote invocation,
+ *  as the subview of another native UIView. If a type is blocked in remote invocation,
  *  its instance, which is created in this process by mistake, will throw an exception when it
  *  appears in a remote invocation.
  */
-@interface NSObject (EDOBlacklistedType)
+@interface NSObject (EDOBlockedType)
 
 /**
- *  Blacklists this type to be a parameter of remote invocation.
+ *  Blocks this type to be a parameter of remote invocation.
  *
- *  If a class is blacklisted, its instances are not allowed to be either parameters or return
+ *  If a class is blocked, its instances are not allowed to be either parameters or return
  *  values in remote invocation.
  */
 + (void)edo_disallowRemoteInvocation;
 
-/** The boolean to indicate if @c self is blacklisted in remote invocation. */
+/** The boolean to indicate if @c self is blocked in remote invocation. */
 @property(readonly, class) BOOL edo_remoteInvocationDisallowed;
 
 @end

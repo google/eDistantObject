@@ -39,6 +39,6 @@
 + (NSException *)exceptionWithReason:(NSString *)reason value:(int)value;
 @end
 
-/** The test dummy class that is used in blacklisting test. */
-@interface EDOBlacklistedTestDummyInTest : EDOTestDummyInTest
+/** The test dummy class that is used in blocklist test. */
+@interface EDOBlockedTestDummyInTest : EDOTestDummyInTest
 @end

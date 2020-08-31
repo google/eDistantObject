@@ -27,7 +27,7 @@ Updates:
   traces of both the callee process and previous caller processes.
 
 * You can
-  [block](https://github.com/google/eDistantObject/blob/master/Service/Sources/NSObject%2BEDOBlacklistedType.h#L38)
+  [block](https://github.com/google/eDistantObject/blob/master/Service/Sources/NSObject%2BEDOBlockedType.h#L38)
   certain class type to be wrapped as an eDO proxy, to help detect unexpected
   object creation in the wrong process.
 

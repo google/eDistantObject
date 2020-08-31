@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#import "Service/Sources/NSObject+EDOBlacklistedType.h"
+#import "Service/Sources/NSObject+EDOBlockedType.h"
 
 #include <objc/runtime.h>
 
@@ -23,7 +23,7 @@
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
 
-@implementation NSObject (EDOBlacklistedType)
+@implementation NSObject (EDOBlockedType)
 
 + (void)edo_disallowRemoteInvocation {
   @synchronized(self.class) {

@@ -68,10 +68,10 @@
 
 @end
 
-@implementation EDOBlacklistedTestDummyInTest
+@implementation EDOBlockedTestDummyInTest
 
 - (EDOTestDummyInTest *)makeAnotherDummy:(int)value {
-  return [[EDOBlacklistedTestDummyInTest alloc] initWithValue:0];
+  return [[EDOBlockedTestDummyInTest alloc] initWithValue:0];
 }
 
 @end
