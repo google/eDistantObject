@@ -3,6 +3,10 @@
 Details changes in each release of eDistantObject. eDistantObject follows
 [semantic versioning](http://semver.org/).
 
+## [1.0.1](https://github.com/google/eDistantObject/tree/1.0.1) (09/01/2020)
+
+Aligned with Google respectful code guidance and renamed some classes.
+
 ## [1.0.0](https://github.com/google/eDistantObject/tree/1.0.0) (08/14/2020)
 
 Updates:
