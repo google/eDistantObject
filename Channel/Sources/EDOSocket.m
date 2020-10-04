@@ -185,7 +185,7 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
   }
 
   // The dispatch source to wait on the connection.
-  __block dispatch_source_t source =
+  dispatch_source_t source =
       dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, (uintptr_t)socketFD, 0, queue);
 
   dispatch_source_set_event_handler(source, ^{
@@ -205,12 +205,9 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
     }
 
     // Once connected, we don't need this source any more; so we don't track this internally.
+    // This will also effectively release the strong reference of the source so it breaks the
+    // retain cycle as after the source is cancelled, the event handler will get released.
     dispatch_source_cancel(source);
-  });
-
-  dispatch_source_set_cancel_handler(source, ^{
-    // hold and release the strong reference until the source is done or error.
-    source = nil;
   });
 
   dispatch_resume(source);
