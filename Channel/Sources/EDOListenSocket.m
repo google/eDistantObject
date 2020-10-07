@@ -19,6 +19,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/tcp.h>
+#include <stdatomic.h>
 #include <sys/un.h>
 
 #import "Channel/Sources/EDOSocketPort.h"
@@ -28,6 +29,8 @@ static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
 @implementation EDOListenSocket {
   // The dispatch source to listen on for incoming requests.
   dispatch_source_t _source;
+  // The boolean to indicate if the listen socket is valid. */
+  atomic_bool _valid;
 }
 
 + (instancetype)socketWithSocket:(dispatch_fd_t)socket source:(dispatch_source_t)source {
@@ -81,6 +84,7 @@ static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
   self = [super initWithSocket:socket];
   if (self) {
     _source = source;
+    atomic_init(&_valid, YES);
   }
   return self;
 }
@@ -92,14 +96,14 @@ static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
   // condition between calling close and cancel the source. The source handler can still process the
   // incoming requests while we close the socket. Cancelling the source first can make sure the
   // handler is complete before the socket is closed.
-  if (_source) {
+  if (atomic_exchange(&_valid, NO)) {
     dispatch_source_cancel(_source);
     _source = NULL;
   }
 }
 
 - (BOOL)valid {
-  return _source != NULL;
+  return atomic_load(&_valid);
 }
 
 /**
