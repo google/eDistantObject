@@ -113,8 +113,8 @@ typedef struct EDOHostPortData_s {
     }
 
     const EDOHostPortData_t *header = data.bytes;
-    if (header->size != data.length || header->nameOffset != sizeof(EDOHostPortData_t) ||
-        header->serialOffset > data.length) {
+    if (data.length < sizeof(EDOHostPortData_t) || header->size != data.length ||
+        header->nameOffset != sizeof(EDOHostPortData_t) || header->serialOffset > data.length) {
       return nil;
     }
 

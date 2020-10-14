@@ -90,7 +90,7 @@
   char incorrectSizeData[] = "\12\0";
   // header.size = 12, but data.nameOffset = \30bee
   char incorrectNameOffsetData[] = "\14\0\0\0\0\0\30beef";
-  // header.size = 12, but data.serialOffset = \13bee
+  // header.size = 14, but data.serialOffset = \13bee
   char incorrectSerialOffsetData[] = "\16\0\0\0\0\0\12\0\13beef";
   // random data
   char randomData[] = "deadbeefneverstop";
