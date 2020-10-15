@@ -22,17 +22,23 @@ matrix:
   include:
   - name: "Xcode 9/iPhone 5 32bit/iOS 10.3.1"
     osx_image: xcode9
-    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone 5,OS=10.3.1"
+    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone 5,OS=10.3.1" SANITIZER_FLAGS=""
   - name: "Xcode 9/iPhone 6 64bit/iOS 11.0"
     osx_image: xcode9
-    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone 6,OS=11.0"
+    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone 6,OS=11.0" SANITIZER_FLAGS=""
   - name: "Xcode 10/iPhone XS/iOS Latest"
     osx_image: xcode10
-    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone XS,OS=latest"
+    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone XS,OS=latest" SANITIZER_FLAGS=""
+  - name: "Xcode 10/iPhone XS/iOS Latest/TSAN"
+    osx_image: xcode10
+    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone XS,OS=latest" SANITIZER_FLAGS="-enableThreadSanitizer YES"
+  - name: "Xcode 10/iPhone XS/iOS Latest/ASAN"
+    osx_image: xcode10
+    env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone XS,OS=latest" SANITIZER_FLAGS="-enableAddressSanitizer YES"
 install:
   - pod install --repo-update
 script:
-  - travis_retry xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "$IOS_DESTINATION" test
+  - travis_retry xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "$IOS_DESTINATION" $SANITIZER_FLAGS test
 branches:
   only:
     - master
