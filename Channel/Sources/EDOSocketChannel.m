@@ -117,62 +117,69 @@
     return;
   }
 
-  __block dispatch_data_t dataReceived;
-  __block size_t remainingDataSize;
-  dispatch_io_handler_t dataHandler = ^(bool done, dispatch_data_t data, int error) {
-    if (error || !data) {
+  // Accessing __block variable has to be atomic in order to prevent from data racing. Here because
+  // ARC inserts release at the end of scope such that reads and writes can happen in different
+  // threads/queues, using handlerQueue as an isolation queue to ensure its atomicity. For detail,
+  // see b/171321939.
+  dispatch_async(handlerQueue, ^{
+    __block dispatch_data_t dataReceived;
+    __block size_t remainingDataSize;
+    dispatch_io_handler_t dataHandler = ^(bool done, dispatch_data_t data, int error) {
+      if (error || !data) {
+        if (handler) {
+          dispatch_async(handlerQueue, ^{
+            handler(self, nil,
+                    [NSError errorWithDomain:NSPOSIXErrorDomain code:error userInfo:nil]);
+          });
+        }
+        return;
+      }
+      remainingDataSize -= dispatch_data_get_size(data);
+      dataReceived = dataReceived ? dispatch_data_create_concat(dataReceived, data) : data;
+
+      if (remainingDataSize > 0) {
+        return;
+      }
+
+      NSMutableData *receivedData =
+          [NSMutableData dataWithCapacity:dispatch_data_get_size(dataReceived)];
+      dispatch_data_apply(dataReceived, ^bool(dispatch_data_t region, size_t offset,
+                                              const void *buffer, size_t size) {
+        [receivedData appendBytes:buffer length:size];
+        return YES;
+      });
+
       if (handler) {
         dispatch_async(handlerQueue, ^{
-          handler(self, nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:error userInfo:nil]);
+          handler(self, receivedData, nil);
         });
       }
-      return;
-    }
-    remainingDataSize -= dispatch_data_get_size(data);
-    dataReceived = dataReceived ? dispatch_data_create_concat(dataReceived, data) : data;
+    };
 
-    if (remainingDataSize > 0) {
-      return;
-    }
-
-    NSMutableData *receivedData =
-        [NSMutableData dataWithCapacity:dispatch_data_get_size(dataReceived)];
-    dispatch_data_apply(dataReceived, ^bool(dispatch_data_t region, size_t offset,
-                                            const void *buffer, size_t size) {
-      [receivedData appendBytes:buffer length:size];
-      return YES;
-    });
-
-    if (handler) {
-      dispatch_async(handlerQueue, ^{
-        handler(self, receivedData, nil);
-      });
-    }
-  };
-
-  dispatch_io_handler_t frameHandler = ^(bool done, dispatch_data_t data, int error) {
-    size_t payloadSize = EDOGetPayloadSizeFromFrameData(data);
-    if (payloadSize > 0) {
-      remainingDataSize = payloadSize;
-      if (![self readDispatchIOWithDataSize:remainingDataSize handler:dataHandler] && handler) {
-        handler(self, nil, nil);
-      }
-    } else {
-      // Close the channel on errors and closed sockets.
-      if (error != 0 || payloadSize == 0) {
-        [self invalidate];
-      }
-
-      // Execute the block on closing the channel.
-      if (payloadSize == 0 && error == 0 && handler) {
-        dispatch_async(handlerQueue, ^{
+    dispatch_io_handler_t frameHandler = ^(bool done, dispatch_data_t data, int error) {
+      size_t payloadSize = EDOGetPayloadSizeFromFrameData(data);
+      if (payloadSize > 0) {
+        remainingDataSize = payloadSize;
+        if (![self readDispatchIOWithDataSize:remainingDataSize handler:dataHandler] && handler) {
           handler(self, nil, nil);
-        });
-      }
-    }
-  };
+        }
+      } else {
+        // Close the channel on errors and closed sockets.
+        if (error != 0 || payloadSize == 0) {
+          [self invalidate];
+        }
 
-  [self readDispatchIOWithDataSize:EDOGetPayloadHeaderSize() handler:frameHandler];
+        // Execute the block on closing the channel.
+        if (payloadSize == 0 && error == 0 && handler) {
+          dispatch_async(handlerQueue, ^{
+            handler(self, nil, nil);
+          });
+        }
+      }
+    };
+
+    [self readDispatchIOWithDataSize:EDOGetPayloadHeaderSize() handler:frameHandler];
+  });
 }
 
 /** @see -[EDOChannel isValid] */
