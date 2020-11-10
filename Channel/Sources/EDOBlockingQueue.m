@@ -42,6 +42,7 @@
   __block BOOL appended = NO;
   dispatch_sync(_objectIsolationQueue, ^{
     if (!self->_closed) {
+
       [self->_objects addObject:object];
       appended = YES;
     }
