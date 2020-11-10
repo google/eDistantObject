@@ -16,40 +16,56 @@
 
 import Foundation
 import XCTest
-
 class EDOSwiftUITest: XCTestCase {
   @discardableResult
-  func launchAppWithPort(port : Int, value : Int) -> XCUIApplication {
+  func launchAppWithPort(port: Int, value: Int) -> XCUIApplication {
     let application = XCUIApplication()
     application.launchArguments = [
-      "-servicePort", String(format:"%d", port), String("-dummyInitValue"),
-      String(format:"%d", value)]
+      "-servicePort", String(format: "%d", port), String("-dummyInitValue"),
+      String(format: "%d", value),
+    ]
     application.launch()
     return application
   }
 
   func testRemoteInvocation() {
-    launchAppWithPort(port:1234, value:10)
-    let service = EDOHostService(port:2234, rootObject:self, queue:DispatchQueue.main)
-    let hostPort = EDOHostPort(port:1234, name:nil, deviceSerialNumber:nil)
+    launchAppWithPort(port: 1234, value: 10)
+    let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
+    let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
     let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
     let swiftClass = testDummy.returnProtocol()
     XCTAssertEqual(swiftClass.returnString(), "Swift String")
 
-    XCTAssertEqual(swiftClass.returnWithBlock { (str : NSString) in
-      XCTAssertEqual(str, "Block")
-      return swiftClass
-    }, "Swift StringBlock")
+    XCTAssertEqual(
+      swiftClass.returnWithBlock { (str: NSString) in
+        XCTAssertEqual(str, "Block")
+        return swiftClass
+      }, "Swift StringBlock")
     service.invalidate()
   }
 
   func testRemoteInvocationWithParameter() {
-    launchAppWithPort(port:1234, value:10)
-    let hostPort = EDOHostPort(port:1234, name:nil, deviceSerialNumber:nil)
+    launchAppWithPort(port: 1234, value: 10)
+    let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
+    let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
     let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
     let swiftClass = testDummy.returnProtocol()
     let data = ["a": 1, "b": 2] as NSDictionary
     XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data.passByValue()), 3)
     XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data), 3)
+    service.invalidate()
+  }
+
+  /// Verifies Swift array can be passed across the process and used by other Swift code.
+  func testRemoteSwiftArray() {
+    launchAppWithPort(port: 1234, value: 10)
+    let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
+    let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
+    let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
+    let swiftClass = testDummy.returnProtocol()
+    let target = swiftClass.returnSwiftArray()
+    XCTAssertNotNil(target[0])
+    XCTAssertNotNil(target[1])
+    service.invalidate()
   }
 }

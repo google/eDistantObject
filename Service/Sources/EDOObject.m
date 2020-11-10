@@ -21,8 +21,10 @@
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
@@ -176,10 +178,7 @@ static BOOL IsFromSameProcess(id object1, id object2);
   }
   if (IsFromSameProcess(self, object)) {
     BOOL returnValue = NO;
-    NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:_cmd];
-    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-    invocation.target = self;
-    invocation.selector = _cmd;
+    NSInvocation *invocation = [self edo_invocationForSelector:_cmd];
     [invocation setArgument:&object atIndex:2];
     [self forwardInvocation:invocation];
     [invocation getReturnValue:&returnValue];
@@ -198,10 +197,7 @@ static BOOL IsFromSameProcess(id object1, id object2);
     return NO;
   }
 
-  NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:_cmd];
-  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-  invocation.target = self;
-  invocation.selector = _cmd;
+  NSInvocation *invocation = [self edo_invocationForSelector:_cmd];
   [invocation setArgument:&aClass atIndex:2];
   [self forwardInvocation:invocation];
   BOOL returnValue = NO;
@@ -209,12 +205,48 @@ static BOOL IsFromSameProcess(id object1, id object2);
   return returnValue;
 }
 
+- (id)objectAtIndex:(NSUInteger)index {
+  NSMethodSignature *methodSignature = [self methodSignatureForSelector:_cmd];
+  if (EDO_IS_OBJPOINTER(methodSignature.methodReturnType)) {
+    // Objective-C bridged Swift array returns Unmanaged<AnyObject>. Unmanaged<AnyObject> is
+    // interpreted as pointer by method signature and fails the eDO type check. To bypass the
+    // validation check, eDO redirects invocations to objectAtIndex: to objectsAtIndexes:.
+    Class arrayClass = [EDOClientService classObjectWithName:@"NSArray"
+                                                    hostPort:self.servicePort.hostPort];
+    if ([self isKindOfClass:arrayClass]) {
+      NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:index];
+      return [((NSArray *)self) objectsAtIndexes:indexSet].firstObject;
+    } else {
+      // The redirection only works for array type and its subclasses. Users custom type which
+      // has objectAtIndex: and returns Unmanaged<AnyObject> will eventually enter this branch. This
+      // case is currently not supported, please file a bug to eDO if you see this message.
+      NSAssert(NO,
+               @"The non array remote class %@ declares objectAtIndex: to return object pointer, "
+               @"which is not supported by eDO.",
+               self.className);
+      return nil;
+    }
+  } else {
+    // If the return type is not object pointer, eDO simply forwards the invocation to the original
+    // method.
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+    invocation.target = self;
+    invocation.selector = _cmd;
+    [invocation setArgument:&index atIndex:2];
+    [self forwardInvocation:invocation];
+    id __unsafe_unretained returnValue;
+    [invocation getReturnValue:&returnValue];
+    return returnValue;
+  }
+}
+
+- (id)objectAtIndexedSubscript:(NSUInteger)index {
+  return [self objectAtIndex:index];
+}
+
 - (NSUInteger)hash {
   NSUInteger remoteHash = 0;
-  NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:_cmd];
-  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-  invocation.target = self;
-  invocation.selector = _cmd;
+  NSInvocation *invocation = [self edo_invocationForSelector:_cmd];
   [self forwardInvocation:invocation];
   [invocation getReturnValue:&remoteHash];
   return remoteHash;
@@ -342,15 +374,27 @@ static BOOL IsFromSameProcess(id object1, id object2);
  *  @return The object returned by the remote invocation.
  */
 - (id)edo_forwardInvocationForSelector:(SEL)selector {
-  NSMethodSignature *methodSignature = [NSMethodSignature methodSignatureForSelector:selector];
-  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-  invocation.target = self;
-  invocation.selector = selector;
+  NSInvocation *invocation = [self edo_invocationForSelector:selector];
   [self forwardInvocation:invocation];
 
   id __unsafe_unretained returnObject;
   [invocation getReturnValue:&returnObject];
   return returnObject;
+}
+
+/**
+ *  Creates NSInvocation with the @c selector by fetching the method signature from the underlying
+ *  remote object.
+ *
+ *  @param  selector The selector to forward to the underlying remote object.
+ *  @return The NSInvocation instance that can be passed to [self -forwardInvocation:].
+ */
+- (NSInvocation *)edo_invocationForSelector:(SEL)selector {
+  NSMethodSignature *methodSignature = [self methodSignatureForSelector:selector];
+  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+  invocation.target = self;
+  invocation.selector = selector;
+  return invocation;
 }
 
 @end

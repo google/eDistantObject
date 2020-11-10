@@ -15,9 +15,8 @@
 //
 
 import Foundation
-
 @objc
-public class EDOTestSwiftClass : NSObject, EDOTestSwiftProtocol {
+public class EDOTestSwiftClass: NSObject, EDOTestSwiftProtocol {
   public func returnString() -> NSString {
     return "Swift String"
   }
@@ -31,11 +30,15 @@ public class EDOTestSwiftClass : NSObject, EDOTestSwiftProtocol {
     for key in data.allKeys {
       sum += (data.object(forKey: key) as! NSNumber).intValue
     }
-    return sum;
+    return sum
+  }
+
+  public func returnSwiftArray() -> [AnyObject] {
+    return [NSObject.init(), NSObject.init()]
   }
 }
 
-extension EDOTestDummy : EDOTestDummyExtension {
+extension EDOTestDummy: EDOTestDummyExtension {
   open func returnProtocol() -> EDOTestSwiftProtocol {
     return EDOTestSwiftClass()
   }

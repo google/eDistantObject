@@ -1,4 +1,3 @@
-
 //
 // Copyright 2018 Google Inc.
 //
@@ -22,6 +21,7 @@ public protocol EDOTestSwiftProtocol {
   func returnString() -> NSString
   func returnWithBlock(block: @escaping (NSString) -> EDOTestSwiftProtocol) -> NSString
   func returnWithDictionarySum(data: NSDictionary) -> Int
+  func returnSwiftArray() -> [AnyObject]
 }
 
 @objc
