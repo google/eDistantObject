@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2020 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,38 +30,53 @@ static NSString *const kEDOBlockObjectCoderHasStretKey = @"hasStret";
  *  The block structure defined in ABI here:
  *  https://clang.llvm.org/docs/Block-ABI-Apple.html#id2
  */
-typedef struct EDOBlockHeader {
-  void *isa;
-  int flags;
-  int reserved;
-  void (*invoke)(void);  // The block implementation, which is either _objc_msgForward or
-                         // _objc_msgForward_stret to trigger message forwarding.
-  struct {
-    unsigned long int reserved;
-    unsigned long int size;
-    union {
-      struct {
-        // Optional helper functions
-        void (*copy_helper)(void *dst, void *src);  // IFF (flag & 1<<25)
-        void (*dispose_helper)(void *src);          // IFF (flag & 1<<25)
-        const char *signature;
-      } helper;
-      // Required ABI.2010.3.16
-      const char *signature;  // IFF (flag & 1<<30)
-    };
-  } * descriptor;
-  // Captured variables by the block.
-  // Note: The order of imported variables are not defined in ABI, but we only have one
-  // EDOBlockObject imported.
-  id __unsafe_unretained object;
-} EDOBlockHeader;
+
+struct EDOBlockHeader;
+
+typedef void (*EDOBlockCopyHelperFunc)(struct EDOBlockHeader *dst, struct EDOBlockHeader *src);
+typedef void (*EDOBlockDisposeHelperFunc)(struct EDOBlockHeader *src);
+
+typedef struct EDOBlockDescriptor {
+  unsigned long int reserved;
+  unsigned long int size;
+  union {
+    struct {
+      // Optional helper functions
+      EDOBlockCopyHelperFunc copy_helper;        // IFF (flag & 1<<25)
+      EDOBlockDisposeHelperFunc dispose_helper;  // IFF (flag & 1<<25)
+      const char *signature;
+    } helper;
+    // Required ABI.2010.3.16
+    const char *signature;  // IFF (flag & 1<<30)
+  };
+} EDOBlockDescriptor;
 
 /** The enums for the block flag. */
-typedef NS_ENUM(NSUInteger, EDOBlockFlags) {
+typedef NS_ENUM(int, EDOBlockFlags) {
   EDOBlockFlagsHasCopyDispose = (1 << 25),  // If the block has copy and dispose function pointer.
   EDOBlockFlagsIsGlobal = (1 << 28),        // If the block is a global block.
   EDOBlockFlagsHasStret = (1 << 29),        // If we should use _stret calling convention.
   EDOBlockFlagsHasSignature = (1 << 30)     // If the signature is filled.
+};
+
+typedef struct {
+  id __unsafe_unretained object;
+  EDOBlockFlags original_flags;
+  EDOBlockDescriptor *original_descriptor;
+} EDOBlockCapturedVariables;
+
+typedef struct EDOBlockHeader {
+  void *isa;
+  EDOBlockFlags flags;
+  int reserved;
+  void (*invoke)(void);  // The block implementation, which is either _objc_msgForward or
+                         // _objc_msgForward_stret to trigger message forwarding.
+  EDOBlockDescriptor *descriptor;
+  EDOBlockCapturedVariables captured_variables;
+} EDOBlockHeader;
+
+typedef NS_ENUM(int, EDOBlockFieldDescriptors) {
+  EDOBlockFieldIsObject = 3,  // id, NSObject, __attribute__((NSObject)), block, ...
 };
 
 /* Get @c NSBlock class. */
@@ -110,11 +125,11 @@ static BOOL HasStructReturnForBlock(id block) {
 #if !defined(__arm64__)
   if (header->invoke == (void (*)(void))_objc_msgForward ||
       header->invoke == (void (*)(void))_objc_msgForward_stret) {
-    return header->object;
+    return header->captured_variables.object;
   }
 #else
   if (header->invoke == (void (*)(void))_objc_msgForward) {
-    return header->object;
+    return header->captured_variables.object;
   }
 #endif
   return nil;
@@ -122,7 +137,7 @@ static BOOL HasStructReturnForBlock(id block) {
 
 + (char const *)signatureFromBlock:(id)block {
   EDOBlockHeader *blockHeader = (__bridge EDOBlockHeader *)block;
-  NSCAssert(blockHeader->flags & EDOBlockFlagsHasSignature, @"The block doesn't have signature.");
+  NSAssert(blockHeader->flags & EDOBlockFlagsHasSignature, @"The block doesn't have a signature.");
   if (blockHeader->flags & EDOBlockFlagsHasCopyDispose) {
     return blockHeader->descriptor->helper.signature;
   } else {
@@ -146,16 +161,76 @@ static BOOL HasStructReturnForBlock(id block) {
   [aCoder encodeBool:self.returnsStruct forKey:kEDOBlockObjectCoderHasStretKey];
 }
 
+// Dispose the returned descriptor using DisposeDescriptor.
+static EDOBlockDescriptor *CreateDescriptorWithSignature(NSString *signature) {
+  EDOBlockDescriptor *newDescriptor = (EDOBlockDescriptor *)calloc(1, sizeof(EDOBlockDescriptor));
+  // Note that we only do dispose because our block should never have a copy handler.
+  newDescriptor->helper.dispose_helper = EDOBlockDisposeHelper;
+  newDescriptor->helper.signature = strdup([signature UTF8String]);
+  return newDescriptor;
+}
+
+static void DisposeDescriptor(EDOBlockDescriptor *desc) {
+  // Free up the memory that we allocated for the signature and our descriptor.
+  free((void *)desc->helper.signature);
+  free((void *)desc);
+}
+
+static void EDOBlockDisposeHelper(EDOBlockHeader *src) {
+  // Dispose is only called once when the block is being released.
+  // Dispose/Release our captured object.
+  _Block_object_dispose((__bridge void *)src->captured_variables.object, EDOBlockFieldIsObject);
+
+  // Free up the memory that we allocated for the descriptor.
+  DisposeDescriptor(src->descriptor);
+
+  // Reset the header back the way it was.
+  src->descriptor = src->captured_variables.original_descriptor;
+  src->flags = src->captured_variables.original_flags;
+
+  // We don't need to call the previous dispose helper because we asserted that there wasn't one
+  // when we created the block.
+}
+
 // When we decode it, we swap with the actual block object so the receiver can invoke on it.
 - (id)awakeAfterUsingCoder:(NSCoder *)aDecoder {
+  EDOBlockCapturedVariables vars = {nil, 0, NULL};
   void (^dummy)(void) = ^{
-    // Capture self, the @c EDOBlockObject, to associate it with the block so we can retrieve it
-    // later.
-    [self class];
+    // The printf is never called, it solely exists to capture vars to associate it with the block
+    // so we get the proper amount of "variable" space in our block header.
+    printf("%p", vars.original_descriptor);
   };
+
   // Move the block from the stack to the heap.
-  dummy = [dummy copy];
-  EDOBlockHeader *header = (__bridge EDOBlockHeader *)dummy;
+  id dummyOnHeap = [dummy copy];
+  EDOBlockHeader *header = (__bridge EDOBlockHeader *)dummyOnHeap;
+
+  // Verify that Apple hasn't added some fun optimizations that are copying our block in a
+  // weird way.
+  NSAssert(header->descriptor->size == sizeof(EDOBlockHeader), @"block wrong size");
+
+  // Check to make sure that Apple hasn't added copy/dispose handlers to our blocks for some reason.
+  // If they do, we will have to be careful to chain them in dispose.
+  NSAssert((header->flags & EDOBlockFlagsHasCopyDispose) == 0, @"block has copy/dispose handlers");
+
+  // Add a reference to "self" into the block.
+  _Block_object_assign(&header->captured_variables.object, (__bridge void *)self,
+                       EDOBlockFieldIsObject);
+
+  // Record the original values from the header so we can restore them when we dispose the block.
+  header->captured_variables.original_descriptor = header->descriptor;
+  header->captured_variables.original_flags = header->flags;
+
+  // Create up a new descriptor with our dispose and signature.
+  // Note that we need to make a new descriptor because multiple blocks may be using the same
+  // descriptor that the compiler generates for us, and modifying it directly can mess up other
+  // blocks. We create our own, and then clean up all the memory in EDOBlockDisposeHelper.
+  EDOBlockDescriptor *newDescriptor = CreateDescriptorWithSignature(self.signature);
+  header->descriptor = newDescriptor;
+
+  // Add the copy/dispose/signatures flags so that the OS calls us appropriately.
+  header->flags |= (EDOBlockFlagsHasCopyDispose | EDOBlockFlagsHasSignature);
+
   header->invoke = (void (*)(void))_objc_msgForward;
 #if !defined(__arm64__)
   if (self.returnsStruct) {
@@ -163,11 +238,11 @@ static BOOL HasStructReturnForBlock(id block) {
   }
 #endif
 
-  // Swap the ownership: the unarchiver retains `self` and autoreleases the `dummy` block. Here we
-  // capture self within the `dummy` block, replace `self` with the `dummy` block. This
-  // effectively transfers the ownership of dummy to the caller of the unarchiver.
+  // Swap the ownership: the unarchiver retains `self` and autoreleases the `dummyOnHeap` block.
+  // Here we capture self within the `dummyOnHeap` block, and replace `self` with the `dummyOnHeap`
+  // block. This effectively transfers the ownership of dummyOnHeap to the caller of the unarchiver.
   CFBridgingRelease((__bridge void *)self);
-  return (__bridge id)CFBridgingRetain(dummy);
+  return (__bridge id)CFBridgingRetain(dummyOnHeap);
 }
 
 - (instancetype)edo_initWithLocalObject:(id)target port:(EDOServicePort *)port {
