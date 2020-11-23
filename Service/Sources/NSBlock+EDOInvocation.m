@@ -50,12 +50,7 @@ __attribute__((constructor)) static void SetupBlockInvocationForward() {
   }
 
   IMP methodSignatureImp = imp_implementationWithBlock(^(id block, SEL selector) {
-    EDOBlockObject *blockObject = [EDOBlockObject EDOBlockObjectFromBlock:block];
-    if (blockObject) {
-      return [NSMethodSignature signatureWithObjCTypes:blockObject.signature.UTF8String];
-    } else {
-      return [NSMethodSignature signatureWithObjCTypes:[EDOBlockObject signatureFromBlock:block]];
-    }
+    return [NSMethodSignature signatureWithObjCTypes:[EDOBlockObject signatureFromBlock:block]];
   });
   BOOL methodSignatureAdded = class_addMethod(
       [NSBlock class], @selector(methodSignatureForSelector:), methodSignatureImp, "v@::");
