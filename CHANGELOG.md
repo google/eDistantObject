@@ -3,6 +3,13 @@
 Details changes in each release of eDistantObject. eDistantObject follows
 [semantic versioning](http://semver.org/).
 
+## [1.0.2](https://github.com/google/eDistantObject/tree/1.0.2) (12/09/2020)
+
+* Added supports to ASAN/TSAN/UBSAN.
+
+* Fixed "Doesn't support pointer returns" complaint when eDO is proxying Swift
+  array.
+
 ## [1.0.1](https://github.com/google/eDistantObject/tree/1.0.1) (09/01/2020)
 
 Aligned with Google respectful code guidance and renamed some classes.
