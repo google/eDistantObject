@@ -23,6 +23,7 @@
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDORuntimeUtils.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOWeakObject.h"
@@ -309,14 +310,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
 
     @try {
       // TODO(haowoo): Throw non-existing method exception.
-      NSMethodSignature *methodSignature;
-      Method method = sel ? class_getInstanceMethod(object_getClass(target), sel) : nil;
-      if (method) {
-        methodSignature = [NSMethodSignature signatureWithObjCTypes:method_getTypeEncoding(method)];
-      } else {
-        // If the method doesn't exist, we use the same fallback mechanism to fetch its signature.
-        methodSignature = [target methodSignatureForSelector:sel];
-      }
+      NSMethodSignature *methodSignature = EDOGetMethodSignature(target, sel);
       NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
       invocation.target = target;
 

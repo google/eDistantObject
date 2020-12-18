@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDODeallocationTracker.h"
@@ -381,20 +382,28 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
  * Tests API for weak object reference that remoteWeak works with nested PassByValue.
  */
 - (void)testPassByValueNestedWithRemoteWeak {
-  EDOTestDummy *dummyOnBackground = [[EDOTestDummy alloc] init];
-  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
-  XCTAssertEqual(
-      [dummyOnBackground returnCountWithArray:[[[array passByValue] passByValue] remoteWeak]], 4);
-  XCTAssertEqual(
-      [dummyOnBackground returnCountWithArray:[[[array remoteWeak] passByValue] passByValue]], 4);
-  XCTAssertEqual(
-      [dummyOnBackground returnCountWithArray:[[[array passByValue] remoteWeak] passByValue]], 4);
-  XCTAssertEqual(
-      [dummyOnBackground returnCountWithArray:[[[array remoteWeak] passByValue] remoteWeak]], 4);
-  XCTAssertEqual(
-      [dummyOnBackground returnCountWithArray:[[[array passByValue] remoteWeak] remoteWeak]], 4);
-  XCTAssertEqual(
-      [dummyOnBackground returnCountWithArray:[[[array remoteWeak] remoteWeak] passByValue]], 4);
+  NSString *queueName = [NSString stringWithFormat:@"com.google.edotest.%@", self.name];
+  dispatch_queue_t queue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
+  id backgroundServiceMock = [self createPartialMockServiceOnQueue:queue];
+  id mainServiceMock = [self createPartialMockServiceOnQueue:dispatch_get_main_queue()];
+  EDOTestDummy *dummyOnBackground = [self rootObjectFromService:backgroundServiceMock];
+  @autoreleasepool {
+    NSArray<NSNumber *> *array = @[ @(1), @(2), @(3), @(4) ];
+    XCTAssertEqual(
+        [dummyOnBackground returnCountWithArray:[[[array passByValue] passByValue] remoteWeak]], 4);
+    XCTAssertEqual(
+        [dummyOnBackground returnCountWithArray:[[[array remoteWeak] passByValue] passByValue]], 4);
+    XCTAssertEqual(
+        [dummyOnBackground returnCountWithArray:[[[array passByValue] remoteWeak] passByValue]], 4);
+    XCTAssertEqual(
+        [dummyOnBackground returnCountWithArray:[[[array remoteWeak] passByValue] remoteWeak]], 4);
+    XCTAssertEqual(
+        [dummyOnBackground returnCountWithArray:[[[array passByValue] remoteWeak] remoteWeak]], 4);
+    XCTAssertEqual(
+        [dummyOnBackground returnCountWithArray:[[[array remoteWeak] remoteWeak] passByValue]], 4);
+  }
+  [backgroundServiceMock stopMocking];
+  [mainServiceMock stopMocking];
 }
 
 /** Tests when the remoteWeak function is called on weakly referenced block object, an exception is
@@ -422,4 +431,20 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
 - (EDOHostService *)serviceForQueue:(dispatch_queue_t)queue {
   return [EDOHostService serviceWithPort:0 rootObject:[[EDOTestDummy alloc] init] queue:queue];
 }
+
+- (EDOHostService *)createPartialMockServiceOnQueue:(dispatch_queue_t)queue {
+  EDOHostService *service = [EDOHostService serviceWithPort:0
+                                                 rootObject:[[EDOTestDummy alloc] init]
+                                                      queue:queue];
+  // Disable the isObjectAlive: check so the object from the background queue will not be resolved
+  // to the underlying object but a remote object.
+  id serviceMock = OCMPartialMock(service);
+  OCMStub([serviceMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
+  return serviceMock;
+}
+
+- (EDOTestDummy *)rootObjectFromService:(EDOHostService *)service {
+  return [EDOClientService rootObjectWithPort:service.port.hostPort.port];
+}
+
 @end

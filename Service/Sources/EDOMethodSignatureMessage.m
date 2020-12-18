@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 
 #import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDORuntimeUtils.h"
 #import "Service/Sources/EDOServicePort.h"
 
 #import <objc/runtime.h>
@@ -94,22 +95,13 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
     EDOMethodSignatureRequest *methodRequest = (EDOMethodSignatureRequest *)request;
     id object = (__bridge Class)(void *)methodRequest.object;
-    Class clazz = object_getClass(object);
     SEL sel = NSSelectorFromString(methodRequest.selectorName);
 
-    NSMutableString *encoding = nil;
-    Method method = class_getInstanceMethod(clazz, sel);
-    if (method) {
-      encoding = [NSMutableString stringWithUTF8String:method_getTypeEncoding(method)];
-    } else {
-      // It's possible that the underlying object is a proxy and implements
-      // -[methodSignatureForSelector:] to forward the invocation, i.e. OCMock.
-      NSMethodSignature *signature = [object methodSignatureForSelector:sel];
-      encoding =
-          signature ? [NSMutableString stringWithUTF8String:signature.methodReturnType] : nil;
-      for (NSUInteger i = 0; i < signature.numberOfArguments; ++i) {
-        [encoding appendFormat:@"%s", [signature getArgumentTypeAtIndex:i]];
-      }
+    NSMethodSignature *signature = EDOGetMethodSignature(object, sel);
+    NSMutableString *encoding =
+        signature ? [NSMutableString stringWithUTF8String:signature.methodReturnType] : nil;
+    for (NSUInteger i = 0; i < signature.numberOfArguments; ++i) {
+      [encoding appendFormat:@"%s", [signature getArgumentTypeAtIndex:i]];
     }
     return [[EDOMethodSignatureResponse alloc] initWithSignature:encoding forRequest:request];
   };

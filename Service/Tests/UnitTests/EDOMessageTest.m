@@ -27,6 +27,7 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDORuntimeUtils.h"
 #import "Service/Sources/EDOServicePort.h"
 
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -590,7 +591,13 @@
 
 - (NSString *)selectorSignature:(SEL)selector {
   Method method = class_getInstanceMethod([EDOTestDummy class], selector);
-  return [NSString stringWithFormat:@"%s", method_getTypeEncoding(method)];
+  NSMethodSignature *signature =
+      [NSMethodSignature signatureWithObjCTypes:method_getTypeEncoding(method)];
+  NSMutableString *encoding = [NSMutableString stringWithUTF8String:signature.methodReturnType];
+  for (NSUInteger i = 0; i < signature.numberOfArguments; ++i) {
+    [encoding appendFormat:@"%s", [signature getArgumentTypeAtIndex:i]];
+  }
+  return encoding;
 }
 
 - (EDOBoxedValueType *)edo_intValue:(int)value {

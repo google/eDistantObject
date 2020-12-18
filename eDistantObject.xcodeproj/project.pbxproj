@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7657C22224F9BEA70056F5A6 /* NSObject+EDOBlockedType.m in Sources */ = {isa = PBXBuildFile; fileRef = 7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */; };
+		7669CFA2258BFA3100280980 /* EDORuntimeUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */; };
 		7685673323A1C10200EDBDB4 /* EDORemoteException.m in Sources */ = {isa = PBXBuildFile; fileRef = 7685673123A1C10100EDBDB4 /* EDORemoteException.m */; };
 		C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */; };
 		C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */; };
@@ -232,6 +233,8 @@
 /* Begin PBXFileReference section */
 		7657C22024F9BEA70056F5A6 /* NSObject+EDOBlockedType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOBlockedType.h"; path = "Service/Sources/NSObject+EDOBlockedType.h"; sourceTree = "<group>"; };
 		7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+EDOBlockedType.m"; path = "Service/Sources/NSObject+EDOBlockedType.m"; sourceTree = "<group>"; };
+		7669CFA0258BFA3100280980 /* EDORuntimeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORuntimeUtils.h; path = Service/Sources/EDORuntimeUtils.h; sourceTree = "<group>"; };
+		7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORuntimeUtils.m; path = Service/Sources/EDORuntimeUtils.m; sourceTree = "<group>"; };
 		7674100D237E01FB00D43A15 /* EDOExecutorMessageTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDOExecutorMessageTest.m; path = Service/Tests/UnitTests/EDOExecutorMessageTest.m; sourceTree = "<group>"; };
 		7685673123A1C10100EDBDB4 /* EDORemoteException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteException.m; path = Service/Sources/EDORemoteException.m; sourceTree = "<group>"; };
 		7685673223A1C10100EDBDB4 /* EDORemoteException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORemoteException.h; path = Service/Sources/EDORemoteException.h; sourceTree = "<group>"; };
@@ -560,6 +563,8 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7669CFA0258BFA3100280980 /* EDORuntimeUtils.h */,
+				7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */,
 				7657C22024F9BEA70056F5A6 /* NSObject+EDOBlockedType.h */,
 				7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */,
 				7685673223A1C10100EDBDB4 /* EDORemoteException.h */,
@@ -1252,6 +1257,7 @@
 				C5A2F07E2134D6C100421D72 /* EDOValueType.m in Sources */,
 				7657C22224F9BEA70056F5A6 /* NSObject+EDOBlockedType.m in Sources */,
 				DC84AF0522D805EE00D43E26 /* EDODeallocationTracker.m in Sources */,
+				7669CFA2258BFA3100280980 /* EDORuntimeUtils.m in Sources */,
 				DC84AF0422D805C800D43E26 /* EDOWeakObject.m in Sources */,
 				C5A2F06D2134D6C100421D72 /* EDOInvocationMessage.m in Sources */,
 				C849824221BF212E008F0D6F /* EDOClientServiceStatsCollector.m in Sources */,
