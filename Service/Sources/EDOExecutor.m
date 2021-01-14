@@ -33,14 +33,6 @@
   return [[self alloc] initWithQueue:queue];
 }
 
-/**
- *  Initialize with the request @c handlers for the dispatch @c queue.
- *
- *  The executor is associated with the dispatch queue and saved to its context. It shares the same
- *  life cycle as the dispatch queue and it only holds the weak reference of the designated queue.
- *
- *  @param queue The dispatch queue to associate with the executor.
- */
 - (instancetype)initWithQueue:(dispatch_queue_t)queue {
   self = [super init];
   if (self) {
@@ -72,10 +64,11 @@
   });
 
   while (true) {
-    // Block the current queue and wait for the new message. It will unset the
-    // messageQueue if it receives a response so there is no race condition where it has some
-    // messages left in the queue to be processed after the queue is unset.
-    // ready to pop
+    // If the dispatch_async above is not invoked before this loop is hit, we block the current
+    // queue in this loop and wait for any incoming requests, say if another request was triggered
+    // by the execution of a message. The dispatch_async above will close (unset) the messageQueue.
+    // This prevents a race condition where any incoming requests (messages) might still be left to
+    // process after the queue is closed (unset) above.
     EDOExecutorMessage *message = [messageQueue firstObjectWithTimeout:DISPATCH_TIME_FOREVER];
     if (!message) {
       break;
@@ -126,7 +119,8 @@
 #pragma mark - Private
 
 /**
- *  Append @c message to a message queue that will be executed on the execution queue.
+ *  Check if a message can be enqueued to a message queue that will be executed on the
+ *  @c executionQueue. The message is appended to the message queue if this passes.
  *
  *  @param message The message to be enqueued.
  *

@@ -34,33 +34,35 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Initializes the executor with the given dispatch queue.
+ *  Initialize with the request @c handlers for the dispatch @c queue.
  *
- *  The executor will keep track of the dispatch queue weakly, and assigned itself to its context
- *  under the key "com.google.executorkey"; the dispatch queue holds its reference so it shares the
- *  same lifecycle as the queue (you can safely discard the returned value).
+ *  The executor keeps a weak reference to the dispatch queue and creates a new queue -
+ *  @c isolationQueue with a key containing the prefix "com.google.edo.executor" and the description
+ *  of @c queue. The @c isolationQueue is used to execute requests in a synchronous manner. The
+ *  queue itself shares the same lifecycle as the executor.
  *
  *  @remark If the dispatch queue is already assigned one executor, it will be replaced.
- *  @param queue    The dispatch queue to associate with the executor.
+ *
+ *  @param queue The dispatch queue to associate with the executor.
  *
  *  @return The @c EDOExecutor associated with the dispatch queue.
  */
 - (instancetype)initWithQueue:(nullable dispatch_queue_t)queue NS_DESIGNATED_INITIALIZER;
 
 /**
- *  Runs the while-loop to handle exeuctions from EDOExecutor::handleBlock: until the execution
- *  of @c excuteBlock completes.
+ *  Runs the while-loop to handle blocks to be executed from EDOExecutor::handleBlock: until the
+ *  execution of @c executeBlock completes.
  *
- *  @note The executor keep waiting on the messages until the @c executeBlock is finished.
+ *  @note The executor keep waiting on incoming requests until the @c executeBlock is finished.
  *  @param executeBlock The block to execute in the background queue.
  */
 - (void)loopWithBlock:(void (^)(void))executeBlock;
 
 /**
- *  Attaches @c executeBlock for execution and waits for execution completes.
+ *  Attaches @c executeBlock to an internal EDOBlockingQueue and waits for the block's completion.
  *
- *  @note If the executor is running the while-loop, the request will be enqueued to process,
- *        or it will dispatch to the @c executionQueue to process.
+ *  @note If the executor is running the while-loop, the request will be enqueued to being processed
+ *        otherwise will be dispatched to the @c executionQueue to process.
  *  @param      executeBlock   The block to be handled and executed.
  *  @param[out] errorOrNil     Error that will be populated on failure.
  *
