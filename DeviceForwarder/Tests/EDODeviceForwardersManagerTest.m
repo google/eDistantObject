@@ -82,9 +82,7 @@
 - (void)testCanConnectDeviceAfterRetries {
   id mockConnector = OCMPartialMock(EDODeviceConnector.sharedConnector);
   __block int retries = 5;
-  OCMStub([mockConnector connectToDevice:@"fakeId"
-                                  onPort:100
-                                   error:(NSError * __autoreleasing *)[OCMArg anyPointer]])
+  OCMStub([mockConnector connectToDevice:@"fakeId" onPort:100 error:[OCMArg anyObjectRef]])
       .andDo(^(NSInvocation *invocation) {
         void *returnValue = NULL;
         [invocation setReturnValue:&returnValue];
@@ -179,9 +177,7 @@
 
 - (id)connectorMock {
   id connectorMock = OCMPartialMock(EDODeviceConnector.sharedConnector);
-  OCMStub([connectorMock connectToDevice:@"fakeId"
-                                  onPort:100
-                                   error:(NSError * __autoreleasing *)[OCMArg anyPointer]])
+  OCMStub([connectorMock connectToDevice:@"fakeId" onPort:100 error:[OCMArg anyObjectRef]])
       .andDo(^(NSInvocation *invocation) {
         [invocation retainArguments];
         EDOSocket *socket = [EDOSocket socketWithTCPPort:self->_multiplexer.port.port
