@@ -13,21 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#import "Service/Sources/EDOHostService.h"
 
 #import <XCTest/XCTest.h>
 
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOClientService.h"
-#import "Service/Sources/EDOHostNamingService+Private.h"
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDORemoteException.h"
-#import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
-#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestNonNSCodingType.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
@@ -172,18 +171,19 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 - (void)testTemporaryServiceLazilyCreatedIfNoServiceAvailable {
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  XCTestExpectation *expectation = [self expectationWithDescription:@"temporary service tested"];
 
-  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
-  XCTAssertFalse(service.valid);
-  id serviceMock = OCMPartialMock(service);
-  [serviceMock setExpectationOrderMatters:YES];
-  OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
-      .andReturn(serviceMock);
-  OCMExpect([serviceMock distantObjectForLocalObject:OCMOCK_ANY hostPort:[OCMArg isNil]])
-      .andForwardToRealObject();
-  OCMExpect([(EDOHostService *)serviceMock port]).andForwardToRealObject();
+  // Temporary service is already used in the main thread, so move the test to the background
+  // thread.
+  dispatch_async(testQueue, ^{
+    EDOHostService *service = [EDOHostService temporaryServiceForCurrentThread];
+    XCTAssertFalse(service.valid);
+    id serviceMock = OCMPartialMock(service);
+    [serviceMock setExpectationOrderMatters:YES];
+    OCMExpect([serviceMock distantObjectForLocalObject:OCMOCK_ANY hostPort:[OCMArg isNil]])
+        .andForwardToRealObject();
+    OCMExpect([(EDOHostService *)serviceMock port]).andForwardToRealObject();
 
-  dispatch_sync(testQueue, ^{
     XCTAssertNil([EDOHostService serviceForCurrentOriginatingQueue]);
     // eDO will wrap the block into a remote object which would create a temporary service.
     // The service shouldn't initialize the listen socket (by calling -port), until it is later to
@@ -191,21 +191,21 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
     // respective order.
     [dummyOnBackground voidWithBlock:^{
     }];
+    XCTAssertTrue(service.valid);
+    OCMVerifyAll(serviceMock);
+    [serviceMock stopMocking];
+    [expectation fulfill];
   });
-  XCTAssertTrue(service.valid);
 
-  OCMVerifyAll(serviceMock);
-  [serviceMock stopMocking];
+  [self waitForExpectations:@[ expectation ] timeout:1.];
 }
 
 - (void)testTemporaryServiceNotListenedIfNoRemoteObject {
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 
-  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  EDOHostService *service = [EDOHostService temporaryServiceForCurrentThread];
   id serviceMock = OCMPartialMock(service);
-  OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
-      .andReturn(serviceMock);
   OCMReject([(EDOHostService *)serviceMock port]);
 
   dispatch_sync(testQueue, ^{
@@ -217,6 +217,42 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
   OCMVerifyAll(serviceMock);
   [serviceMock stopMocking];
+  [service invalidate];
+}
+
+/** Verifies that temporary service resolves the EDOObject which is created from the service. */
+- (void)testTemporaryServiceResolvesLocalObject {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  id serviceMock = OCMPartialMock(service);
+  OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
+      .andReturn(serviceMock);
+  OCMStub([serviceMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
+
+  XCTestExpectation *expectation = [self expectationWithDescription:@"nested call completes."];
+  NSObject *anObject = [[NSObject alloc] init];
+  __block NSObject *rountTripObject = nil;
+  dispatch_async(testQueue, ^{
+    // TODO(b/181895191): This autorelease pool and immediate invocation to stopMocking is the
+    // workaround to avoid crash caused by mock object trying to release eDO blocks. Remove this
+    // when bug is fixed.
+    @autoreleasepool {
+      [dummyOnBackground returnWithInt:0
+          dummyStruct:(EDOTestDummyStruct) {}
+          object:anObject
+          blockComplex:^EDOTestDummy *(EDOTestDummyStruct dummy, int i, id object,
+                                       EDOTestDummy *test) {
+            rountTripObject = object;
+            return test;
+          }];
+    }
+    [expectation fulfill];
+    [serviceMock stopMocking];
+  });
+  [self waitForExpectations:@[ expectation ] timeout:1.0];
+  XCTAssertEqual(anObject, rountTripObject);
 }
 
 - (void)testClassMethodsAndInit {
@@ -260,13 +296,14 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   }];
   XCTAssertEqual(returnDummy.value, 20);
 
-  EDOTestDummy * (^complexBlock)(EDOTestDummyStruct, int, EDOTestDummy *) =
-      ^(EDOTestDummyStruct dummy, int i, EDOTestDummy *test) {
+  EDOTestDummy * (^complexBlock)(EDOTestDummyStruct, int, id, EDOTestDummy *) =
+      ^(EDOTestDummyStruct dummy, int i, id object, EDOTestDummy *test) {
         test.value = i + dummy.value + 4;
         return test;
       };
   returnDummy = [dummyOnBackground returnWithInt:5
                                      dummyStruct:(EDOTestDummyStruct){.value = 150}
+                                          object:nil
                                     blockComplex:complexBlock];
   ;
   XCTAssertEqual(returnDummy.value, 159);

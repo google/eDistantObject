@@ -19,8 +19,8 @@
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOClientService.h"
-#import "Service/Sources/NSObject+EDOWeakObject.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
+#import "Service/Tests/TestsBundle/EDOTestProtocolInApp.h"
 
 static const NSInteger kLargeArraySize = 1000;
 
@@ -132,6 +132,14 @@ static const NSInteger kLargeArraySize = 1000;
   _block = block;
 }
 
+- (void)voidWithBlockAssignedAndInvoked:(void (^)(void))block {
+  // Regular assignment should do copy internally and maintain its lifecycle.
+  _block = block;
+  if (_block) {
+    _block();
+  }
+}
+
 - (void)voidWithProtocol:(Protocol *)protocol {
   // Do nothing.
 }
@@ -158,8 +166,10 @@ static const NSInteger kLargeArraySize = 1000;
 
 - (EDOTestDummy *)returnWithInt:(int)intVar
                     dummyStruct:(EDOTestDummyStruct)dummyStruct
-                   blockComplex:(EDOTestDummy * (^)(EDOTestDummyStruct, int, EDOTestDummy *))block {
-  return block(dummyStruct, intVar, self);
+                         object:(id)object
+                   blockComplex:
+                       (EDOTestDummy * (^)(EDOTestDummyStruct, int, id, EDOTestDummy *))block {
+  return block(dummyStruct, intVar, object, self);
 }
 
 - (void)invokeBlock {

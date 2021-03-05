@@ -18,10 +18,11 @@
 
 #include <objc/runtime.h>
 
-#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOInvocationMessage.h"
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
@@ -118,7 +119,7 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
   // If there is no host service created for the current queue, a temporary queue is created only
   // within this invocation scope.
   if (!service) {
-    service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+    service = [EDOHostService temporaryServiceForCurrentThread];
     useTemporaryService = YES;
   }
 

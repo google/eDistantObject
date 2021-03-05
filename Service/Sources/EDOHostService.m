@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"
@@ -28,10 +29,14 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService+Handlers.h"
+#import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/EDOTimingFunctions.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
@@ -44,6 +49,9 @@ static const char kEDOOriginatingQueueKey = '\0';
 
 /** The context key to find the service for the executing queue.*/
 static const char kEDOExecutingQueueKey = '\0';
+
+/** The context key to find the temporary service for current thread. */
+static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService";
 
 #pragma mark - EDODispatchQueueWeakRef
 
@@ -125,6 +133,17 @@ static const char kEDOExecutingQueueKey = '\0';
   return weakRef.object;
 }
 
++ (instancetype)temporaryServiceForCurrentThread {
+  NSMutableDictionary<id, id> *threadDictionary = NSThread.currentThread.threadDictionary;
+  EDOHostService *service = [threadDictionary[kCacheTemporaryHostServiceKey] object];
+  if (!service) {
+    service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+    EDOWeakReference *cache = [[EDOWeakReference alloc] initWithObject:service];
+    threadDictionary[kCacheTemporaryHostServiceKey] = cache;
+  }
+  return service;
+}
+
 + (instancetype)serviceWithPort:(UInt16)port rootObject:(id)object queue:(dispatch_queue_t)queue {
   return [[self alloc] initWithPort:port
                          rootObject:object
@@ -201,6 +220,7 @@ static const char kEDOExecutingQueueKey = '\0';
       dispatch_queue_set_specific(queue, &kEDOExecutingQueueKey, (void *)CFBridgingRetain(selfRef),
                                   (dispatch_function_t)CFBridgingRelease);
     }
+
     self.originatingQueues = nil;
   }
   return self;

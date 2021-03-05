@@ -35,6 +35,17 @@ NS_ASSUME_NONNULL_BEGIN
 + (nullable instancetype)serviceForCurrentExecutingQueue;
 
 /**
+ * @return The temporary @c EDOHostService for the current thread.
+ *
+ * @note This is the fallback approach of fetching a host service when it's
+ * infeasible to create the service using the current running queue. A temporary
+ * host service is able to handle incoming remote calls while waiting for an
+ * outgoing remote call. It is an error if an incoming remote call is sent to a
+ * temporary service after the outgoing remote call has completed.
+ */
++ (instancetype)temporaryServiceForCurrentThread;
+
+/**
  *  Wraps a distant object for the given local object and host port.
  *
  *  @param object   The object to be wrapped as a remote object.

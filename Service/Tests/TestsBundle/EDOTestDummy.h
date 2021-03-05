@@ -25,6 +25,8 @@
 // share. This will eventually be automatically assigned.
 #define EDOTEST_APP_SERVICE_PORT 1234
 
+@class EDOTestDummy;
+
 @interface EDOTestDummyException : NSException
 @end
 
@@ -34,6 +36,9 @@ typedef struct EDOTestDummyStruct {
   float a, b, c;
   double x, y, z;
 } EDOTestDummyStruct;
+
+/** The handler block that has primitive type, struct type and object type for testing. */
+typedef EDOTestDummy * (^EDOMultiTypesHandler)(EDOTestDummyStruct, int, id, EDOTestDummy *);
 
 /** The dummy class used to test the distant object. */
 @interface EDOTestDummy : NSObject <NSFastEnumeration, EDOTestProtocolInApp, NSCopying>
@@ -84,13 +89,15 @@ typedef struct EDOTestDummyStruct {
 // block variants
 - (void)voidWithBlock:(void (^)(void))block;
 - (void)voidWithBlockAssigned:(void (^)(void))block;
+- (void)voidWithBlockAssignedAndInvoked:(void (^)(void))block;
 - (EDOTestDummyStruct)returnStructWithBlockStret:(EDOTestDummyStruct (^)(void))block;
 - (double)returnWithBlockDouble:(double (^)(void))block;
 - (id)returnWithBlockObject:(id (^)(EDOTestDummy *))block;
 - (EDOTestDummy *)returnWithBlockOutObject:(void (^)(EDOTestDummy **))block;
 - (EDOTestDummy *)returnWithInt:(int)intVar
                     dummyStruct:(EDOTestDummyStruct)dummyStruct
-                   blockComplex:(EDOTestDummy * (^)(EDOTestDummyStruct, int, EDOTestDummy *))block;
+                         object:(id)object
+                   blockComplex:(EDOMultiTypesHandler)block;
 - (void)invokeBlock;
 
 /** Returns the name of the given @c selector. */

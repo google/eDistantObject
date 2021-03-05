@@ -98,19 +98,21 @@
 // Test that the block can have structs as returns.
 - (void)testBlockWithStructArguments {
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  EDOTestDummy *dummyReturn = [remoteDummy
-      returnWithInt:5
-        dummyStruct:(EDOTestDummyStruct){.value = 150, .a = 30.0, .x = 50, .z = 200}
-       blockComplex:^EDOTestDummy *(EDOTestDummyStruct dummy, int i, EDOTestDummy *test) {
-         XCTAssertEqual(dummy.a, 30);
-         XCTAssertEqual(dummy.x, 50);
-         XCTAssertEqual(dummy.z, 200);
-         XCTAssertEqual(i, 5);
-         XCTAssertEqual(dummy.value, 150);
-         // Random calculation inside the block to be validated outside.
-         test.value = i + dummy.value + 4;
-         return test;
-       }];
+  EDOTestDummy *dummyReturn =
+      [remoteDummy returnWithInt:5
+                     dummyStruct:(EDOTestDummyStruct){.value = 150, .a = 30.0, .x = 50, .z = 200}
+                          object:nil
+                    blockComplex:^EDOTestDummy *(EDOTestDummyStruct dummy, int i, id object,
+                                                 EDOTestDummy *test) {
+                      XCTAssertEqual(dummy.a, 30);
+                      XCTAssertEqual(dummy.x, 50);
+                      XCTAssertEqual(dummy.z, 200);
+                      XCTAssertEqual(i, 5);
+                      XCTAssertEqual(dummy.value, 150);
+                      // Random calculation inside the block to be validated outside.
+                      test.value = i + dummy.value + 4;
+                      return test;
+                    }];
   XCTAssertEqual(dummyReturn.value, 159);
 }
 

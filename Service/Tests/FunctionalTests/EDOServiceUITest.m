@@ -19,8 +19,6 @@
 #include <objc/runtime.h>
 
 #import "Channel/Sources/EDOHostPort.h"
-#import "Channel/Sources/EDOSocket.h"
-#import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService.h"
@@ -32,7 +30,6 @@
 #import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
-#import "Service/Tests/TestsBundle/EDOTestProtocolInApp.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInTest.h"
 
 static NSString *const kTestServiceName = @"com.google.edo.testService";
@@ -187,6 +184,26 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
     });
     [self waitForExpectations:@[ nestedCallExpectation ] timeout:5.f];
   }
+}
+
+/** Verifies temporary service will handle remote invocations recursively. */
+- (void)testTemporaryServiceHandlesRecursiveCall {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+
+  XCTestExpectation *expectation = [self expectationWithDescription:@"recursive call completes."];
+  __block NSUInteger recursiveLayer = 5;
+  dispatch_async(testQueue, ^{
+    [remoteDummy voidWithBlockAssignedAndInvoked:^{
+      if (recursiveLayer > 0) {
+        --recursiveLayer;
+        [remoteDummy invokeBlock];
+      }
+    }];
+    [expectation fulfill];
+  });
+  [self waitForExpectations:@[ expectation ] timeout:1.0];
 }
 
 - (void)testDispatchAsyncEarlyReturn {

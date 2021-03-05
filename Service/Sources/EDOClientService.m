@@ -18,22 +18,26 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
-#import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClassMessage.h"
 #import "Service/Sources/EDOClientServiceStatsCollector.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/EDOTimingFunctions.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
@@ -100,6 +104,9 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
     EDOHostService *service = [EDOHostService serviceForCurrentOriginatingQueue];
+    if (!service) {
+      service = [EDOHostService temporaryServiceForCurrentThread];
+    }
     // If there is a service for the current queue, we check if the object belongs to this queue.
     // Otherwise, we send EDOObjectAlive message to another service running in the same process.
     if ([service.port match:edoObject.servicePort]) {
