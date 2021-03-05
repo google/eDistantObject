@@ -255,6 +255,28 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertEqual(anObject, rountTripObject);
 }
 
+/** Verifies the temporary host keeps being reused until the end of an external autorelease pool. */
+- (void)testTemporaryServiceIsReleasedLazily {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
+  XCTestExpectation *expectation =
+      [self expectationWithDescription:@"temporary service retain count check"];
+
+  dispatch_async(testQueue, ^{
+    __weak EDOHostService *temporaryHostService = nil;
+    @autoreleasepool {
+      temporaryHostService = [EDOHostService temporaryServiceForCurrentThread];
+      [dummyOnBackground voidWithBlock:^{
+      }];
+      XCTAssertNotNil(temporaryHostService);
+    }
+    XCTAssertNil(temporaryHostService);
+    [expectation fulfill];
+  });
+
+  [self waitForExpectations:@[ expectation ] timeout:1.0];
+}
+
 - (void)testClassMethodsAndInit {
   Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port);
 

@@ -394,8 +394,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     EDOHostService *strongSelf = weakSelf;
     NSException *exception;
     // TODO(haowoo): Add the proper error handler.
-    NSAssert(error == nil, @"Failed to receive the data (%d) for %@.",
-             strongSelf.port.hostPort.port, error);
+    NSCAssert(error == nil, @"Failed to receive the data (%d) for %@.",
+              strongSelf.port.hostPort.port, error);
     if (data == nil) {
       // the client socket is closed.
       NSLog(@"The channel (%p) with port %d is closed", targetChannel,
