@@ -22,6 +22,8 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServicePort.h"
@@ -44,9 +46,15 @@
 
 static NSString *const kTestServiceName = @"com.google.edotest.service";
 
+@interface EDOClientService (UnitTest)
+
++ (id)resolveInstanceFromEDOObject:(EDOObject *)object;
+
+@end
+
 @interface EDOServiceTest : XCTestCase
-@property(readonly) id serviceBackgroundMock;
-@property(readonly) id serviceMainMock;
+@property(readonly) id clientServiceMock;
+@property(readonly) NSMutableSet<EDOServicePort *> *objectAliveForwardingPorts;
 @property(readonly) EDOHostService *serviceOnBackground;
 @property(readonly) EDOHostService *serviceOnMain;
 @property(readonly) EDOTestDummy *rootObject;
@@ -68,8 +76,22 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   _serviceOnMain = [EDOHostService serviceWithRegisteredName:kTestServiceName
                                                   rootObject:[[EDOTestDummy alloc] init]
                                                        queue:dispatch_get_main_queue()];
-  _serviceMainMock = OCMPartialMock(_serviceOnMain);
-  OCMStub([_serviceMainMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
+
+  // Disable the isObjectAlive: check so the object from the differnt queue will not be resolved
+  // to the underlying object but a remote object
+  _clientServiceMock = OCMClassMock([EDOClientService class]);
+  __weak EDOServiceTest *weakSelf = self;
+  OCMStub([_clientServiceMock
+              resolveInstanceFromEDOObject:[OCMArg checkWithBlock:^BOOL(EDOObject *obj) {
+                for (EDOServicePort *servicePort in weakSelf.objectAliveForwardingPorts) {
+                  if ([servicePort match:obj.servicePort]) {
+                    return NO;
+                  }
+                }
+                return YES;
+              }]])
+      .andReturn(nil);
+  _objectAliveForwardingPorts = [NSMutableSet set];
   [self resetBackgroundService];
 }
 
@@ -81,10 +103,8 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   _serviceOnBackground = nil;
   _rootObject = nil;
 
-  [self.serviceMainMock stopMocking];
-  [self.serviceBackgroundMock stopMocking];
-  _serviceMainMock = nil;
-  _serviceBackgroundMock = nil;
+  [self.clientServiceMock stopMocking];
+  _clientServiceMock = nil;
 
   [super tearDown];
 }
@@ -168,6 +188,25 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   [self waitForExpectations:@[ expectServiceNil, expectQueueNil ] timeout:10];
 }
 
+- (void)testTemporaryServiceNotCreateChannelIfNoObjectBoxing {
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  XCTestExpectation *expectation = [self expectationWithDescription:@"temporary service tested"];
+
+  // Temporary service is already used in the main thread, so move the test to the background
+  // thread.
+  dispatch_async(testQueue, ^{
+    EDOHostService *service = [EDOHostService temporaryServiceForCurrentThread];
+    XCTAssertFalse(service.valid);
+
+    XCTAssertNil([EDOHostService serviceForCurrentOriginatingQueue]);
+    __unused id rootObject = self.rootObjectOnBackground;
+    XCTAssertFalse(service.valid);
+    [expectation fulfill];
+  });
+
+  [self waitForExpectations:@[ expectation ] timeout:1.];
+}
+
 - (void)testTemporaryServiceLazilyCreatedIfNoServiceAvailable {
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
@@ -225,12 +264,6 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 
-  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
-  id serviceMock = OCMPartialMock(service);
-  OCMStub([[serviceMock classMethod] serviceWithPort:0 rootObject:nil queue:nil])
-      .andReturn(serviceMock);
-  OCMStub([serviceMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
-
   XCTestExpectation *expectation = [self expectationWithDescription:@"nested call completes."];
   NSObject *anObject = [[NSObject alloc] init];
   __block NSObject *rountTripObject = nil;
@@ -249,7 +282,6 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
           }];
     }
     [expectation fulfill];
-    [serviceMock stopMocking];
   });
   [self waitForExpectations:@[ expectation ] timeout:1.0];
   XCTAssertEqual(anObject, rountTripObject);
@@ -388,7 +420,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   });
 
   // The service on the background queue will resolve to the local address.
-  [self.serviceBackgroundMock stopMocking];
+  [self.objectAliveForwardingPorts addObject:self.serviceOnBackground.port];
 
   dispatch_sync(testQueue, ^{
     XCTAssertEqual([[self.rootObjectOnBackground returnSelf] class], [EDOTestDummy class],
@@ -411,7 +443,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
 
   // The service on the background queue will resolve to the local address.
-  [self.serviceBackgroundMock stopMocking];
+  [self.objectAliveForwardingPorts addObject:self.serviceOnBackground.port];
   XCTAssertEqual([[dummyOnBackground returnSelf] class], [EDOTestDummy class]);
   XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:self], @"EDOObject");
   XCTAssertNoThrow(({
@@ -421,7 +453,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertEqual([dummyOut class], [EDOTestDummy class]);
 
   // The services on both the main queue and the background queue will resolve to the local address.
-  [self.serviceMainMock stopMocking];
+  [self.objectAliveForwardingPorts addObject:self.serviceOnMain.port];
   XCTAssertEqual([[dummyOnBackground returnSelf] class], [EDOTestDummy class]);
   XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:self],
                         NSStringFromClass([self class]));
@@ -432,8 +464,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertEqual([dummyOut class], [EDOTestDummy class]);
 
   // The service on the main queue will resolve to the local address.
-  _serviceBackgroundMock = OCMPartialMock(self.serviceOnBackground);
-  OCMStub([_serviceBackgroundMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
+  [self.objectAliveForwardingPorts removeObject:self.serviceOnBackground.port];
 
   XCTAssertEqual([[dummyOnBackground returnSelf] class], NSClassFromString(@"EDOObject"));
   XCTAssertEqualObjects([dummyOnBackground returnClassNameWithObject:self],
@@ -628,9 +659,6 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   [helperClass invokeMethodsWithProtocol:testProtocol];
 
   OCMVerifyAll(testProtocol);
-  // Let it resolve otherwise -[isEqual:] causes infinite loop from mocking.
-  [self.serviceBackgroundMock stopMocking];
-  [self.serviceMainMock stopMocking];
 }
 
 - (void)testEDODescription {
@@ -839,15 +867,10 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 }
 
 - (void)resetBackgroundService {
-  [_serviceBackgroundMock stopMocking];
   [_serviceOnBackground invalidate];
   _serviceOnBackground = [EDOHostService serviceWithPort:0
                                               rootObject:self.rootObject
                                                    queue:self.executionQueue];
-  // Disable the isObjectAlive: check so the object from the background queue will not be resolved
-  // to the underlying object but a remote object.
-  _serviceBackgroundMock = OCMPartialMock(_serviceOnBackground);
-  OCMStub([_serviceBackgroundMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
 }
 
 @end

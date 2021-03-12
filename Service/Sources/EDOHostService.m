@@ -350,7 +350,9 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 - (BOOL)isObjectAlive:(EDOObject *)object {
   // TODO(haowoo): There can be different strategies to evict the object from the local cache,
   //               we should check if the object is still in the cache (self.localObjects).
-  return [self.port match:object.servicePort];
+
+  // ivar is used directly here to avoid the service lazily creating listen port.
+  return [_port match:object.servicePort];
 }
 
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {

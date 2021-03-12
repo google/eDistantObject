@@ -109,7 +109,7 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
     }
     // If there is a service for the current queue, we check if the object belongs to this queue.
     // Otherwise, we send EDOObjectAlive message to another service running in the same process.
-    if ([service.port match:edoObject.servicePort]) {
+    if ([service isObjectAlive:edoObject]) {
       return (__bridge id)(void *)edoObject.remoteAddress;
     } else if (edoObject.isLocalEdo) {
       // If the underlying object is not a local object (but in the same process) then this could
