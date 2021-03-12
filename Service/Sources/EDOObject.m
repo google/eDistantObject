@@ -18,8 +18,6 @@
 
 #include <objc/runtime.h>
 
-#import "Channel/Sources/EDOSocket.h"
-#import "Channel/Sources/EDOSocketChannel.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOObject+Private.h"
@@ -27,9 +25,7 @@
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
-#import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/EDOValueObject.h"
-#import "Service/Sources/EDOWeakObject.h"
 
 static NSString *const kEDOObjectCoderPortKey = @"edoServicePort";
 static NSString *const kEDOObjectCoderRemoteAddressKey = @"edoRemoteAddress";

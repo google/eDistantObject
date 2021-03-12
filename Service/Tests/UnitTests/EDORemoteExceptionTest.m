@@ -16,10 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import "Service/Sources/EDOBlockObject.h"
-#import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDORemoteException.h"
-#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 

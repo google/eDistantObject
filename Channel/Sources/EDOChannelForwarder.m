@@ -16,9 +16,9 @@
 
 #import "Channel/Sources/EDOChannelForwarder.h"
 
-#import "Channel/Sources/EDOChannelPool.h"
+#import "Channel/Sources/EDOChannel.h"
+#import "Channel/Sources/EDOChannelErrors.h"
 #import "Channel/Sources/EDOHostPort.h"
-#import "Channel/Sources/EDOSocketChannel.h"
 
 /**
  *  Creates a receiveHandler for the multiplexer to receive the data and forwards to the forwarded

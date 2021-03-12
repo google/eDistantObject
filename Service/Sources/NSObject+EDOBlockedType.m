@@ -17,9 +17,6 @@
 
 #include <objc/runtime.h>
 
-#import "Channel/Sources/EDOHostPort.h"
-#import "Service/Sources/EDOHostService.h"
-#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
 

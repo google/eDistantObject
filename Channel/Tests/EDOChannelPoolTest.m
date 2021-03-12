@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"

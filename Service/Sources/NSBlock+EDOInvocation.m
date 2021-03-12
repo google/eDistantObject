@@ -17,10 +17,11 @@
 #import <Foundation/Foundation.h>
 #include <objc/runtime.h>
 
-#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOParameter.h"
 
 /** Expose the private class interface. */

@@ -16,6 +16,7 @@
 
 #import "Service/Sources/EDOServiceRequest.h"
 
+#import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOServiceError.h"
 
 static NSString *const kEDOServiceResponseErrorKey = @"error";

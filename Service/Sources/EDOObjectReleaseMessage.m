@@ -15,6 +15,9 @@
 //
 
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOMessage.h"
+#import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOServiceRequest.h"
 
 #import "Service/Sources/EDOHostService+Private.h"

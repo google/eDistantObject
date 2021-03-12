@@ -22,7 +22,7 @@
 #include <stdatomic.h>
 #include <sys/un.h>
 
-#import "Channel/Sources/EDOSocketPort.h"
+#import "Channel/Sources/EDOSocket.h"
 
 static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
 

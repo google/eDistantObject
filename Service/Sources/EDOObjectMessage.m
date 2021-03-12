@@ -18,6 +18,10 @@
 
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOMessage.h"
+#import "Service/Sources/EDOObject.h"
+#import "Service/Sources/EDOServiceRequest.h"
 
 static NSString *const kEDOObjectCoderObjectKey = @"object";
 static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";

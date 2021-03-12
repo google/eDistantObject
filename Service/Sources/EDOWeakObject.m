@@ -20,8 +20,8 @@
 
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDODeallocationTracker.h"
-#import "Service/Sources/EDOHostService+Private.h"
-#import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/NSProxy+EDOParameter.h"

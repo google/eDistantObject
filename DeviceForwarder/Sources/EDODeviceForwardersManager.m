@@ -16,6 +16,7 @@
 
 #import "DeviceForwarder/Sources/EDODeviceForwardersManager.h"
 
+#import "Channel/Sources/EDOChannelErrors.h"
 #import "Channel/Sources/EDOChannelForwarder.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"

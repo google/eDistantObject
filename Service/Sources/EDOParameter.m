@@ -17,7 +17,6 @@
 #import "Service/Sources/EDOParameter.h"
 
 #import "Service/Sources/EDOBlockObject.h"
-#import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObject.h"
 
 static NSString *const kObjCIdType = @"@";

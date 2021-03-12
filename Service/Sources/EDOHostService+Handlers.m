@@ -22,6 +22,7 @@
 #import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOServiceRequest.h"
 
 @implementation EDOHostService (Handlers)
 

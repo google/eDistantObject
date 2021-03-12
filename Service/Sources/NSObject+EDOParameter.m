@@ -18,8 +18,8 @@
 
 #include <objc/runtime.h>
 
-#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOProtocolObject.h"
 #import "Service/Sources/NSObject+EDOValue.h"

@@ -16,7 +16,6 @@
 
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"
 
-#import "Service/Sources/NSObject+EDOWeakObject.h"
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
 // Also define this in the test process.

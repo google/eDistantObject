@@ -17,6 +17,7 @@
 #import "Channel/Sources/EDOChannelMultiplexer.h"
 
 #import "Channel/Sources/EDOBlockingQueue.h"
+#import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"
 #import "Channel/Sources/EDOSocketChannel.h"

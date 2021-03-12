@@ -18,7 +18,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOChannelMultiplexer.h"
 #import "Channel/Sources/EDOHostPort.h"
 #import "Channel/Sources/EDOSocket.h"

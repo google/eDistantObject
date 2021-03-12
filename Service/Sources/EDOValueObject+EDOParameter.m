@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOValueObject.h"
 

@@ -18,9 +18,9 @@
 
 #import "Channel/Sources/EDOChannelPool.h"
 #import "Channel/Sources/EDOHostPort.h"
-#import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService+Private.h"
-#import "Service/Sources/EDOHostService.h"
+#import "Service/Sources/EDOHostNamingService.h"
 #import "Service/Sources/EDOServicePort.h"
 
 static NSString *const kDummyServiceName = @"com.google.testService";

@@ -19,6 +19,7 @@
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 
 @implementation EDOValueObject
 

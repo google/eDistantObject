@@ -16,8 +16,8 @@
 
 #import "Service/Sources/NSProxy+EDOParameter.h"
 
-#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOHostService+Private.h"
+#import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOParameter.h"
 
 @implementation NSProxy (EDOParameter)

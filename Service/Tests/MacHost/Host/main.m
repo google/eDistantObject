@@ -17,9 +17,7 @@
 #import <Foundation/Foundation.h>
 
 #import "Device/Sources/EDODeviceConnector.h"
-#import "Service/Sources/EDOHostService.h"
 #import "Service/Tests/MacHost/Host/ServiceRegistrationHelper.h"
-#import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
 // Default service registration timeout.
 const NSTimeInterval kDefaultTimeout = 1000;

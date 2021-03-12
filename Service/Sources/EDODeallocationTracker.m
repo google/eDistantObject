@@ -19,6 +19,8 @@
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOClientService+Private.h"
+#import "Service/Sources/EDOClientService.h"
+#import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOWeakObject.h"
 
