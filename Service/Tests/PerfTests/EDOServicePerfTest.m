@@ -47,8 +47,9 @@
  */
 extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
 
-// Currently a single remote call should be less or equal than 15ms.
-static const uint64_t kRemoteInvocationThresholdInNano = 15e6;
+// Currently a single remote call should be less or equal than 15ms under iOS 12 and 25ms after iOS
+// 12.
+static const uint64_t kRemoteInvocationThresholdInNano = 25e6;
 
 // The number of times to execute the measured blocks.
 static const size_t kNumOfBenchmarkExecutions = 100;
