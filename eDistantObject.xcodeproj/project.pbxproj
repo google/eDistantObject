@@ -7,9 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		76140DF1262796F0007CA5AC /* libSwiftUtil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 76140D9C262795EE007CA5AC /* libSwiftUtil.a */; };
+		76140DF226279719007CA5AC /* libSwiftUtil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 76140D9C262795EE007CA5AC /* libSwiftUtil.a */; };
+		76140DF326279721007CA5AC /* libSwiftUtil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 76140D9C262795EE007CA5AC /* libSwiftUtil.a */; };
 		7657C22224F9BEA70056F5A6 /* NSObject+EDOBlockedType.m in Sources */ = {isa = PBXBuildFile; fileRef = 7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */; };
 		7669CFA2258BFA3100280980 /* EDORuntimeUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */; };
 		7685673323A1C10200EDBDB4 /* EDORemoteException.m in Sources */ = {isa = PBXBuildFile; fileRef = 7685673123A1C10100EDBDB4 /* EDORemoteException.m */; };
+		76EAF4D2262F588D0025F32C /* CodableVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF4D1262F588C0025F32C /* CodableVariable.swift */; };
+		76EAF506262F58C20025F32C /* CodableVariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF505262F58C20025F32C /* CodableVariableTests.swift */; };
 		C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */; };
 		C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */; };
 		C52D859A2220C4AB00E86E60 /* EDODeviceDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */; };
@@ -173,6 +178,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		76140D9A262795EE007CA5AC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C52D85902220C44300E86E60 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -231,6 +245,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		76140D9C262795EE007CA5AC /* libSwiftUtil.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSwiftUtil.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		7657C22024F9BEA70056F5A6 /* NSObject+EDOBlockedType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+EDOBlockedType.h"; path = "Service/Sources/NSObject+EDOBlockedType.h"; sourceTree = "<group>"; };
 		7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+EDOBlockedType.m"; path = "Service/Sources/NSObject+EDOBlockedType.m"; sourceTree = "<group>"; };
 		7669CFA0258BFA3100280980 /* EDORuntimeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORuntimeUtils.h; path = Service/Sources/EDORuntimeUtils.h; sourceTree = "<group>"; };
@@ -239,6 +254,8 @@
 		7685673123A1C10100EDBDB4 /* EDORemoteException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteException.m; path = Service/Sources/EDORemoteException.m; sourceTree = "<group>"; };
 		7685673223A1C10100EDBDB4 /* EDORemoteException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORemoteException.h; path = Service/Sources/EDORemoteException.h; sourceTree = "<group>"; };
 		7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteExceptionTest.m; path = Service/Tests/UnitTests/EDORemoteExceptionTest.m; sourceTree = "<group>"; };
+		76EAF4D1262F588C0025F32C /* CodableVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CodableVariable.swift; path = Service/Sources/CodableVariable.swift; sourceTree = SOURCE_ROOT; };
+		76EAF505262F58C20025F32C /* CodableVariableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CodableVariableTests.swift; path = Service/Tests/UnitTests/CodableVariableTests.swift; sourceTree = SOURCE_ROOT; };
 		C52D85772220ADBB00E86E60 /* EDODeviceDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceDetector.h; path = Device/Sources/EDODeviceDetector.h; sourceTree = "<group>"; };
 		C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceDetector.m; path = Device/Sources/EDODeviceDetector.m; sourceTree = "<group>"; };
 		C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDOUSBMuxUtil.m; path = Device/Sources/EDOUSBMuxUtil.m; sourceTree = "<group>"; };
@@ -414,6 +431,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		76140D99262795EE007CA5AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C52D858F2220C44300E86E60 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -467,6 +491,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76140DF326279721007CA5AC /* libSwiftUtil.a in Frameworks */,
 				C845038220DDA46400D7350F /* libeDistantObject.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -475,6 +500,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76140DF1262796F0007CA5AC /* libSwiftUtil.a in Frameworks */,
 				C84503A720DDAEF500D7350F /* libeDistantObject.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -491,6 +517,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76140DF226279719007CA5AC /* libSwiftUtil.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -512,6 +539,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		76140D9D262795EE007CA5AC /* SwiftUtil */ = {
+			isa = PBXGroup;
+			children = (
+				76140DB026279609007CA5AC /* Tests */,
+				76140DAF26279601007CA5AC /* Sources */,
+			);
+			path = SwiftUtil;
+			sourceTree = "<group>";
+		};
+		76140DAF26279601007CA5AC /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				76EAF4D1262F588C0025F32C /* CodableVariable.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		76140DB026279609007CA5AC /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				76EAF505262F58C20025F32C /* CodableVariableTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
 		C52D85752220AD9D00E86E60 /* Device */ = {
 			isa = PBXGroup;
 			children = (
@@ -762,6 +814,7 @@
 				C88B8A5B21ADD38400DDE607 /* Measure */,
 				C5A2EFD02134D3D500421D72 /* Service */,
 				C845027820DD9D8800D7350F /* Channel */,
+				76140D9D262795EE007CA5AC /* SwiftUtil */,
 				C845025620DD9CB900D7350F /* Products */,
 				C55B85E422419D7C00B568FA /* Frameworks */,
 			);
@@ -782,6 +835,7 @@
 				C88B8A8921ADD3FD00DDE607 /* MeasureTests.xctest */,
 				C52D85942220C44300E86E60 /* libDeviceLib.a */,
 				C55B85F62241AEAC00B568FA /* DeviceUnitTests.xctest */,
+				76140D9C262795EE007CA5AC /* libSwiftUtil.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -869,6 +923,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		76140D9B262795EE007CA5AC /* SwiftUtil */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76140DA2262795EE007CA5AC /* Build configuration list for PBXNativeTarget "SwiftUtil" */;
+			buildPhases = (
+				76140D98262795EE007CA5AC /* Sources */,
+				76140D99262795EE007CA5AC /* Frameworks */,
+				76140D9A262795EE007CA5AC /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SwiftUtil;
+			productName = SwiftUtil;
+			productReference = 76140D9C262795EE007CA5AC /* libSwiftUtil.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		C52D858C2220C44300E86E60 /* DeviceLib */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C52D85912220C44300E86E60 /* Build configuration list for PBXNativeTarget "DeviceLib" */;
@@ -1087,12 +1158,20 @@
 		C845024D20DD9CB900D7350F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1240;
 				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "Google LLC";
 				TargetAttributes = {
+					76140D9B262795EE007CA5AC = {
+						CreatedOnToolsVersion = 12.4;
+						LastSwiftMigration = 1240;
+					};
 					C845026420DD9D2E00D7350F = {
 						CreatedOnToolsVersion = 9.4;
 						LastSwiftMigration = 0940;
+					};
+					C845026E20DD9D5D00D7350F = {
+						LastSwiftMigration = 1240;
 					};
 					C845033320DDA11D00D7350F = {
 						CreatedOnToolsVersion = 9.4;
@@ -1107,6 +1186,7 @@
 					};
 					C84503A120DDAEF500D7350F = {
 						CreatedOnToolsVersion = 9.4;
+						LastSwiftMigration = 1240;
 					};
 					C84503B520DDB03E00D7350F = {
 						CreatedOnToolsVersion = 9.4;
@@ -1141,6 +1221,7 @@
 				C84503C520DDB07A00D7350F /* TestsBundle */,
 				C52D858C2220C44300E86E60 /* DeviceLib */,
 				C55B85E82241AEAC00B568FA /* DeviceUnitTests */,
+				76140D9B262795EE007CA5AC /* SwiftUtil */,
 			);
 		};
 /* End PBXProject section */
@@ -1200,6 +1281,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		76140D98262795EE007CA5AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				76EAF4D2262F588D0025F32C /* CodableVariable.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C52D858D2220C44300E86E60 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1337,6 +1426,7 @@
 				C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */,
 				C5A2F0662134D65600421D72 /* EDOMessageTest.m in Sources */,
 				C5A2F0642134D65600421D72 /* EDOExecutorTest.m in Sources */,
+				76EAF506262F58C20025F32C /* CodableVariableTests.swift in Sources */,
 				C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */,
 				C532ABFC2136172E00162011 /* EDOTestProtocol.m in Sources */,
 				C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */,
@@ -1423,6 +1513,54 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		76140DA0262795EE007CA5AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		76140DA1262795EE007CA5AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		C52D85922220C44300E86E60 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1660,11 +1798,19 @@
 		C845027520DD9D5D00D7350F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
 			};
@@ -1673,11 +1819,18 @@
 		C845027620DD9D5D00D7350F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "i386 x86_64 arm64 armv7 armv7s";
 			};
@@ -1724,6 +1877,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.TestsHost;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1743,6 +1897,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.TestsHost;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1789,6 +1944,7 @@
 		C84503AB20DDAEF500D7350F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1798,6 +1954,8 @@
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServiceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1805,6 +1963,7 @@
 		C84503AC20DDAEF500D7350F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1814,6 +1973,7 @@
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.google.ServiceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -1855,7 +2015,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				LD_RUNPATH_SEARCH_PATHS = "";
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1870,7 +2030,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				LD_RUNPATH_SEARCH_PATHS = "";
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1952,6 +2112,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		76140DA2262795EE007CA5AC /* Build configuration list for PBXNativeTarget "SwiftUtil" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				76140DA0262795EE007CA5AC /* Debug */,
+				76140DA1262795EE007CA5AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C52D85912220C44300E86E60 /* Build configuration list for PBXNativeTarget "DeviceLib" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

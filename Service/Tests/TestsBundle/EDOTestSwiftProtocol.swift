@@ -15,6 +15,15 @@
 //
 
 import Foundation
+import SwiftUtil
+
+public struct EDOTestSwiftStruct: Codable {
+  public var intValues: [Int]
+
+  public init(intValues: [Int]) {
+    self.intValues = intValues
+  }
+}
 
 @objc
 public protocol EDOTestSwiftProtocol {
@@ -22,6 +31,7 @@ public protocol EDOTestSwiftProtocol {
   func returnWithBlock(block: @escaping (NSString) -> EDOTestSwiftProtocol) -> NSString
   func returnWithDictionarySum(data: NSDictionary) -> Int
   func returnSwiftArray() -> [AnyObject]
+  func sumFrom(codedStruct: CodableVariable) throws -> CodableVariable
 }
 
 @objc

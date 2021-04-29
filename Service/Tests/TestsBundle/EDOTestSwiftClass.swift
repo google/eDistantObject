@@ -15,6 +15,7 @@
 //
 
 import Foundation
+import SwiftUtil
 @objc
 public class EDOTestSwiftClass: NSObject, EDOTestSwiftProtocol {
   public func returnString() -> NSString {
@@ -35,6 +36,15 @@ public class EDOTestSwiftClass: NSObject, EDOTestSwiftProtocol {
 
   public func returnSwiftArray() -> [AnyObject] {
     return [NSObject.init(), NSObject.init()]
+  }
+
+  public func sumFrom(structValue: EDOTestSwiftStruct) -> [Int] {
+    return [structValue.intValues.reduce(0) { $0 + $1 }]
+  }
+
+  public func sumFrom(codedStruct: CodableVariable) throws -> CodableVariable {
+    let structValue = try codedStruct.unwrap(EDOTestSwiftStruct.self)
+    return self.sumFrom(structValue: structValue).eDOCodableVariable
   }
 }
 

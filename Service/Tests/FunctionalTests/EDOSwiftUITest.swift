@@ -44,7 +44,8 @@ class EDOSwiftUITest: XCTestCase {
     service.invalidate()
   }
 
-  func testRemoteInvocationWithParameter() {
+  /// Verifies eDO can make remote calls through Swift @objc methods.
+  func testRemoteInvocationWithParameter() throws {
     launchAppWithPort(port: 1234, value: 10)
     let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
     let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
@@ -53,6 +54,9 @@ class EDOSwiftUITest: XCTestCase {
     let data = ["a": 1, "b": 2] as NSDictionary
     XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data.passByValue()), 3)
     XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data), 3)
+    let testingStruct = EDOTestSwiftStruct(intValues: [1, 2, 3, 4, 5])
+    let codedResult = try swiftClass.sumFrom(codedStruct: testingStruct.eDOCodableVariable)
+    XCTAssertEqual(try codedResult.unwrap([Int].self).first, 15)
     service.invalidate()
   }
 
