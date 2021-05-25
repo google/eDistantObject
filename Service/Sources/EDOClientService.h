@@ -72,7 +72,7 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
  *  @param hostPort   The host port the service is running on.
  *  @return The remote @c Class object.
  */
-+ (Class)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
++ (nullable Class)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
 
 - (instancetype)init NS_UNAVAILABLE;
 
@@ -85,11 +85,10 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
 + (ObjectType)rootObjectWithServiceName:(NSString *)serviceName;
 
 /** Retrieve the class object from the given host port of a service. */
-+ (Class)classObjectWithName:(NSString *)className port:(UInt16)port;
++ (nullable Class)classObjectWithName:(NSString *)className port:(UInt16)port;
 
 /** Retrieve the class object from the given host port of and name of a service. */
-+ (Class)classObjectWithName:(NSString *)className
-                 serviceName:(NSString *)serviceName;
++ (nullable Class)classObjectWithName:(NSString *)className serviceName:(NSString *)serviceName;
 
 @end
 
