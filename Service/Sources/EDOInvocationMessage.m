@@ -279,9 +279,16 @@ static EDORemoteException *CreateRemoteException(id localException) {
       value = objRef ? BOX_VALUE(*objRef, target, service, nil)
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
-      // TODO(haowoo): Add the proper error and/or exception handler.
-      NSAssert(NO, @"Not supported type (%s) in the argument for selector (%@).", ctype,
-               selector ? NSStringFromSelector(selector) : @"(block)");
+      void *objRef;
+      [invocation getArgument:&objRef atIndex:i];
+
+      // Don't assert if the pointer is NULL.
+      if (objRef != NULL) {
+        // TODO(haowoo): Add the proper error and/or exception handler.
+        NSAssert(NO, @"Not supported type (%s) in argument %@ for selector (%@).", ctype, @(i),
+                 selector ? NSStringFromSelector(selector) : @"(block)");
+      }
+      value = [EDOBoxedValueType parameterForNilValue];
     } else {
       NSUInteger typeSize = 0L;
       NSGetSizeAndAlignment(ctype, &typeSize, NULL);
