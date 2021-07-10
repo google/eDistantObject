@@ -519,6 +519,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertNoThrow([dummyOnBackground voidWithBlock:nil]);
   XCTAssertNoThrow([dummyOnBackground voidWithBlock:^{
   }]);
+  XCTAssertNoThrow([dummyOnBackground voidWithNullCPointer:NULL]);
 }
 
 - (void)testOutParameterCanResolveToLocalWhenDereferencing {

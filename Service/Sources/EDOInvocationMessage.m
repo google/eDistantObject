@@ -279,9 +279,20 @@ static EDORemoteException *CreateRemoteException(id localException) {
       value = objRef ? BOX_VALUE(*objRef, target, service, nil)
                      : [EDOBoxedValueType parameterForDoublePointerNullValue];
     } else if (EDO_IS_POINTER(ctype)) {
-      // TODO(haowoo): Add the proper error and/or exception handler.
-      NSAssert(NO, @"Not supported type (%s) in the argument for selector (%@).", ctype,
-               selector ? NSStringFromSelector(selector) : @"(block)");
+      void *objRef;
+      [invocation getArgument:&objRef atIndex:i];
+
+      // Don't assert if the pointer is NULL.  The purpose for disallowing non-Objective-C pointer
+      // parameters is because there's no way to know how big a C pointer's underlying data is.  But
+      // if the pointer is NULL, then there's nothing to pass, so just pass NULL and don't throw an
+      // exception.  This opens up partial support for key-value observing and other APIs that take
+      // optional context pointers (so long as the caller doesn't provide one).
+      if (objRef != NULL) {
+        // TODO(haowoo): Add the proper error and/or exception handler.
+        NSAssert(NO, @"Not supported type (%s) in argument %@ for selector (%@).", ctype, @(i),
+                 selector ? NSStringFromSelector(selector) : @"(block)");
+      }
+      value = [EDOBoxedValueType parameterForNilValue];
     } else {
       NSUInteger typeSize = 0L;
       NSGetSizeAndAlignment(ctype, &typeSize, NULL);
@@ -345,7 +356,8 @@ static EDORemoteException *CreateRemoteException(id localException) {
         NSAssert(EDO_IS_OBJPOINTER(ctype) ||
                      (EDO_IS_OBJECT(ctype) && EDO_IS_OBJECT(argument.objCType)) ||
                      (EDO_IS_CLASS(ctype) && EDO_IS_OBJECT(argument.objCType)) ||
-                     strcmp(ctype, argument.objCType) == 0,
+                     strcmp(ctype, argument.objCType) == 0 ||
+                     (EDO_IS_POINTER(ctype) && argument.value == NULL),
                  @"The argument type is not matched (%s : %s).", ctype, argument.objCType);
 
         if (EDO_IS_OBJPOINTER(ctype)) {

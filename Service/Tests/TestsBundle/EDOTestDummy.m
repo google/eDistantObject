@@ -144,6 +144,12 @@ static const NSInteger kLargeArraySize = 1000;
   // Do nothing.
 }
 
+- (void)voidWithNullCPointer:(void *)cPointer {
+  // This can be called remotely, but only with NULL pointer values.
+  NSAssert(cPointer == NULL,
+           @"It should not be possible to pass a non-NULL value to this parameter.");
+}
+
 - (EDOTestDummyStruct)returnStructWithBlockStret:(EDOTestDummyStruct (^)(void))block {
   return block();
 }

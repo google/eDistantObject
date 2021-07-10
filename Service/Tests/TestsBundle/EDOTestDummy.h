@@ -66,6 +66,7 @@ typedef EDOTestDummy * (^EDOMultiTypesHandler)(EDOTestDummyStruct, int, id, EDOT
 - (void)voidWithOutObject:(EDOTestDummy **)dummyOut;
 - (void)voidWithValue:(int)value outSelf:(EDOTestDummy **)dummyOut;
 - (void)voidWithProtocol:(Protocol *)protocol;
+- (void)voidWithNullCPointer:(void *)cPointer;
 
 /// no parameters with returns of different types
 - (int)returnInt;
