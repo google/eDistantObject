@@ -84,7 +84,6 @@
 		C5D03FDE21D77145003DC06A /* EDOChannelUtilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D03FDD21D77144003DC06A /* EDOChannelUtilTest.m */; };
 		C5D03FE121D77161003DC06A /* EDOChannelUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D03FE021D77161003DC06A /* EDOChannelUtil.m */; };
 		C5DA825422E06EF800E7535F /* EDOChannelErrors.m in Sources */ = {isa = PBXBuildFile; fileRef = C5DA825322E06EF800E7535F /* EDOChannelErrors.m */; };
-		C8230F2426BDEF5900E3C6B8 /* CodableVariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF505262F58C20025F32C /* CodableVariableTests.swift */; };
 		C8298A0721599CD3003E3C2C /* EDOServiceUIMemoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */; };
 		C8298A0821599CD3003E3C2C /* EDOServiceUIBaseTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0521599CD2003E3C2C /* EDOServiceUIBaseTest.m */; };
 		C8298A0921599CD3003E3C2C /* EDOServiceUIBlockTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0621599CD3003E3C2C /* EDOServiceUIBlockTest.m */; };
@@ -118,6 +117,7 @@
 		C8A5E007213F896000D28052 /* NSBlock+EDOInvocation.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */; };
 		C8A772D122D5215F00A75B22 /* EDOSocketPortTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A772D022D5215D00A75B22 /* EDOSocketPortTest.m */; };
 		C8C3B44C2140507700A71091 /* EDOTestSwiftProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2F0402134D50600421D72 /* EDOTestSwiftProtocol.swift */; };
+		C8EC49DC26BDF64900DDA57F /* CodableVariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF505262F58C20025F32C /* CodableVariableTests.swift */; };
 		C8ED2AE421B7504F00118999 /* EDOTimingFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = C8ED2AE221B7504E00118999 /* EDOTimingFunctions.m */; };
 		DC84AF0422D805C800D43E26 /* EDOWeakObject.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */; };
 		DC84AF0522D805EE00D43E26 /* EDODeallocationTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */; };
@@ -1261,7 +1261,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C8230F2426BDEF5900E3C6B8 /* CodableVariableTests.swift in Sources */,
 				76EAF4D2262F588D0025F32C /* CodableVariable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1403,6 +1402,7 @@
 				C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */,
 				C5A2F0662134D65600421D72 /* EDOMessageTest.m in Sources */,
 				C5A2F0642134D65600421D72 /* EDOExecutorTest.m in Sources */,
+				C8EC49DC26BDF64900DDA57F /* CodableVariableTests.swift in Sources */,
 				C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */,
 				C532ABFC2136172E00162011 /* EDOTestProtocol.m in Sources */,
 				C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */,
