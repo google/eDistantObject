@@ -14,7 +14,6 @@
 		7669CFA2258BFA3100280980 /* EDORuntimeUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */; };
 		7685673323A1C10200EDBDB4 /* EDORemoteException.m in Sources */ = {isa = PBXBuildFile; fileRef = 7685673123A1C10100EDBDB4 /* EDORemoteException.m */; };
 		76EAF4D2262F588D0025F32C /* CodableVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF4D1262F588C0025F32C /* CodableVariable.swift */; };
-		76EAF506262F58C20025F32C /* CodableVariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF505262F58C20025F32C /* CodableVariableTests.swift */; };
 		C52D85962220C4AB00E86E60 /* EDODeviceChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857A2220ADBD00E86E60 /* EDODeviceChannel.m */; };
 		C52D85982220C4AB00E86E60 /* EDODeviceConnector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D857D2220ADBE00E86E60 /* EDODeviceConnector.m */; };
 		C52D859A2220C4AB00E86E60 /* EDODeviceDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */; };
@@ -85,6 +84,7 @@
 		C5D03FDE21D77145003DC06A /* EDOChannelUtilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D03FDD21D77144003DC06A /* EDOChannelUtilTest.m */; };
 		C5D03FE121D77161003DC06A /* EDOChannelUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C5D03FE021D77161003DC06A /* EDOChannelUtil.m */; };
 		C5DA825422E06EF800E7535F /* EDOChannelErrors.m in Sources */ = {isa = PBXBuildFile; fileRef = C5DA825322E06EF800E7535F /* EDOChannelErrors.m */; };
+		C8230F2426BDEF5900E3C6B8 /* CodableVariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EAF505262F58C20025F32C /* CodableVariableTests.swift */; };
 		C8298A0721599CD3003E3C2C /* EDOServiceUIMemoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0421599CD2003E3C2C /* EDOServiceUIMemoryTest.m */; };
 		C8298A0821599CD3003E3C2C /* EDOServiceUIBaseTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0521599CD2003E3C2C /* EDOServiceUIBaseTest.m */; };
 		C8298A0921599CD3003E3C2C /* EDOServiceUIBlockTest.m in Sources */ = {isa = PBXBuildFile; fileRef = C8298A0621599CD3003E3C2C /* EDOServiceUIBlockTest.m */; };
@@ -254,8 +254,8 @@
 		7685673123A1C10100EDBDB4 /* EDORemoteException.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteException.m; path = Service/Sources/EDORemoteException.m; sourceTree = "<group>"; };
 		7685673223A1C10100EDBDB4 /* EDORemoteException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDORemoteException.h; path = Service/Sources/EDORemoteException.h; sourceTree = "<group>"; };
 		7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EDORemoteExceptionTest.m; path = Service/Tests/UnitTests/EDORemoteExceptionTest.m; sourceTree = "<group>"; };
-		76EAF4D1262F588C0025F32C /* CodableVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CodableVariable.swift; path = Service/Sources/CodableVariable.swift; sourceTree = SOURCE_ROOT; };
-		76EAF505262F58C20025F32C /* CodableVariableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CodableVariableTests.swift; path = Service/Tests/UnitTests/CodableVariableTests.swift; sourceTree = SOURCE_ROOT; };
+		76EAF4D1262F588C0025F32C /* CodableVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CodableVariable.swift; path = Service/Sources/CodableVariable.swift; sourceTree = "<group>"; };
+		76EAF505262F58C20025F32C /* CodableVariableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CodableVariableTests.swift; path = Service/Tests/UnitTests/CodableVariableTests.swift; sourceTree = "<group>"; };
 		C52D85772220ADBB00E86E60 /* EDODeviceDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EDODeviceDetector.h; path = Device/Sources/EDODeviceDetector.h; sourceTree = "<group>"; };
 		C52D85782220ADBC00E86E60 /* EDODeviceDetector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDODeviceDetector.m; path = Device/Sources/EDODeviceDetector.m; sourceTree = "<group>"; };
 		C52D85792220ADBC00E86E60 /* EDOUSBMuxUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = EDOUSBMuxUtil.m; path = Device/Sources/EDOUSBMuxUtil.m; sourceTree = "<group>"; };
@@ -539,31 +539,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		76140D9D262795EE007CA5AC /* SwiftUtil */ = {
-			isa = PBXGroup;
-			children = (
-				76140DB026279609007CA5AC /* Tests */,
-				76140DAF26279601007CA5AC /* Sources */,
-			);
-			path = SwiftUtil;
-			sourceTree = "<group>";
-		};
-		76140DAF26279601007CA5AC /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				76EAF4D1262F588C0025F32C /* CodableVariable.swift */,
-			);
-			path = Sources;
-			sourceTree = "<group>";
-		};
-		76140DB026279609007CA5AC /* Tests */ = {
-			isa = PBXGroup;
-			children = (
-				76EAF505262F58C20025F32C /* CodableVariableTests.swift */,
-			);
-			path = Tests;
-			sourceTree = "<group>";
-		};
 		C52D85752220AD9D00E86E60 /* Device */ = {
 			isa = PBXGroup;
 			children = (
@@ -615,21 +590,7 @@
 		C5A2EFD12134D40E00421D72 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				7669CFA0258BFA3100280980 /* EDORuntimeUtils.h */,
-				7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */,
-				7657C22024F9BEA70056F5A6 /* NSObject+EDOBlockedType.h */,
-				7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */,
-				7685673223A1C10100EDBDB4 /* EDORemoteException.h */,
-				7685673123A1C10100EDBDB4 /* EDORemoteException.m */,
-				DC9BF6C022DFC8AD00E135B8 /* NSObject+EDOWeakObject.h */,
-				DC9BF6C122DFC8AE00E135B8 /* NSObject+EDOWeakObject.m */,
-				DC84AF0022D572BF00D43E26 /* EDODeallocationTracker.h */,
-				DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */,
-				DC84AEFD22D572BD00D43E26 /* EDOWeakObject.h */,
-				DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */,
-				C535B59721D3077100BAE558 /* EDOHostNamingService.h */,
-				C535B59921D3077200BAE558 /* EDOHostNamingService.m */,
-				C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */,
+				76EAF4D1262F588C0025F32C /* CodableVariable.swift */,
 				C8A5E00421390E3B00D28052 /* EDOBlockObject.h */,
 				C8A5E00321390E3B00D28052 /* EDOBlockObject.m */,
 				C5A2EFFF2134D43400421D72 /* EDOClassMessage.h */,
@@ -639,10 +600,15 @@
 				C5A2EFF22134D43300421D72 /* EDOClientService+Private.h */,
 				C849824121BF212E008F0D6F /* EDOClientServiceStatsCollector.h */,
 				C849824021BF212D008F0D6F /* EDOClientServiceStatsCollector.m */,
+				DC84AF0022D572BF00D43E26 /* EDODeallocationTracker.h */,
+				DC84AEFE22D572BD00D43E26 /* EDODeallocationTracker.m */,
 				C5A2EFF82134D43300421D72 /* EDOExecutor.h */,
 				C5A2EFD82134D43100421D72 /* EDOExecutor.m */,
 				C896A5DA217A601B00CA5610 /* EDOExecutorMessage.h */,
 				C896A5D9217A601B00CA5610 /* EDOExecutorMessage.m */,
+				C535B59721D3077100BAE558 /* EDOHostNamingService.h */,
+				C535B59921D3077200BAE558 /* EDOHostNamingService.m */,
+				C535B59821D3077100BAE558 /* EDOHostNamingService+Private.h */,
 				C5A2EFDA2134D43100421D72 /* EDOHostService.h */,
 				C5A2EFD62134D43100421D72 /* EDOHostService.m */,
 				C5A2EFE12134D43100421D72 /* EDOHostService+Handlers.h */,
@@ -669,8 +635,12 @@
 				C5A2F0042134D43400421D72 /* EDOParameter.m */,
 				C5A2EFFE2134D43400421D72 /* EDOProtocolObject.h */,
 				C5A2EFDB2134D43100421D72 /* EDOProtocolObject.m */,
+				7685673223A1C10100EDBDB4 /* EDORemoteException.h */,
+				7685673123A1C10100EDBDB4 /* EDORemoteException.m */,
 				C5A2EFD92134D43100421D72 /* EDORemoteVariable.h */,
 				C5A2EFEA2134D43200421D72 /* EDORemoteVariable.m */,
+				7669CFA0258BFA3100280980 /* EDORuntimeUtils.h */,
+				7669CFA1258BFA3100280980 /* EDORuntimeUtils.m */,
 				C862C6E02253D70C00EABE99 /* EDOServiceError.h */,
 				C862C6E22253D70D00EABE99 /* EDOServiceError.m */,
 				C862C6E12253D70C00EABE99 /* EDOServiceException.h */,
@@ -685,17 +655,23 @@
 				C5A2EFF72134D43300421D72 /* EDOValueObject.m */,
 				C5A2EFEF2134D43200421D72 /* EDOValueObject+EDOParameter.m */,
 				C5A2EFE52134D43200421D72 /* EDOValueType.m */,
+				DC84AEFD22D572BD00D43E26 /* EDOWeakObject.h */,
+				DC84AEFF22D572BE00D43E26 /* EDOWeakObject.m */,
 				C8A5E006213F896000D28052 /* NSBlock+EDOInvocation.m */,
 				C833238D215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.h */,
 				C833238C215C57B40071DB0C /* NSKeyedArchiver+EDOAdditions.m */,
 				C833238B215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.h */,
 				C833238A215C57B30071DB0C /* NSKeyedUnarchiver+EDOAdditions.m */,
+				7657C22024F9BEA70056F5A6 /* NSObject+EDOBlockedType.h */,
+				7657C22124F9BEA70056F5A6 /* NSObject+EDOBlockedType.m */,
 				C5A2EFE62134D43200421D72 /* NSObject+EDOParameter.h */,
 				C5A2EFDF2134D43100421D72 /* NSObject+EDOParameter.m */,
 				C5A2F0052134D43400421D72 /* NSObject+EDOValue.h */,
 				C5A2EFED2134D43200421D72 /* NSObject+EDOValue.m */,
 				C5A2F0072134D43500421D72 /* NSObject+EDOValueObject.h */,
 				C5A2EFF62134D43300421D72 /* NSObject+EDOValueObject.m */,
+				DC9BF6C022DFC8AD00E135B8 /* NSObject+EDOWeakObject.h */,
+				DC9BF6C122DFC8AE00E135B8 /* NSObject+EDOWeakObject.m */,
 				C5A2EFD32134D43100421D72 /* NSProxy+EDOParameter.h */,
 				C5A2F0012134D43400421D72 /* NSProxy+EDOParameter.m */,
 			);
@@ -773,13 +749,14 @@
 		C5A2F02D2134D4B800421D72 /* UnitTests */ = {
 			isa = PBXGroup;
 			children = (
+				76EAF505262F58C20025F32C /* CodableVariableTests.swift */,
 				7674100D237E01FB00D43A15 /* EDOExecutorMessageTest.m */,
-				7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */,
-				DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */,
-				C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */,
 				C5A2F0312134D4CB00421D72 /* EDOExecutorTest.m */,
+				C535B59C21D307FF00BAE558 /* EDOHostNamingServiceTest.m */,
 				C5A2F02F2134D4CB00421D72 /* EDOMessageTest.m */,
+				7685673423A1C11F00EDBDB4 /* EDORemoteExceptionTest.m */,
 				C5A2F0302134D4CB00421D72 /* EDOServiceTest.m */,
+				DC84AF0622D8064100D43E26 /* EDOWeakReferenceTest.m */,
 			);
 			name = UnitTests;
 			sourceTree = "<group>";
@@ -814,7 +791,6 @@
 				C88B8A5B21ADD38400DDE607 /* Measure */,
 				C5A2EFD02134D3D500421D72 /* Service */,
 				C845027820DD9D8800D7350F /* Channel */,
-				76140D9D262795EE007CA5AC /* SwiftUtil */,
 				C845025620DD9CB900D7350F /* Products */,
 				C55B85E422419D7C00B568FA /* Frameworks */,
 			);
@@ -1285,6 +1261,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C8230F2426BDEF5900E3C6B8 /* CodableVariableTests.swift in Sources */,
 				76EAF4D2262F588D0025F32C /* CodableVariable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1426,7 +1403,6 @@
 				C55F8B492183AC3200E8E75A /* EDOTestValueType.m in Sources */,
 				C5A2F0662134D65600421D72 /* EDOMessageTest.m in Sources */,
 				C5A2F0642134D65600421D72 /* EDOExecutorTest.m in Sources */,
-				76EAF506262F58C20025F32C /* CodableVariableTests.swift in Sources */,
 				C55F8B4B2183AC4500E8E75A /* EDOTestNonNSCodingType.m in Sources */,
 				C532ABFC2136172E00162011 /* EDOTestProtocol.m in Sources */,
 				C532ABFB2136172E00162011 /* EDOTestDummy.m in Sources */,
