@@ -393,6 +393,13 @@ static BOOL IsFromSameProcess(id object1, id object2);
   return invocation;
 }
 
+// This dummy method is to resolve an issue that this may be invoked during encoding, which
+// leads to an unexpected message forwarding.
+// TODO(ynzhang): this is a workaround and will be removed after root cause is fixed.
+- (id)_accessibilityAttributedLocalizedString {
+  return nil;
+}
+
 @end
 
 static BOOL IsFromSameProcess(id object1, id object2) {
