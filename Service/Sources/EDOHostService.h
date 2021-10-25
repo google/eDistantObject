@@ -109,7 +109,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init NS_UNAVAILABLE;
 
-/** Invalidates the service and releases all the associated objects. */
+/**
+ *  Invalidates the service and releases all the associated objects.
+ *
+ *  @note Existing connections are still valid after this call, but the service
+ *        will not accept new connections.
+ */
 - (void)invalidate;
 
 @end

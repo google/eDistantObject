@@ -106,6 +106,12 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 @property(readonly) id rootLocalObject;
 /** Internal property of the read-only flag of device registration. */
 @property(readwrite) BOOL registeredToDevice;
+/** Internal property of the target device serial number. */
+@property(readwrite) NSString *deviceSerial;
+/** Internal property of the timeout of device connection. */
+@property(readwrite) NSTimeInterval deviceConnectionTimeout;
+/** Internal flag that indicates if reconnection is needed for the device connection. */
+@property(readwrite) BOOL keepDeviceConnection;
 @end
 
 @implementation EDOHostService {
@@ -149,13 +155,19 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                          rootObject:object
                         serviceName:nil
                               queue:queue
-                         isToDevice:NO];
+                       deviceSerial:nil
+            deviceConnectionTimeout:0];
 }
 
 + (instancetype)serviceWithRegisteredName:(NSString *)name
                                rootObject:(id)object
                                     queue:(dispatch_queue_t)queue {
-  return [[self alloc] initWithPort:0 rootObject:object serviceName:name queue:queue isToDevice:NO];
+  return [[self alloc] initWithPort:0
+                         rootObject:object
+                        serviceName:name
+                              queue:queue
+                       deviceSerial:nil
+            deviceConnectionTimeout:0];
 }
 
 + (instancetype)serviceWithName:(NSString *)name
@@ -167,8 +179,9 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                                             rootObject:object
                                            serviceName:name
                                                  queue:queue
-                                            isToDevice:YES];
-  [service edo_registerServiceAsyncOnDevice:deviceSerial timeout:seconds];
+                                          deviceSerial:deviceSerial
+                               deviceConnectionTimeout:seconds];
+  [service edo_registerServiceAsyncOnDevice];
   return service;
 }
 
@@ -176,7 +189,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                   rootObject:(id)object
                  serviceName:(NSString *)serviceName
                        queue:(dispatch_queue_t)queue
-                  isToDevice:(BOOL)isToDevice {
+                deviceSerial:(NSString *)deviceSerial
+     deviceConnectionTimeout:(NSTimeInterval)deviceConnectionTimeout {
   self = [super init];
   if (self) {
     _registeredToDevice = NO;
@@ -197,7 +211,10 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 
     // Only creates the listen socket when the port is given or the root object is given so we need
     // to serve them at launch.
-    if (isToDevice) {
+    if (deviceSerial) {
+      _deviceSerial = deviceSerial;
+      _deviceConnectionTimeout = deviceConnectionTimeout;
+      _keepDeviceConnection = YES;
       _port = [EDOServicePort servicePortWithPort:0 serviceName:serviceName];
     } else if (port != 0 || object) {
       _listenSocket = [self edo_createListenSocket:port];
@@ -231,11 +248,12 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 }
 
 - (void)invalidate {
-  if (!self.listenSocket.valid) {
+  if (!self.listenSocket.valid && !self.keepDeviceConnection) {
     return;
   }
   [EDOHostNamingService.sharedService removeServicePort:_port];
   [self.listenSocket invalidate];
+  self.keepDeviceConnection = NO;
 
   [self edo_removeServiceFromOriginatingQueues];
 
@@ -398,15 +416,30 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     // TODO(haowoo): Add the proper error handler.
     NSCAssert(error == nil, @"Failed to receive the data (%d) for %@.",
               strongSelf.port.hostPort.port, error);
+
+    // There are 3 situations this branch is entered:
+    // 1. The client side close the connection.
+    // 2. This host is invalidated.
+    // 3. (For TCP socket channel) the client side doesn't send correct header, which is considered
+    //    compatibility issue or security attack.
     if (data == nil) {
       // the client socket is closed.
-      NSLog(@"The channel (%p) with port %d is closed", targetChannel,
-            strongSelf.port.hostPort.port);
+      NSLog(@"The channel (%p) with port %d and name %@ is closed", targetChannel,
+            strongSelf.port.hostPort.port, strongSelf.port.hostPort.name);
       dispatch_queue_t handlerSyncQueue = strongSelf.handlerSyncQueue;
       if (handlerSyncQueue) {
         dispatch_sync(handlerSyncQueue, ^{
           [strongSelf.handlerSet removeObject:strongHandlerBlock];
         });
+      }
+
+      // This branch only happens to the eDO host that runs on OSX host and acceepts connection from
+      // an iOS device. The host of this kind only has at most one connection, unlike the general
+      // host that accepts multiple connections. When the only connection is disconnected, this host
+      // will automatically reconnect to the same device, unless the host is invalidated.
+      if (strongSelf.keepDeviceConnection && strongSelf.registeredToDevice) {
+        strongSelf.registeredToDevice = NO;
+        [strongSelf edo_registerServiceAsyncOnDevice];
       }
       return;
     }
@@ -518,8 +551,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                        }];
 }
 
-- (void)edo_registerServiceAsyncOnDevice:(NSString *)deviceSerial timeout:(NSTimeInterval)seconds {
-  __block NSTimeInterval secondsLeft = seconds;
+- (void)edo_registerServiceAsyncOnDevice {
+  __block NSTimeInterval secondsLeft = self.deviceConnectionTimeout;
   // The time interval of registration retry interval.
   NSTimeInterval retryInterval = 1;
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
@@ -528,8 +561,12 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
   // since there is no source/timer by default for runloop of a backgroud thread.
   __block __weak void (^weakServiceRegistrationBlock)(void);
   void (^serviceRegistrationBlock)(void) = serviceRegistrationBlock = ^void(void) {
+    if (!self.keepDeviceConnection) {
+      return;
+    }
+
     NSError *error;
-    BOOL success = [self edo_registerServiceOnDevice:deviceSerial error:&error];
+    BOOL success = [self edo_registerServiceOnDevice:self.deviceSerial error:&error];
     if (!success && secondsLeft > 0) {
       secondsLeft -= retryInterval;
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, retryInterval * NSEC_PER_SEC),
@@ -537,17 +574,20 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     } else {
       if (success) {
         NSLog(@"The EDOHostService %@ is registered to device %@", self->_port.hostPort.name,
-              deviceSerial);
+              self.deviceSerial);
         self.registeredToDevice = YES;
       } else {
         NSLog(@"Timeout: unable to register service %@ on device %@.", self->_port.hostPort.name,
-              deviceSerial);
+              self.deviceSerial);
       }
     }
   };
   // See the comment above about https://reviews.llvm.org/D58514.
   serviceRegistrationBlock = [serviceRegistrationBlock copy];
   weakServiceRegistrationBlock = serviceRegistrationBlock;
+
+  NSLog(@"The EDOHostService %@ starts to register to device %@", self->_port.hostPort.name,
+        self.deviceSerial);
   dispatch_async(backgroundQueue, serviceRegistrationBlock);
 }
 
