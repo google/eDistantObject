@@ -248,12 +248,12 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 }
 
 - (void)invalidate {
-  if (!self.listenSocket.valid && !self.keepDeviceConnection) {
+  self.keepDeviceConnection = NO;
+  if (!self.listenSocket.valid) {
     return;
   }
   [EDOHostNamingService.sharedService removeServicePort:_port];
   [self.listenSocket invalidate];
-  self.keepDeviceConnection = NO;
 
   [self edo_removeServiceFromOriginatingQueues];
 
