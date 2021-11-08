@@ -258,8 +258,9 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
   [self edo_removeServiceFromOriginatingQueues];
 
   // Remove the service from the executing queue.
-  if (_executionQueue) {
-    dispatch_queue_set_specific(_executionQueue, &kEDOExecutingQueueKey, NULL, NULL);
+  dispatch_queue_t strongExecutionQueue = self.executionQueue;
+  if (strongExecutionQueue) {
+    dispatch_queue_set_specific(strongExecutionQueue, &kEDOExecutingQueueKey, NULL, NULL);
   }
 
   NSLog(@"The EDOHostService (%p) is invalidated on port %d", self, _port.hostPort.port);
