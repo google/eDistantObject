@@ -280,9 +280,9 @@ static BOOL IsFromSameProcess(id object1, id object2);
     // We use keyEnumerator or objectEnumerator to enumerate the remote container.
     // extra[0] to point to the enumerator and hold a strong reference of it.
     if ([self methodSignatureForSelector:@selector(keyEnumerator)]) {
-      state->extra[0] = (long)CFBridgingRetain([(id)self keyEnumerator]);
+      *((CFTypeRef *)(state->extra)) = CFBridgingRetain([(id)self keyEnumerator]);
     } else if ([self methodSignatureForSelector:@selector(objectEnumerator)]) {
-      state->extra[0] = (long)CFBridgingRetain([(id)self objectEnumerator]);
+      *((CFTypeRef *)(state->extra)) = CFBridgingRetain([(id)self objectEnumerator]);
     } else {
       BOOL implementsFastEnumeration =
           ![self methodSignatureForSelector:@selector(countByEnumeratingWithState:objects:count:)];
