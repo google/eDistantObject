@@ -22,9 +22,9 @@
 
 @interface EDOExecutor ()
 // The message queues to process the requests that are attached to this executor.
-@property NSMutableArray<EDOBlockingQueue<EDOExecutorMessage *> *> *messageQueueStack;
+@property(atomic) NSMutableArray<EDOBlockingQueue<EDOExecutorMessage *> *> *messageQueueStack;
 // The isolation queue for synchronization.
-@property(readonly) dispatch_queue_t isolationQueue;
+@property(nonatomic, readonly) dispatch_queue_t isolationQueue;
 @end
 
 @implementation EDOExecutor

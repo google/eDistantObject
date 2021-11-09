@@ -156,15 +156,15 @@ static EDORemoteException *CreateRemoteException(id localException) {
 
 @interface EDOInvocationRequest ()
 /** The remote target. */
-@property(readonly) EDOPointerType target;
+@property(nonatomic, readonly) EDOPointerType target;
 /** The selector name. */
-@property(readonly) NSString *selectorName;
+@property(nonatomic, readonly) NSString *selectorName;
 /** The boxed arguments. */
-@property(readonly) NSArray<EDOBoxedValueType *> *arguments;
+@property(nonatomic, readonly) NSArray<EDOBoxedValueType *> *arguments;
 /** The flag indicationg return-by-value. */
-@property(readonly, assign) BOOL returnByValue;
+@property(nonatomic, readonly, assign) BOOL returnByValue;
 /** The host port. */
-@property(readonly) EDOHostPort *hostPort;
+@property(nonatomic, readonly) EDOHostPort *hostPort;
 @end
 
 #pragma mark -

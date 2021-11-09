@@ -44,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOMethodSignatureResponse : EDOServiceResponse
 
 /** The Objective C type encoded signature for the selector. */
-@property(readonly, nullable) NSString *signature;
+@property(nonatomic, readonly, nullable) NSString *signature;
 
 - (instancetype)init NS_UNAVAILABLE;
 

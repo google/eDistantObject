@@ -76,11 +76,11 @@ typedef EDOParameter EDOBoxedValueType;
 @interface EDOInvocationResponse : EDOServiceResponse
 
 /** The exception if thrown remotely. */
-@property(readonly, nullable) EDORemoteException *exception;
+@property(nonatomic, readonly, nullable) EDORemoteException *exception;
 /** The boxed return value. */
-@property(readonly, nullable) EDOBoxedValueType *returnValue;
+@property(nonatomic, readonly, nullable) EDOBoxedValueType *returnValue;
 /** The boxed values for out parameter. */
-@property(readonly, nullable) NSArray<EDOBoxedValueType *> *outValues;
+@property(nonatomic, readonly, nullable) NSArray<EDOBoxedValueType *> *outValues;
 /**
  *  Whether the returned object is retained.
  *
@@ -107,7 +107,7 @@ typedef EDOParameter EDOBoxedValueType;
  * [retained return
  * values](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values).
  */
-@property(readonly) BOOL returnRetained;
+@property(nonatomic, readonly) BOOL returnRetained;
 
 - (instancetype)init NS_UNAVAILABLE;
 

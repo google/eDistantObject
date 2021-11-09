@@ -30,7 +30,7 @@ static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 
 @interface EDOObjectRequest ()
 
-@property(readonly) EDOHostPort *hostPort;
+@property(nonatomic, readonly) EDOHostPort *hostPort;
 
 @end
 

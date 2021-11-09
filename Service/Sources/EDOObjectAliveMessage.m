@@ -30,7 +30,7 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 @interface EDOObjectAliveRequest ()
 // The proxy object that needs to check if its underlying object is alive. It could either be an
 // EDOObject or block object.
-@property(readonly) id object;
+@property(nonatomic, readonly) id object;
 @end
 
 #pragma mark -

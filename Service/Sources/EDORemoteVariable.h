@@ -31,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDORemoteVariable <ObjectType> : NSObject
 
 /** The wrapped out parameter. */
-@property(nullable) ObjectType object;
+@property(atomic, nullable) ObjectType object;
 
 @end
 

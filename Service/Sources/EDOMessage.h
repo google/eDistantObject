@@ -25,7 +25,7 @@ typedef NSString EDOMessageID;
 @interface EDOMessage : NSObject <NSSecureCoding>
 
 /** The unique message identifier to track the request and response. */
-@property(readonly) EDOMessageID *messageID;
+@property(nonatomic, readonly) EDOMessageID *messageID;
 
 /** Init with a random UUID message Id. */
 - (instancetype)init;

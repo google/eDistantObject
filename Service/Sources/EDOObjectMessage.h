@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @note It is possible the distant object is nil, for example, the underlying object is gone.
  */
-@property(readonly, nullable) id object;
+@property(nonatomic, readonly, nullable) id object;
 
 + (EDOServiceResponse *)responseWithObject:(EDOObject *_Nullable)object
                                 forRequest:(EDOServiceRequest *)request;

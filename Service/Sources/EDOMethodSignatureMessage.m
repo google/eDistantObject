@@ -71,11 +71,11 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
 @interface EDOMethodSignatureRequest ()
 /** The pointer to the class. */
-@property(readonly) EDOPointerType object;
+@property(nonatomic, readonly) EDOPointerType object;
 /** The service port for the underlying object. */
-@property(readonly, nullable) EDOServicePort *port;
+@property(nonatomic, readonly, nullable) EDOServicePort *port;
 /** The selector name. */
-@property(readonly) NSString *selectorName;
+@property(nonatomic, readonly) NSString *selectorName;
 @end
 
 @implementation EDOMethodSignatureRequest

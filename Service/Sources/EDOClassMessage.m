@@ -29,9 +29,9 @@ static NSString *const kEDOObjectCoderHostPortKey = @"hostPort";
 
 @interface EDOClassRequest ()
 /** The class name. */
-@property(readonly) NSString *className;
+@property(nonatomic, readonly) NSString *className;
 /** The host port. */
-@property(readonly) EDOHostPort *hostPort;
+@property(nonatomic, readonly) EDOHostPort *hostPort;
 @end
 
 #pragma mark -

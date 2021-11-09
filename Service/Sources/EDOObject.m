@@ -38,15 +38,15 @@ static BOOL IsFromSameProcess(id object1, id object2);
 
 @interface EDOObject ()
 /** The port to connect to the local socket. */
-@property(readonly) EDOServicePort *servicePort;
+@property(nonatomic, readonly) EDOServicePort *servicePort;
 /** The proxied object's address in the remote. */
-@property(readonly, assign) EDOPointerType remoteAddress;
+@property(nonatomic, readonly, assign) EDOPointerType remoteAddress;
 /** The proxied object's class object in the remote. */
-@property(readonly, assign) EDOPointerType remoteClass;
+@property(nonatomic, readonly, assign) EDOPointerType remoteClass;
 /** The proxied object's class name in the remote. */
-@property(readonly) NSString *className;
+@property(nonatomic, readonly) NSString *className;
 /** The process unique identifier for the remote object. */
-@property(readonly) NSString *processUUID;
+@property(nonatomic, readonly) NSString *processUUID;
 @end
 
 @implementation EDOObject

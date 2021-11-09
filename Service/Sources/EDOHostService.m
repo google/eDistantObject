@@ -79,39 +79,39 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 
 @interface EDOHostService ()
 /** The execution queue for the root object. */
-@property(readonly, weak) dispatch_queue_t executionQueue;
+@property(nonatomic, readonly, weak) dispatch_queue_t executionQueue;
 /** The executor to handle the request. */
-@property(readonly) EDOExecutor *executor;
+@property(nonatomic, readonly) EDOExecutor *executor;
 /** The set to save channel handlers in order to keep channels ready to accept request. */
-@property(readonly) NSMutableSet<EDOChannelReceiveHandler> *handlerSet;
+@property(nonatomic, readonly) NSMutableSet<EDOChannelReceiveHandler> *handlerSet;
 /** The queue to update handlerSet atomically. */
-@property(readonly) dispatch_queue_t handlerSyncQueue;
+@property(nonatomic, readonly) dispatch_queue_t handlerSyncQueue;
 /** The listen socket. */
-@property(readonly) EDOSocket *listenSocket;
+@property(nonatomic, readonly) EDOSocket *listenSocket;
 /**
  * The tracked objects in the service. The key is the address of a tracked object and the value is
  * the object.
  */
-@property(readonly) NSMutableDictionary<NSNumber *, id> *localObjects;
+@property(nonatomic, readonly) NSMutableDictionary<NSNumber *, id> *localObjects;
 /** The queue to update local objects atomically. */
-@property(readonly) dispatch_queue_t localObjectsSyncQueue;
+@property(nonatomic, readonly) dispatch_queue_t localObjectsSyncQueue;
 /**
  * The tracked weak objects in the service. The key is the address of a tracked object and the
  * value is the object.
  */
-@property(readonly) NSMutableDictionary<NSNumber *, EDOObject *> *localWeakObjects;
+@property(nonatomic, readonly) NSMutableDictionary<NSNumber *, EDOObject *> *localWeakObjects;
 /** The queue to update weak local objects atomically. */
-@property(readonly) dispatch_queue_t localWeakObjectsSyncQueue;
+@property(nonatomic, readonly) dispatch_queue_t localWeakObjectsSyncQueue;
 /** The underlying root object. */
-@property(readonly) id rootLocalObject;
+@property(nonatomic, readonly) id rootLocalObject;
 /** Internal property of the read-only flag of device registration. */
-@property(readwrite) BOOL registeredToDevice;
+@property(atomic, readwrite) BOOL registeredToDevice;
 /** Internal property of the target device serial number. */
-@property(readwrite) NSString *deviceSerial;
+@property(atomic, readwrite) NSString *deviceSerial;
 /** Internal property of the timeout of device connection. */
-@property(readwrite) NSTimeInterval deviceConnectionTimeout;
+@property(atomic, readwrite) NSTimeInterval deviceConnectionTimeout;
 /** Internal flag that indicates if reconnection is needed for the device connection. */
-@property(readwrite) BOOL keepDeviceConnection;
+@property(atomic, readwrite) BOOL keepDeviceConnection;
 @end
 
 @implementation EDOHostService {

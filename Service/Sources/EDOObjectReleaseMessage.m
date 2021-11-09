@@ -27,10 +27,10 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 
 @interface EDOObjectReleaseRequest ()
 
-@property(readonly) EDOPointerType remoteAddress;
+@property(nonatomic, readonly) EDOPointerType remoteAddress;
 
 /** Indicates whether the object to be released is a weakly referenced object. */
-@property(readonly, getter=isWeaklyReferenced) BOOL weaklyReferenced;
+@property(nonatomic, readonly, getter=isWeaklyReferenced) BOOL weaklyReferenced;
 
 @end
 
