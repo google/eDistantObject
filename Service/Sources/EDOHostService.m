@@ -105,13 +105,13 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 /** The underlying root object. */
 @property(nonatomic, readonly) id rootLocalObject;
 /** Internal property of the read-only flag of device registration. */
-@property(atomic, readwrite) BOOL registeredToDevice;
+@property(nonatomic, readonly) BOOL registeredToDevice;
 /** Internal property of the target device serial number. */
-@property(atomic, readwrite) NSString *deviceSerial;
+@property(nonatomic, readonly) NSString *deviceSerial;
 /** Internal property of the timeout of device connection. */
-@property(atomic, readwrite) NSTimeInterval deviceConnectionTimeout;
+@property(nonatomic, readonly) NSTimeInterval deviceConnectionTimeout;
 /** Internal flag that indicates if reconnection is needed for the device connection. */
-@property(atomic, readwrite) BOOL keepDeviceConnection;
+@property(nonatomic, readonly) BOOL keepDeviceConnection;
 @end
 
 @implementation EDOHostService {
@@ -248,7 +248,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 }
 
 - (void)invalidate {
-  self.keepDeviceConnection = NO;
+  _keepDeviceConnection = NO;
   if (!self.listenSocket.valid) {
     return;
   }
@@ -439,7 +439,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
       // host that accepts multiple connections. When the only connection is disconnected, this host
       // will automatically reconnect to the same device, unless the host is invalidated.
       if (strongSelf.keepDeviceConnection && strongSelf.registeredToDevice) {
-        strongSelf.registeredToDevice = NO;
+        strongSelf->_registeredToDevice = NO;
         [strongSelf edo_registerServiceAsyncOnDevice];
       }
       return;
@@ -576,7 +576,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
       if (success) {
         NSLog(@"The EDOHostService %@ is registered to device %@", self->_port.hostPort.name,
               self.deviceSerial);
-        self.registeredToDevice = YES;
+        self->_registeredToDevice = YES;
       } else {
         NSLog(@"Timeout: unable to register service %@ on device %@.", self->_port.hostPort.name,
               self.deviceSerial);
