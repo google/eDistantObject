@@ -111,7 +111,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 /** Internal property of the timeout of device connection. */
 @property(nonatomic, readonly) NSTimeInterval deviceConnectionTimeout;
 /** Internal flag that indicates if reconnection is needed for the device connection. */
-@property(nonatomic, readonly) BOOL keepDeviceConnection;
+@property(atomic, readwrite) BOOL keepDeviceConnection;
 @end
 
 @implementation EDOHostService {
@@ -248,7 +248,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 }
 
 - (void)invalidate {
-  _keepDeviceConnection = NO;
+  self.keepDeviceConnection = NO;
   if (!self.listenSocket.valid) {
     return;
   }
