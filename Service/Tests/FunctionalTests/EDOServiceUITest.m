@@ -18,6 +18,8 @@
 
 #include <objc/runtime.h>
 
+#import <CoreImage/CoreImage.h>
+
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostNamingService.h"
@@ -130,6 +132,15 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   XCTAssertThrows([remoteDummy selWithInOutEDO:&testDummy]);
   EDOTestDummyInTest *plainTestDummy = [[EDOTestDummyInTest alloc] initWithValue:0];
   XCTAssertNoThrow([remoteDummy callBackToTest:plainTestDummy withValue:0]);
+
+  // Verifies the blocked type can be passed when it is passed by value.
+  CIColor *color = [[CIColor alloc] initWithRed:1.0 green:0.0 blue:0.0];
+  XCTAssertEqual([remoteDummy colorRed:color], 1.0);
+  XCTAssertEqual([remoteDummy colorRed:[color passByValue]], 1.0);
+  [CIColor edo_disallowRemoteInvocation];
+  XCTAssertThrows([remoteDummy colorRed:color]);
+  [CIColor edo_enableValueType];
+  XCTAssertEqual([remoteDummy colorRed:color], 1.0);
 
   [service invalidate];
 }

@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+#import <CoreImage/CoreImage.h>
 #import <Foundation/Foundation.h>
 
 #import "Service/Tests/TestsBundle/EDOTestNonNSCodingType.h"
@@ -106,6 +107,9 @@ typedef EDOTestDummy * (^EDOMultiTypesHandler)(EDOTestDummyStruct, int, id, EDOT
 
 /** Returns the selector from the given @c name. */
 - (SEL)selectorFromName:(NSString *)name;
+
+/** Returns the red channel of a CIColor. */
+- (CGFloat)colorRed:(CIColor *)color;
 
 /// throw exceptions
 - (void)selWithThrow;

@@ -17,8 +17,10 @@
 
 #include <objc/runtime.h>
 
+#import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
+#import "Service/Sources/NSObject+EDOValue.h"
 
 @implementation NSObject (EDOBlockedType)
 
@@ -29,12 +31,20 @@
     }
     SEL originalSelector = @selector(edo_parameterForTarget:service:hostPort:);
     Method originalMethod = class_getInstanceMethod(self, originalSelector);
-    void (^impBlock)(id obj, EDOObject *target, EDOHostService *service, EDOHostPort *port) = ^(
-        id obj, EDOObject *target, EDOHostService *service, EDOHostPort *port) {
+    EDOParameter * (^impBlock)(id obj, EDOObject *target, EDOHostService *service,
+                               EDOHostPort *port) =
+        ^EDOParameter *(id obj, EDOObject *target, EDOHostService *service, EDOHostPort *port) {
+      // If the object is always passed by value, the encoded EDOParameter is returned instead of
+      // throwing an error. This helps the case that a subclass responds to edo_isEDOValueType
+      // however the super class is disallowed.
+      if ([obj respondsToSelector:@selector(edo_isEDOValueType)] && [obj edo_isEDOValueType]) {
+        return [EDOParameter parameterWithObject:obj];
+      }
       NSString *reason =
           [NSString stringWithFormat:@"%@ instance is not allowed to be part of remote invocation",
                                      NSStringFromClass([self class])];
       [[NSException exceptionWithName:EDOParameterTypeException reason:reason userInfo:nil] raise];
+      return nil;
     };
     IMP newImp = imp_implementationWithBlock(impBlock);
     if (!class_addMethod(self, originalSelector, newImp, method_getTypeEncoding(originalMethod))) {

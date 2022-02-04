@@ -16,6 +16,8 @@
 
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
+#import <CoreImage/CoreImage.h>
+
 #include <objc/runtime.h>
 
 #import "Service/Sources/EDOClientService.h"
@@ -264,6 +266,10 @@ static const NSInteger kLargeArraySize = 1000;
 
 - (SEL)selectorFromName:(NSString *)name {
   return NSSelectorFromString(name);
+}
+
+- (CGFloat)colorRed:(CIColor *)color {
+  return color.red;
 }
 
 - (void)selWithThrow {
