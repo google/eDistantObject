@@ -423,9 +423,13 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   XCTAssertThrowsSpecificNamed([remoteDummy returnInt], NSException, NSDestinationInvalidException);
 }
 
+#if TARGET_IPHONE_SIMULATOR && !TARGET_OS_IPHONE
 /**
  *  Tests requesting service ports info of the application process, and verifies the port info with
  *  service name.
+ *  This test can only run on simulators, since on real device, with UTP runner the test will start
+ *  a naming service on the same port.
+ *  TODO(b/224637250): fix if it can be handled in the future.
  */
 - (void)testFetchServicePortsInfo {
   [self launchApplicationWithServiceName:kTestServiceName initValue:5];
@@ -434,6 +438,7 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
                        [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort]);
   XCTAssertFalse([service portForServiceWithName:kTestServiceName] == 0);
 }
+#endif  // TARGET_IPHONE_SIMULATOR && !TARGET_OS_IPHONE
 
 /** Tests running multiple naming services in the same host, and verifies that exception happens. */
 - (void)testStartMultipleNamingServiceObject {
