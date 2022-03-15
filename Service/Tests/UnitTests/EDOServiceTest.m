@@ -287,7 +287,12 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertEqual(anObject, rountTripObject);
 }
 
-/** Verifies the temporary host keeps being reused until the end of an external autorelease pool. */
+#if TARGET_IPHONE_SIMULATOR && !TARGET_OS_IPHONE
+/**
+ *  Verifies the temporary host keeps being reused until the end of an external autorelease pool.
+ *  TODO(b/224669049): this test fails in guitar job of edo device testing. Not reproducible with
+ *                     local runs or manual MH runs. Should re-enable when we find the cause.
+ */
 - (void)testTemporaryServiceIsReleasedLazily {
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
@@ -308,6 +313,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
   [self waitForExpectations:@[ expectation ] timeout:1.0];
 }
+#endif  // TARGET_IPHONE_SIMULATOR && !TARGET_OS_IPHONE
 
 - (void)testClassMethodsAndInit {
   Class remoteClass = EDO_REMOTE_CLASS(EDOTestDummy, self.serviceOnBackground.port.hostPort.port);
