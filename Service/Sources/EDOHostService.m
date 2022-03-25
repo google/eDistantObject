@@ -377,6 +377,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
   __block NSObject *object NS_VALID_UNTIL_END_OF_SCOPE;
+  (void)object;
+
   dispatch_sync(_localObjectsSyncQueue, ^{
     // Transfer the ownership of local object to the outer queue, where the object should be
     // released.

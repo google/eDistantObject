@@ -53,6 +53,7 @@ size_t EDOGetPayloadSizeFromFrameData(dispatch_data_t data) {
 
   EDOSocketFrameHeader_t *frame = NULL;
   dispatch_data_t contiguousData = dispatch_data_create_map(data, (const void **)&frame, NULL);
+  (void)contiguousData;
 
   if (!edo_isFrameHeaderValid(frame)) {
     return 0;
