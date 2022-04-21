@@ -95,6 +95,11 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   XCTAssertNil([dummyOut selWithInOutEDO:&dummyInNil]);
   XCTAssertThrows([dummyOut selWithInOutEDO:nil]);
 
+  id arrayClass = EDO_REMOTE_CLASS(NSArray, EDOTEST_APP_SERVICE_PORT);
+  NSArray<NSString *> *array = [arrayClass arrayWithObjects:@"foo", @"bar", @"baz", nil];
+  XCTAssertEqual(array.count, 1);
+  XCTAssertEqualObjects(array[0], @"foo");
+
   [service invalidate];
 }
 

@@ -201,6 +201,20 @@ static BOOL IsFromSameProcess(id object1, id object2);
   return returnValue;
 }
 
+- (id)arrayWithObjects:(id)object1, ... {
+  NSLog(@"EDO WARNING: You are making remote invocation to variadic method [%@ arrayWithObjects:]. "
+        @"Only the first argument will be passed to the remote execution, the rest of the "
+        @"arguments will be dropped. Use +arrayWithArray: or NSMutableArray instead.",
+        self.className);
+
+  NSInvocation *invocation = [self edo_invocationForSelector:_cmd];
+  [invocation setArgument:&object1 atIndex:2];
+  [self forwardInvocation:invocation];
+  id __unsafe_unretained returnValue = nil;
+  [invocation getReturnValue:&returnValue];
+  return returnValue;
+}
+
 - (id)objectAtIndex:(NSUInteger)index {
   NSMethodSignature *methodSignature = [self methodSignatureForSelector:_cmd];
   if (EDO_IS_OBJPOINTER(methodSignature.methodReturnType)) {
