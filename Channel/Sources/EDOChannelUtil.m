@@ -38,7 +38,7 @@ typedef struct EDOSocketFrameHeader_s {
 
 // Check if the frame header is valid
 // TODO(haowoo): add more checksum checks.
-static BOOL edo_isFrameHeaderValid(EDOSocketFrameHeader_t *header) {
+static BOOL edo_isFrameHeaderValid(const EDOSocketFrameHeader_t *header) {
   // Make sure it is not NULL and the tag matches the magic tag so we can make sure the data being
   // processed is in the expected format.
   return header != NULL && header->tag == kGEDOSocketFrameHeaderTag;
@@ -51,16 +51,17 @@ size_t EDOGetPayloadSizeFromFrameData(dispatch_data_t data) {
     return 0;
   }
 
-  EDOSocketFrameHeader_t *frame = NULL;
-  dispatch_data_t contiguousData = dispatch_data_create_map(data, (const void **)&frame, NULL);
-  (void)contiguousData;
+  __block size_t payloadSize = 0;
+  dispatch_data_t contiguousData = dispatch_data_create_map(data, NULL, NULL);
+  dispatch_data_apply(contiguousData, ^bool(dispatch_data_t region, size_t offset,
+                                            const void *buffer, size_t size) {
+    const struct EDOSocketFrameHeader_s *frame = buffer;
+    if (offset == 0 && edo_isFrameHeaderValid(frame)) {
+      payloadSize = ntohl(frame->payloadSize);
+    }
+    return YES;
+  });
 
-  if (!edo_isFrameHeaderValid(frame)) {
-    return 0;
-  }
-
-  size_t payloadSize = ntohl(frame->payloadSize);
-  contiguousData = NULL;
   return payloadSize;
 }
 
