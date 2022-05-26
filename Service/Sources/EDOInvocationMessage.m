@@ -94,8 +94,9 @@ const MethodFamily kRetainReturnsMethodsFamily[] = {
  *  @param methodName The method name.
  *  @return The method family type.
  */
-static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName) {
-  if (!methodName) {
+static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName, Class targetClass) {
+  if (!methodName ||
+      [targetClass isSubclassOfClass:NSClassFromString(@"ComGoogleProtobufGeneratedMessage")]) {
     return EDOMethodFamilyNone;
   }
 
@@ -178,24 +179,27 @@ static EDORemoteException *CreateRemoteException(id localException) {
 + (instancetype)responseWithReturnValue:(EDOBoxedValueType *)value
                               exception:(EDORemoteException *)exception
                               outValues:(NSArray<EDOBoxedValueType *> *)outValues
-                             forRequest:(EDOInvocationRequest *)request {
+                             forRequest:(EDOInvocationRequest *)request
+                            targetClass:(Class)targetClass {
   return [[self alloc] initWithReturnValue:value
                                  exception:exception
                                  outValues:outValues
-                                forRequest:request];
+                                forRequest:request
+                               targetClass:targetClass];
 }
 
 - (instancetype)initWithReturnValue:(EDOBoxedValueType *)value
                           exception:(EDORemoteException *)exception
                           outValues:(NSArray<EDOBoxedValueType *> *)outValues
-                         forRequest:(EDOInvocationRequest *)request {
+                         forRequest:(EDOInvocationRequest *)request
+                        targetClass:(Class)targetClass {
   self = [super initWithMessageID:request.messageID];
   if (self) {
     _returnValue = value;
     _exception = exception;
     _outValues = outValues;
-    _returnRetained =
-        MethodTypeOfRetainsReturn(request.selectorName.UTF8String) != EDOMethodFamilyNone;
+    _returnRetained = MethodTypeOfRetainsReturn(request.selectorName.UTF8String, targetClass) !=
+                      EDOMethodFamilyNone;
   }
   return self;
 }
@@ -407,7 +411,8 @@ static EDORemoteException *CreateRemoteException(id localException) {
         if (EDO_IS_OBJECT_OR_CLASS(returnType)) {
           id __unsafe_unretained obj;
           [invocation getReturnValue:&obj];
-          EDOMethodFamily family = MethodTypeOfRetainsReturn(request.selectorName.UTF8String);
+          EDOMethodFamily family =
+              MethodTypeOfRetainsReturn(request.selectorName.UTF8String, [target class]);
           if (family == EDOMethodFamilyAlloc &&
               (request.returnByValue || [obj edo_isEDOValueType])) {
             // We cannot serialize and deserialize the result from +alloc as it is not properly
@@ -470,7 +475,8 @@ static EDORemoteException *CreateRemoteException(id localException) {
     return [EDOInvocationResponse responseWithReturnValue:returnValue
                                                 exception:CreateRemoteException(invocationException)
                                                 outValues:(outValues.count > 0 ? outValues : nil)
-                                               forRequest:request];
+                                               forRequest:request
+                                              targetClass:[target class]];
   };
 }
 
