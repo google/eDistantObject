@@ -44,4 +44,12 @@
  */
 - (XCUIApplication *)launchApplicationWithServiceName:(NSString *)serviceName initValue:(int)value;
 
+/**
+ *  Asserts the @c block throws an exception that contains @c errorMessage.
+ *
+ *  @param block        The execution block that is expected to throw an exception.
+ *  @param errorMessage The expected substring of the exception message.
+ */
+- (void)assertBlock:(void (^)(void))block throwsExceptionContaining:(NSString *)errorMessage;
+
 @end

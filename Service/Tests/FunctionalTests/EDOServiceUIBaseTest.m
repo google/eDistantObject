@@ -64,4 +64,15 @@
   return [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
 }
 
+- (void)assertBlock:(void (^)(void))block throwsExceptionContaining:(NSString *)errorMessage {
+  NSException *capturedException = nil;
+  @try {
+    block();
+  } @catch (NSException *e) {
+    capturedException = e;
+  }
+  XCTAssertNotNil(capturedException);
+  XCTAssertTrue([capturedException.description containsString:errorMessage]);
+}
+
 @end

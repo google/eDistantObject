@@ -284,9 +284,11 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
       }
 
       EDOServiceResponse *response;
+      Class errorResponseClass = [EDOErrorResponse class];
       if (responseData) {
         response = [NSKeyedUnarchiver edo_unarchiveObjectWithData:responseData];
-        NSAssert([request.messageID isEqualToString:response.messageID],
+        NSAssert([request.messageID isEqualToString:response.messageID] ||
+                     [response isKindOfClass:errorResponseClass],
                  @"The response (%@) Id is mismatched with the request (%@)", response, request);
       }
 
@@ -295,16 +297,14 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
               responseDuration:response.duration];
       if (response) {
         [EDOChannelPool.sharedChannelPool addChannel:channel forPort:port];
-        // TODO(haowoo): Now there are only errors from the host service when the requests don't
-        //               match the service UDID. We need to add a better error domain and code to
-        //               give a better explanation of what went wrong for the request.
-        if ([response class] == [EDOErrorResponse class]) {
+        if ([response isKindOfClass:errorResponseClass]) {
           // We raise an exception here for now, but the caller should also be able to handle the
           // error responses. We will refactor this with a better error reporting logic.
           EDOErrorResponse *errorResponse = (EDOErrorResponse *)response;
-          [[self exceptionWithReason:@"The host service couldn't handle the request"
-                                port:port
-                               error:errorResponse.error] raise];
+          NSString *reason =
+              [NSString stringWithFormat:@"eDO call failed at server side, underlying error:\n%@",
+                                         errorResponse.error.description];
+          [[self exceptionWithReason:reason port:port error:errorResponse.error] raise];
         }
         return response;
       } else {

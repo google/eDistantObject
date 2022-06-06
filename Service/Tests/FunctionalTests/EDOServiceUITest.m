@@ -33,6 +33,7 @@
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocol.h"
 #import "Service/Tests/TestsBundle/EDOTestProtocolInTest.h"
+#import "Service/Tests/TestsBundle/EDOTestValueType.h"
 
 static NSString *const kTestServiceName = @"com.google.edo.testService";
 
@@ -111,8 +112,11 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   // The protocol is loaded in the both sides so it shouldn't throw an exception.
   XCTAssertNoThrow([remoteDummy voidWithProtocol:@protocol(EDOTestProtocol)]);
   // This protocol isn't loaded on the app-side.
-  XCTAssertThrowsSpecificNamed([remoteDummy voidWithProtocol:@protocol(EDOTestProtocolInTest)],
-                               NSException, NSInternalInconsistencyException);
+  id assertBlock = ^{
+    [remoteDummy voidWithProtocol:@protocol(EDOTestProtocolInTest)];
+  };
+  [self assertBlock:assertBlock
+      throwsExceptionContaining:@"EDOTestProtocolInTest couldn't be loaded"];
   // Calling a method from the protocol
   XCTAssertTrue([[remoteDummy protocolName] isEqualToString:@"EDOTestProtocolInApp"]);
   // Getting a protocol that wasn't loaded on the test side
@@ -522,6 +526,32 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   XCTAssertTrue([callStackSymbols containsString:@"TestsHost"]);
 
   [service invalidate];
+}
+
+/** Verifies that eDO reveals decoding error at the server side. */
+- (void)testDecodingErrorAtServerSideIsPropagated {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOHostService *service =
+      [EDOHostService serviceWithPort:2234
+                           rootObject:[[EDOTestDummyInTest alloc] initWithValue:9]
+                                queue:dispatch_get_main_queue()];
+  [self addTeardownBlock:^{
+    [service invalidate];
+  }];
+  EDOTestValueType *valueObject = [[EDOTestValueType alloc] init];
+  EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+
+  XCTAssertEqualObjects([dummy returnClassNameWithObject:[valueObject passByValue]],
+                        @"EDOTestValueType");
+  [NSKeyedArchiver setClassName:@"EDONotExist" forClass:[EDOTestValueType class]];
+  [self addTeardownBlock:^{
+    [NSKeyedArchiver setClassName:@"EDOTestValueType" forClass:[EDOTestValueType class]];
+  }];
+  id assertBlock = ^{
+    [dummy returnClassNameWithObject:[valueObject passByValue]];
+  };
+  [self assertBlock:assertBlock
+      throwsExceptionContaining:@"cannot decode object of class (EDONotExist)"];
 }
 
 @end
