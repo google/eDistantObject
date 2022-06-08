@@ -142,6 +142,18 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   EDOTestDummyInTest *plainTestDummy = [[EDOTestDummyInTest alloc] initWithValue:0];
   XCTAssertNoThrow([remoteDummy callBackToTest:plainTestDummy withValue:0]);
 
+  EDOAlwaysAllowedTestDummyInTest *allowedDummy = [[EDOAlwaysAllowedTestDummyInTest alloc] init];
+  EDOAlwaysAllowedTestDummyInTestSubclass *allowedDummySubclass =
+      [[EDOAlwaysAllowedTestDummyInTestSubclass alloc] init];
+  XCTAssertThrows([remoteDummy callBackToTest:allowedDummy withValue:0]);
+  XCTAssertThrows([remoteDummy callBackToTest:allowedDummySubclass withValue:0]);
+  [EDOAlwaysAllowedTestDummyInTest edo_alwaysAllowRemoteInvocation];
+  XCTAssertNoThrow([remoteDummy callBackToTest:allowedDummy withValue:0]);
+  XCTAssertNoThrow([remoteDummy callBackToTest:allowedDummySubclass withValue:0]);
+  XCTAssertThrows([EDOAlwaysAllowedTestDummyInTest edo_disallowRemoteInvocation]);
+  XCTAssertNoThrow([EDOAlwaysAllowedTestDummyInTestSubclass edo_disallowRemoteInvocation]);
+  XCTAssertThrows([remoteDummy callBackToTest:allowedDummySubclass withValue:0]);
+
   // Verifies the blocked type can be passed when it is passed by value.
   CIColor *color = [[CIColor alloc] initWithRed:1.0 green:0.0 blue:0.0];
   XCTAssertEqual([remoteDummy colorRed:color], 1.0);

@@ -37,8 +37,17 @@
 - (void)invokeBlock;
 
 + (NSException *)exceptionWithReason:(NSString *)reason value:(int)value;
+
 @end
 
 /** The test dummy class that is used in blocklist test. */
 @interface EDOBlockedTestDummyInTest : EDOTestDummyInTest
+@end
+
+/** The test dummy class that is excluded from blocklist. */
+@interface EDOAlwaysAllowedTestDummyInTest : EDOBlockedTestDummyInTest
+@end
+
+/** The test dummy class that is excluded from blocklist. */
+@interface EDOAlwaysAllowedTestDummyInTestSubclass : EDOAlwaysAllowedTestDummyInTest
 @end

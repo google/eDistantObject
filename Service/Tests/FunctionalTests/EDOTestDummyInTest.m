@@ -74,3 +74,9 @@
 }
 
 @end
+
+@implementation EDOAlwaysAllowedTestDummyInTest
+@end
+
+@implementation EDOAlwaysAllowedTestDummyInTestSubclass
+@end
