@@ -37,31 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (void)edo_disallowRemoteInvocation;
 
-/**
- *  Blocks this type, excluding @c excludedSubclasses, to be a parameter of remote invocation.
- *
- *  @param excludedSubclasses The classes to be excluded from the blocklist. They must be the
- *                            subclasses of the caller class.
- */
-+ (void)edo_disallowRemoteInvocationWithExlcusion:(NSArray<Class> *)excludedSubclasses;
-
-/**
- *  Allow this type to be a parameter of remote invocation, even if its super class is disallowed.
- *
- *  If as class is blocked, its subclasses are also blocked for remote invocation. This method will
- *  exclude a class and its subclasses from the blocklist.
- *
- *  @note The exclusion has higher priority than the blocklist, i.e., by excluding a class, all of
- *        its subclasses cannot be added to the blocklist, and doing so will result in an exception.
- *  @note This call can overwrite -edo_disallowRemoteInvocation, but not the reverse.
- */
-+ (void)edo_alwaysAllowRemoteInvocation;
-
 /** The boolean to indicate if @c self is blocked in remote invocation. */
 @property(readonly, class) BOOL edo_remoteInvocationDisallowed;
-
-/** The boolean to indicate if @c self is excluded from the blocklist of the remote invocation. */
-@property(readonly, class) BOOL edo_remoteInvocationAlwaysAllowed;
 
 @end
 
