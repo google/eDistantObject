@@ -16,6 +16,8 @@
 
 #import <Foundation/Foundation.h>
 
+#include <objc/runtime.h>
+
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOObject;
@@ -25,6 +27,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** NSObject extension to help box itself. */
 @interface NSObject (EDOParameter)
+
+/**
+ *  @return The original implementation of [NSObject -edo_parameterForTarget:service:hostPort:].
+ */
++ (IMP)EDOOriginalParameterForTarget;
 
 /**
  *  Boxes an object into a EDOParameter that converts the object into an remote object if needed.

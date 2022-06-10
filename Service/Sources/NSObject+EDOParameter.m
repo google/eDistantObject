@@ -35,7 +35,23 @@ static Class GetProtocolClass() {
   return protocolClass;
 }
 
+// Create a static original implementation of [NSObject -edo_parameterForTarget:service:hostPort:].
+static IMP GetEDOOriginalParameterForTarget() {
+  static IMP originalImplementation;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    SEL originalSelector = @selector(edo_parameterForTarget:service:hostPort:);
+    Method originalMethod = class_getInstanceMethod([NSObject class], originalSelector);
+    originalImplementation = method_getImplementation(originalMethod);
+  });
+  return originalImplementation;
+}
+
 @implementation NSObject (EDOParameter)
+
++ (IMP)EDOOriginalParameterForTarget {
+  return GetEDOOriginalParameterForTarget();
+}
 
 - (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
                                  service:(EDOHostService *)service
