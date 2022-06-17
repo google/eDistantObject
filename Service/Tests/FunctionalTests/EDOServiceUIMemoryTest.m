@@ -276,6 +276,7 @@
     remoteDummy.weakDelegate = [local remoteWeak];
     XCTAssertNotNil(remoteDummy.weakDelegate);
     remoteDummy2.weakDelegate = [local remoteWeak];
+    XCTAssertNotNil(remoteDummy.weakDelegate);
     XCTAssertNotNil(remoteDummy2.weakDelegate);
   }
   XCTAssertNil(remoteDummy.weakDelegate);

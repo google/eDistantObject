@@ -412,7 +412,7 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
   void (^localBlock)(void) = ^{
     [self awakeFromNib];
   };
-  XCTAssertThrowsSpecificNamed([localBlock remoteWeak], NSException,
+  XCTAssertThrowsSpecificNamed([[EDOWeakObject alloc] initWithWeakObject:localBlock], NSException,
                                EDOWeakReferenceBlockObjectException);
 }
 

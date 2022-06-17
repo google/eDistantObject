@@ -35,7 +35,11 @@
 @implementation EDODeallocationTracker
 
 + (void)enableTrackingForObject:(EDOWeakObject *)trackedObject hostPort:(EDOHostPort *)hostPort {
-  (void)[[self alloc] initWithTrackedObject:trackedObject hostPort:hostPort];
+  if (!objc_getAssociatedObject(trackedObject.weakObject, &_cmd)) {
+    EDODeallocationTracker *tracker = [[self alloc] initWithTrackedObject:trackedObject
+                                                                 hostPort:hostPort];
+    objc_setAssociatedObject(trackedObject.weakObject, &_cmd, tracker, OBJC_ASSOCIATION_RETAIN);
+  }
 }
 
 - (instancetype)initWithTrackedObject:(EDOWeakObject *)trackedObject
@@ -44,7 +48,6 @@
   if (self) {
     _remoteObjectAddress = (EDOPointerType)trackedObject;
     _hostPort = hostPort;
-    objc_setAssociatedObject(trackedObject.weakObject, &_cmd, self, OBJC_ASSOCIATION_RETAIN);
   }
   return self;
 }

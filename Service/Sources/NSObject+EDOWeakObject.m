@@ -23,7 +23,20 @@
 @implementation NSObject (EDOWeakObject)
 
 - (instancetype)remoteWeak {
-  return (id)[[EDOWeakObject alloc] initWithWeakObject:self];
+  static dispatch_queue_t syncQueue;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    syncQueue = dispatch_queue_create("com.google.edo.weakobj", DISPATCH_QUEUE_SERIAL);
+  });
+  __block id weakObject;
+  dispatch_sync(syncQueue, ^{
+    weakObject = objc_getAssociatedObject(self, &_cmd);
+    if (!weakObject) {
+      weakObject = [[EDOWeakObject alloc] initWithWeakObject:self];
+      objc_setAssociatedObject(self, &_cmd, weakObject, OBJC_ASSOCIATION_RETAIN);
+    }
+  });
+  return weakObject;
 }
 
 @end
