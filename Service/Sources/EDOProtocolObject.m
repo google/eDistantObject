@@ -20,6 +20,17 @@ static NSString *const kEDOProtocolObjectCoderProtocolName = @"protocolName";
 
 @implementation EDOProtocolObject
 
++ (BOOL)isProtocol:(id)object {
+  static Class protocolClass = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    protocolClass = NSClassFromString(@"Protocol");
+    NSAssert(protocolClass != nil, @"protocolClass was nil, failed at:\n%@",
+             NSThread.callStackSymbols.description);
+  });
+  return [object class] == protocolClass;
+}
+
 + (BOOL)supportsSecureCoding {
   return YES;
 }

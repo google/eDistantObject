@@ -23,6 +23,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface EDOProtocolObject : NSObject <NSSecureCoding>
 
+/** Check if the given @c object is a protocol. */
++ (BOOL)isProtocol:(id)object;
+
 @property(nonatomic, readonly) NSString *protocolName;
 
 /** Mark it as designated so that we can call super init without any compiler warnings */

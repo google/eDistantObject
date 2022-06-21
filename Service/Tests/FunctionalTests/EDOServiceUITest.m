@@ -141,6 +141,7 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   XCTAssertThrows([remoteDummy selWithInOutEDO:&testDummy]);
   EDOTestDummyInTest *plainTestDummy = [[EDOTestDummyInTest alloc] initWithValue:0];
   XCTAssertNoThrow([remoteDummy callBackToTest:plainTestDummy withValue:0]);
+  XCTAssertNoThrow([remoteDummy voidWithProtocol:@protocol(NSSecureCoding)]);
 
   EDOAlwaysAllowedTestDummyInTest *allowedDummy = [[EDOAlwaysAllowedTestDummyInTest alloc] init];
   EDOAlwaysAllowedTestDummyInTestSubclass *allowedDummySubclass =

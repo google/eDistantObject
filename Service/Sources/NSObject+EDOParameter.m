@@ -24,17 +24,6 @@
 #import "Service/Sources/EDOProtocolObject.h"
 #import "Service/Sources/NSObject+EDOValue.h"
 
-// Create a static protocol class.
-static Class GetProtocolClass() {
-  static Class protocolClass = nil;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    protocolClass = NSClassFromString(@"Protocol");
-  });
-  NSCAssert(protocolClass != nil, @"protocolClass was nil");
-  return protocolClass;
-}
-
 // Create a static original implementation of [NSObject -edo_parameterForTarget:service:hostPort:].
 static IMP GetEDOOriginalParameterForTarget() {
   static IMP originalImplementation;
@@ -58,7 +47,7 @@ static IMP GetEDOOriginalParameterForTarget() {
                                 hostPort:(EDOHostPort *)hostPort {
   id boxedObject = self;
 
-  if ([boxedObject class] == GetProtocolClass()) {
+  if ([EDOProtocolObject isProtocol:boxedObject]) {
     boxedObject = [[EDOProtocolObject alloc] initWithProtocol:boxedObject];
   } else if (![boxedObject edo_isEDOValueType]) {
     // TODO(haowoo): Add the proper handler.

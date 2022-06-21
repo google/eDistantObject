@@ -19,6 +19,7 @@
 
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOProtocolObject.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/NSObject+EDOParameter.h"
 #import "Service/Sources/NSObject+EDOValue.h"
@@ -90,8 +91,9 @@ static void UpdateEDOParameterForTarget(Class targetClass, IMP implementation) {
       if ([obj respondsToSelector:@selector(edo_isEDOValueType)] && [obj edo_isEDOValueType]) {
         return [EDOParameter parameterWithObject:obj];
       }
-      // Meta class type is always allowed being sent across the process.
-      else if (class_isMetaClass(object_getClass(obj)) || [EDOBlockObject isBlock:obj]) {
+      // Meta class, block and protocol are always allowed being sent across the process.
+      else if (class_isMetaClass(object_getClass(obj)) || [EDOBlockObject isBlock:obj] ||
+               [EDOProtocolObject isProtocol:obj]) {
         return ((EDOParameter * (*)(id, SEL, EDOObject *, EDOHostService *, EDOHostPort *))
                     NSObject.EDOOriginalParameterForTarget)(obj, nil, target, service, port);
       }
