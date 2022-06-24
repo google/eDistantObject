@@ -47,7 +47,35 @@
  */
 + (instancetype)allocateDummy;
 
+/**
+ *  A method with the new prefix belonging to the new family.
+ *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+ */
++ (instancetype)newBuilder;
+
+/**
+ *  This is the method invoked behind the scenes for vanilla copy.
+ */
+- (instancetype)copyWithZone:(NSZone*)zone;
+
+/**
+ *  A method with the copy prefix belonging to the copy family.
+ *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+ */
+- (instancetype)copyDummy;
+
+/**
+ *  This is the method invoked behind the scenes for vanilla mutableCopy.
+ */
+- (instancetype)mutableCopyWithZone:(NSZone*)zone;
+
+/**
+ *  A method with the mutableCopy prefix belonging to the mutableCopy family.
+ *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+ */
+- (instancetype)mutableCopyDummy;
+
 + (int)classMethodWithInt:(int)value;
-+ (EDOTestClassDummy *)classMethodWithIdReturn:(int)value;
++ (EDOTestClassDummy*)classMethodWithIdReturn:(int)value;
 
 @end
