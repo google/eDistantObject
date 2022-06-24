@@ -140,24 +140,6 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName, Class t
   }
 }
 
-/**
- *  Gets the length of the prefix of the given family type.
- *
- *
- *  @param FamilyType The EDOMethodFamily (enum).
- *  @return The length of the prefix associated with the EDOMethodFamily.
- */
-static size_t PrefixLengthForEDOMethodFamily(EDOMethodFamily FamilyType) {
-  int familySize = sizeof(kRetainReturnsMethodsFamily) / sizeof(MethodFamily);
-  for (int methodIdx = 0; methodIdx < familySize; methodIdx++) {
-    MethodFamily methodFam = kRetainReturnsMethodsFamily[methodIdx];
-    if (methodFam.family == FamilyType) {
-      return methodFam.length;
-    }
-  }
-  return 0;
-}
-
 static EDORemoteException *CreateRemoteException(id localException) {
   if (!localException) {
     return nil;
@@ -216,11 +198,8 @@ static EDORemoteException *CreateRemoteException(id localException) {
     _returnValue = value;
     _exception = exception;
     _outValues = outValues;
-
-    EDOMethodFamily familyType =
-        MethodTypeOfRetainsReturn(request.selectorName.UTF8String, targetClass);
-    _returnRetained = familyType != EDOMethodFamilyNone &&
-                      [request.selectorName length] > PrefixLengthForEDOMethodFamily(familyType);
+    _returnRetained = MethodTypeOfRetainsReturn(request.selectorName.UTF8String, targetClass) !=
+                      EDOMethodFamilyNone;
   }
   return self;
 }
@@ -450,9 +429,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
             returnValue = request.returnByValue ? [EDOParameter parameterWithObject:obj]
                                                 : BOX_VALUE(obj, nil, service, hostPort);
           }
-
-          if (family != EDOMethodFamilyNone &&
-              [request.selectorName length] > PrefixLengthForEDOMethodFamily(family)) {
+          if (family != EDOMethodFamilyNone) {
             // We need to do an extra release here because the method return is not autoreleased,
             // and because the invocation is dynamically created, ARC won't insert an extra release
             // for us.

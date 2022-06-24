@@ -30,34 +30,6 @@
   return [self alloc];
 }
 
-+ (instancetype)newBuilder {
-  return [self new];
-}
-
-- (instancetype)copyWithZone:(NSZone *)zone {
-  EDOTestClassDummy *newInstance = [[EDOTestClassDummy alloc] init];
-  newInstance->_value = _value;
-  return newInstance;
-}
-
-- (instancetype)copyDummy {
-  EDOTestClassDummy *newInstance = [[EDOTestClassDummy alloc] init];
-  newInstance->_value = _value;
-  return newInstance;
-}
-
-- (instancetype)mutableCopyWithZone:(NSZone *)zone {
-  EDOTestClassDummy *newInstance = [[EDOTestClassDummy alloc] init];
-  newInstance->_value = _value;
-  return newInstance;
-}
-
-- (instancetype)mutableCopyDummy {
-  EDOTestClassDummy *newInstance = [[EDOTestClassDummy alloc] init];
-  newInstance->_value = _value;
-  return newInstance;
-}
-
 + (int)classMethodWithInt:(int)value {
   return [self classMethodWithIdReturn:value].value + 9;
 }

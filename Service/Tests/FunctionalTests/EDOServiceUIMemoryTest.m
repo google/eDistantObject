@@ -60,48 +60,6 @@
   XCTAssertEqual(testDummy.value, 10);
 }
 
-/** Verifies the retain count of the vanilla `new` method is balanced. */
-- (void)testStubClassNewBalancesRetainCount {
-  __weak EDOTestClassDummy *testDummy;
-  @autoreleasepool {
-    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
-    // objects if any will be reclaimed.
-    id strongRef = [EDOTestClassDummy new];  // NOLINT
-    testDummy = strongRef;
-    XCTAssertNotNil(testDummy);
-  }
-  // Ensure the appropriate value is retrieved from the object.
-  XCTAssertNil(testDummy);
-}
-
-- (void)testStubClassCopyBalancesRetainCount {
-  EDOTestClassDummy *testDummy;
-  @autoreleasepool {
-    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
-    // objects if any will be reclaimed.
-    // +alloc should return the same instance as from -init.
-    EDOTestClassDummy *strongRef = [EDOTestClassDummy alloc];
-    testDummy = [strongRef copy];
-    XCTAssertNotNil(testDummy);
-  }
-  // Ensure the appropriate value is retrieved from the object.
-  XCTAssertNotNil(testDummy);
-}
-
-- (void)testStubClassMutableCopyBalancesRetainCount {
-  EDOTestClassDummy *testDummy;
-  @autoreleasepool {
-    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
-    // objects if any will be reclaimed.
-    // +alloc should return the same instance as from -init.
-    EDOTestClassDummy *strongRef = [EDOTestClassDummy alloc];
-    testDummy = [strongRef mutableCopy];
-    XCTAssertNotNil(testDummy);
-  }
-  // Ensure the appropriate value is retrieved from the object.
-  XCTAssertNotNil(testDummy);
-}
-
 - (void)testAllocFamilyRetainsReturn {
   EDOTestClassDummy *testDummy1, *testDummy2, *testDummy3;
   @autoreleasepool {
@@ -116,47 +74,6 @@
   XCTAssertEqual(testDummy1.value, 10);
   XCTAssertEqual(testDummy2.value, 20);
   XCTAssertEqual(testDummy3.value, 30);
-}
-
-- (void)testNewPrefixedFamilyRetainsReturn {
-  __weak EDOTestClassDummy *testDummy;
-  @autoreleasepool {
-    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
-    // objects if any will be reclaimed.
-    id strongRef = [EDOTestClassDummy newBuilder];
-    testDummy = strongRef;
-    XCTAssertNotNil(testDummy);
-  }
-  // Ensure the appropriate value is retrieved from the object.
-  XCTAssertNil(testDummy);
-}
-
-- (void)testCopyPrefixedFamilyRetainsReturn {
-  EDOTestClassDummy *testDummy;
-  @autoreleasepool {
-    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
-    // objects if any will be reclaimed.
-    // +alloc should return the same instance as from -init.
-    EDOTestClassDummy *strongRef = [EDOTestClassDummy alloc];
-    testDummy = [strongRef copyDummy];
-    XCTAssertNotNil(testDummy);
-  }
-  // Ensure the appropriate value is retrieved from the object.
-  XCTAssertNotNil(testDummy);
-}
-
-- (void)testMutableCopyPrefixedFamilyRetainsReturn {
-  EDOTestClassDummy *testDummy;
-  @autoreleasepool {
-    // The autoreleasepool to assure the inserted releases within the scope and all the temporary
-    // objects if any will be reclaimed.
-    // +alloc should return the same instance as from -init.
-    EDOTestClassDummy *strongRef = [EDOTestClassDummy alloc];
-    testDummy = [strongRef mutableCopyDummy];
-    XCTAssertNotNil(testDummy);
-  }
-  // Ensure the appropriate value is retrieved from the object.
-  XCTAssertNotNil(testDummy);
 }
 
 - (void)testAllocRemoteValueType {
