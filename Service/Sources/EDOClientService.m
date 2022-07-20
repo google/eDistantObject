@@ -109,7 +109,8 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
     }
     // If there is a service for the current queue, we check if the object belongs to this queue.
     // Otherwise, we send EDOObjectAlive message to another service running in the same process.
-    if ([service isObjectAlive:edoObject]) {
+    if ([service isObjectAliveWithPort:edoObject.servicePort
+                         remoteAddress:edoObject.remoteAddress]) {
       return (__bridge id)(void *)edoObject.remoteAddress;
     } else if (edoObject.isLocalEdo) {
       // If the underlying object is not a local object (but in the same process) then this could
@@ -332,11 +333,11 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
 #pragma mark - Private
 
 /**
- *  Sends EDOObjectAliveRequest to the service that the given object belongs to in the current
- *  process and check it is still alive.
+ * Sends EDOObjectAliveRequest to the service that the given object belongs to in the current
+ * process and check it is still alive.
  *
- *  @param object The remote object to check if it is alive.
- *  @return The underlying object if it is still alive, otherwise @c nil.
+ * @param object The remote object to check if it is alive.
+ * @return The underlying object if it is still alive, otherwise @c nil.
  */
 + (id)resolveInstanceFromEDOObject:(EDOObject *)object {
   @try {
@@ -345,13 +346,7 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
         sendSynchronousRequest:request
                         onPort:object.servicePort.hostPort];
 
-    EDOObject *responseObject;
-    if ([EDOBlockObject isBlock:response.object]) {
-      responseObject = [EDOBlockObject EDOBlockObjectFromBlock:response.object];
-    } else {
-      responseObject = response.object;
-    }
-    return (__bridge id)(void *)responseObject.remoteAddress;
+    return response.alive ? (__bridge id)(void *)object.remoteAddress : nil;
   } @catch (NSException *e) {
     // In case of the service is dead or error, ignore the exception and reset to nil.
     return nil;

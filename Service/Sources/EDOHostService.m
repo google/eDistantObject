@@ -41,7 +41,7 @@
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 #import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
-/**  The context key to save the service to the dispatch queue. This shall be removed later. */
+/** The context key to save the service to the dispatch queue. This shall be removed later. */
 static const char *gServiceKey = "com.google.edo.servicekey";
 
 /** The context key to find the service for the originating queue. */
@@ -56,7 +56,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 #pragma mark - EDODispatchQueueWeakRef
 
 /**
- *  The weak object wrapper to hold a weak reference to be saved in a container like NSArray.
+ * The weak object wrapper to hold a weak reference to be saved in a container like NSArray.
  */
 @interface EDOWeakReference : NSObject
 /** The weak object it holds. */
@@ -366,12 +366,18 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
   }
 }
 
-- (BOOL)isObjectAlive:(EDOObject *)object {
-  // TODO(haowoo): There can be different strategies to evict the object from the local cache,
-  //               we should check if the object is still in the cache (self.localObjects).
-
+- (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress {
+  if (![_port match:port]) {
+    return NO;
+  }
+  __block BOOL isAlive;
+  dispatch_sync(_localObjectsSyncQueue, ^{
+    NSNumber *EDOKey = [NSNumber numberWithLongLong:remoteAddress];
+    isAlive =
+        self.localObjects[EDOKey] != nil || ((EDOPointerType)self.rootLocalObject) == remoteAddress;
+  });
   // ivar is used directly here to avoid the service lazily creating listen port.
-  return [_port match:object.servicePort];
+  return isAlive;
 }
 
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {

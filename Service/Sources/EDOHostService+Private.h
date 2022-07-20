@@ -46,56 +46,57 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)temporaryServiceForCurrentThread;
 
 /**
- *  Wraps a distant object for the given local object and host port.
+ * Wraps a distant object for the given local object and host port.
  *
- *  @param object   The object to be wrapped as a remote object.
- *  @param hostPort The port that the remote object connects to. If nil, the default host port from
- *                  the service will be used.
- *  @return The remote object that proxies the given object.
+ * @param object   The object to be wrapped as a remote object.
+ * @param hostPort The port that the remote object connects to. If nil, the default host port from
+ *                 the service will be used.
+ * @return The remote object that proxies the given object.
  */
 - (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(nullable EDOHostPort *)hostPort;
 
 /**
- *  Checks if the underlying object for the given @c EDOObject is still alive.
+ * Checks if the underlying object for the given address is still alive.
  *
- *  @param object The @c EDOObject containing the underlying object address.
- *  @return @c YES if the underlying object is still in the cache; @c NO otherwise.
+ * @param port          The port of the remote object.
+ * @param remoteAddress The address of the remote object.
+ * @return @c YES if the underlying object is still in the cache; @c NO otherwise.
  */
-- (BOOL)isObjectAlive:(EDOObject *)object;
+- (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress;
 
 /**
- *  Removes an EDOObject with the specified address in the host cache.
+ * Removes an EDOObject with the specified address in the host cache.
  *
- *  @param remoteAddress The @c EDOPointerType containing the object address.
- *  @return @c YES if an object was removed; @c NO otherwise.
+ * @param remoteAddress The @c EDOPointerType containing the object address.
+ * @return @c YES if an object was removed; @c NO otherwise.
  */
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress;
 
 /**
- *  Removes a weak EDOObject with the specified address in the host cache for weak objects.
+ * Removes a weak EDOObject with the specified address in the host cache for weak objects.
  *
- *  @param remoteAddress The @c EDOPointerType containing the object address.
- *  @return @c YES if an object was removed; @c NO otherwise.
+ * @param remoteAddress The @c EDOPointerType containing the object address.
+ * @return @c YES if an object was removed; @c NO otherwise.
  */
 - (BOOL)removeWeakObjectWithAddress:(EDOPointerType)remoteAddress;
 
 /**
- *  Adds a weak EDOObject to the host cache for weak objects, so that it gets retained and will not
- *  be released immediately.
+ * Adds a weak EDOObject to the host cache for weak objects, so that it gets retained and will not
+ * be released immediately.
  *
- *  @param object The @c EDOObject containing the underlying object address.
- *  @return @c YES if the weak EDOObject is owned by the weak object cache.
+ * @param object The @c EDOObject containing the underlying object address.
+ * @return @c YES if the weak EDOObject is owned by the weak object cache.
  */
 - (BOOL)addWeakObject:(EDOObject *)object;
 
 /**
- *  Starts receiving requests and handling them from @c channel.
+ * Starts receiving requests and handling them from @c channel.
  *
- *  This will properly handle all incoming requests for the given channel, which will be strongly
- *  referenced in the method by an internal handler block until the channel or the host service is
- *  invalidated.
+ * This will properly handle all incoming requests for the given channel, which will be strongly
+ * referenced in the method by an internal handler block until the channel or the host service is
+ * invalidated.
  *
- *  @param channel The channel to schedule receiving requests from clients.
+ * @param channel The channel to schedule receiving requests from clients.
  */
 - (void)startReceivingRequestsForChannel:(id<EDOChannel>)channel;
 

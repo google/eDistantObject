@@ -439,7 +439,9 @@ static const NSTimeInterval kTestTimeoutInterval = 10.0;
   // Disable the isObjectAlive: check so the object from the background queue will not be resolved
   // to the underlying object but a remote object.
   id serviceMock = OCMPartialMock(service);
-  OCMStub([serviceMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
+  OCMStub([serviceMock isObjectAliveWithPort:OCMOCK_ANY remoteAddress:0])
+      .ignoringNonObjectArgs()
+      .andReturn(NO);
   return serviceMock;
 }
 

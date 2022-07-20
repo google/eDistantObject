@@ -35,15 +35,15 @@
 // IWYU pragma: no_include "OCMockObject.h"
 
 /**
- *  Expose the benchmark API.
- *  It executes the given @c block @count times and then returns the average number of nanoseconds
- *  per execution.
- *  @see https://www.unix.com/man-page/All/3/dispatch_benchmark
+ * Expose the benchmark API.
+ * It executes the given @c block @count times and then returns the average number of nanoseconds
+ * per execution.
+ * @see https://www.unix.com/man-page/All/3/dispatch_benchmark
  *
- *  @param count Number of times to run.
- *  @param block The block to measure.
+ * @param count Number of times to run.
+ * @param block The block to measure.
  *
- *  @return Nanoseconds per execution.
+ * @return Nanoseconds per execution.
  */
 extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
 
@@ -86,8 +86,12 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 
   _serviceBackgroundMock = OCMPartialMock(_serviceOnBackground);
   _serviceMainMock = OCMPartialMock(_serviceOnMain);
-  OCMStub([_serviceBackgroundMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
-  OCMStub([_serviceMainMock isObjectAlive:OCMOCK_ANY]).andReturn(NO);
+  OCMStub([_serviceBackgroundMock isObjectAliveWithPort:OCMOCK_ANY remoteAddress:0])
+      .ignoringNonObjectArgs()
+      .andReturn(NO);
+  OCMStub([_serviceMainMock isObjectAliveWithPort:OCMOCK_ANY remoteAddress:0])
+      .ignoringNonObjectArgs()
+      .andReturn(NO);
 }
 
 - (void)tearDown {
@@ -228,7 +232,7 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 }
 
 /**
- *  Assert the block is performed within the @weight multiple of threshold.
+ * Assert the block is performed within the @weight multiple of threshold.
  */
 - (uint64_t)assertPerformBlockWithWeight:(uint64_t)weight block:(void (^)(EDOTestDummy *))block {
   return [self assertPerformBlockWithWeight:weight
@@ -237,7 +241,7 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 }
 
 /**
- *  Assert the block is performed @excutions times within the @weight multiple of threshold.
+ * Assert the block is performed @excutions times within the @weight multiple of threshold.
  */
 - (uint64_t)assertPerformBlockWithWeight:(uint64_t)weight
                               executions:(NSInteger)executions

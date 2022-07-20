@@ -1,5 +1,5 @@
 //
-// Copyright 2018 Google Inc.
+// Copyright 2022 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
 // limitations under the License.
 //
 
-#import "Service/Sources/EDOObjectMessage.h"
+#import "Service/Sources/EDOServiceRequest.h"
+
+@class EDOObject;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,7 +31,27 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 /** The object response for the object tick request. */
-@interface EDOObjectAliveResponse : EDOObjectResponse
+@interface EDOObjectAliveResponse : EDOServiceResponse
+
+/** @c YES if the underlying object is alive in the service; @c NO otherwise. */
+@property(nonatomic, getter=isAlive) BOOL alive;
+
+/**
+ * Initializes the class.
+ *
+ * @param isAlive The result for the @c request.
+ * @param request The request that is processed by the service.
+ *
+ * @return The instance of EDOObjectAliveResponse.
+ */
+- (instancetype)initWithResult:(BOOL)isAlive
+                    forRequest:(EDOServiceRequest *)request NS_DESIGNATED_INITIALIZER;
+
+/** @see -[NSCoding initWithCoder:]. */
+- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)initWithMessageID:(NSString *)messageID NS_UNAVAILABLE;
+
 @end
 
 NS_ASSUME_NONNULL_END

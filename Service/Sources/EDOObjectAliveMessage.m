@@ -16,21 +16,25 @@
 
 #import "Service/Sources/EDOObjectAliveMessage.h"
 
-#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOMessage.h"
+#import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObject.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 
-static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
+static NSString *const kEDOObjectAliveCoderRemoteAddressKey = @"remoteAddress";
+static NSString *const kEDOObjectAliveCoderServicePortKey = @"servicePort";
+static NSString *const kEDOObjectAliveCoderIsAliveKey = @"isAlive";
 
 #pragma mark -
 
 @interface EDOObjectAliveRequest ()
-// The proxy object that needs to check if its underlying object is alive. It could either be an
-// EDOObject or block object.
-@property(nonatomic, readonly) id object;
+/** The proxied object's address in the remote. */
+@property(nonatomic, readonly) EDOPointerType remoteAddress;
+/** The port to connect to the local socket. */
+@property(nonatomic, readonly) EDOServicePort *servicePort;
 @end
 
 #pragma mark -
@@ -44,7 +48,8 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 - (instancetype)initWithObject:(EDOObject *)object {
   self = [super init];
   if (self) {
-    _object = object;
+    _servicePort = object.servicePort;
+    _remoteAddress = object.remoteAddress;
   }
   return self;
 }
@@ -52,25 +57,25 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    NSSet *objectClasses = [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], nil];
-    _object = [aDecoder decodeObjectOfClasses:objectClasses forKey:kEDOObjectAliveCoderObjectKey];
+    _servicePort = [aDecoder decodeObjectOfClass:[EDOServicePort class]
+                                          forKey:kEDOObjectAliveCoderServicePortKey];
+    _remoteAddress = [aDecoder decodeInt64ForKey:kEDOObjectAliveCoderRemoteAddressKey];
   }
   return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeObject:self.object forKey:kEDOObjectAliveCoderObjectKey];
+  [aCoder encodeObject:self.servicePort forKey:kEDOObjectAliveCoderServicePortKey];
+  [aCoder encodeInt64:self.remoteAddress forKey:kEDOObjectAliveCoderRemoteAddressKey];
 }
 
 + (EDORequestHandler)requestHandler {
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOObjectAliveRequest *retainRequest = (EDOObjectAliveRequest *)request;
-    EDOObject *object = [EDOBlockObject isBlock:retainRequest.object]
-                            ? [EDOBlockObject EDOBlockObjectFromBlock:retainRequest.object]
-                            : retainRequest.object;
-    object = [service isObjectAlive:object] ? object : nil;
-    return [EDOObjectAliveResponse responseWithObject:object forRequest:request];
+    BOOL isAlive = [service isObjectAliveWithPort:retainRequest.servicePort
+                                    remoteAddress:retainRequest.remoteAddress];
+    return [[EDOObjectAliveResponse alloc] initWithResult:isAlive forRequest:request];
   };
 }
 
@@ -86,6 +91,27 @@ static NSString *const kEDOObjectAliveCoderObjectKey = @"object";
 
 + (BOOL)supportsSecureCoding {
   return YES;
+}
+
+- (instancetype)initWithResult:(BOOL)isAlive forRequest:(EDOServiceRequest *)request {
+  self = [super initWithMessageID:request.messageID];
+  if (self) {
+    _alive = isAlive;
+  }
+  return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super initWithCoder:aDecoder];
+  if (self) {
+    _alive = [aDecoder decodeBoolForKey:kEDOObjectAliveCoderIsAliveKey];
+  }
+  return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [super encodeWithCoder:aCoder];
+  [aCoder encodeBool:self.isAlive forKey:kEDOObjectAliveCoderIsAliveKey];
 }
 
 @end
