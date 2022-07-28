@@ -92,6 +92,17 @@ static BOOL IsFromSameProcess(id object1, id object2);
   return self;
 }
 
+- (void)doesNotRecognizeSelector:(SEL)sel {
+  [[NSException
+      exceptionWithName:EDOObjectCalledUnrecognizedSelectorException
+                 reason:[NSString
+                            stringWithFormat:
+                                @"eDO failed to proxy a method invocation because the proxied "
+                                @"class %@ doesn't have the %s method",
+                                [self className], sel_getName(sel)]
+               userInfo:nil] raise];
+}
+
 // No-op when called on a remote object.
 - (id)passByValue {
   return self;
@@ -303,8 +314,8 @@ static BOOL IsFromSameProcess(id object1, id object2);
       NSString *reason = implementsFastEnumeration
                              ? @"Fast enumeration is not supported on custom types."
                              : @"Fast enumeration is not supported on the current object.";
-      [[NSException exceptionWithName:NSInternalInconsistencyException reason:reason userInfo:nil]
-          raise];
+      [[NSException exceptionWithName:NSInternalInconsistencyException reason:reason
+                             userInfo:nil] raise];
       return 0;
     }
 

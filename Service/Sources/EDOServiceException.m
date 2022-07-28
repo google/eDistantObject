@@ -27,3 +27,5 @@ NSExceptionName const EDOParameterTypeException = @"EDOParameterTypeException";
 
 NSString *const EDOExceptionUnderlyingErrorKey = @"EDOUnderlyingErrorKey";
 NSString *const EDOExceptionPortKey = @"EDOExceptionPortKey";
+NSString *const EDOObjectCalledUnrecognizedSelectorException =
+    @"EDOObjectCalledUnrecognizedSelectorException";

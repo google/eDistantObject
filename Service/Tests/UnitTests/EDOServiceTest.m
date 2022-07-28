@@ -837,6 +837,27 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   XCTAssertTrue(response.duration > 0 && response.duration <= 1000);
 }
 
+- (void)testUnrecognizedSelectorExceptionHandling {
+  dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
+  EDOHostService *hostService = [EDOHostService serviceWithPort:2234
+                                                     rootObject:self
+                                                          queue:testQueue];
+  @try {
+    EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:2234];
+    Class testObject = [EDOClientService classObjectWithName:@"NSObject" hostPort:port];
+    [testObject stringWithFormat:@"Hello World !!"];
+  } @catch (NSException *e) {
+    NSString *expectedName = @"EDOObjectCalledUnrecognizedSelectorException";
+    NSString *expectedReason = @"eDO failed to proxy a method invocation because the proxied "
+                               @"class NSObject doesn't have the stringWithFormat: method";
+
+    XCTAssertEqualObjects([e name], expectedName);
+    XCTAssertEqualObjects([e reason], expectedReason);
+  } @finally {
+    [hostService invalidate];
+  }
+}
+
 #pragma mark - Helper methods
 
 - (EDOTestDummy *)rootObjectOnBackground {

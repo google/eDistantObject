@@ -42,4 +42,7 @@ FOUNDATION_EXPORT NSString *const EDOExceptionUnderlyingErrorKey;
 /** Key in userInfo, describing the remote service's port. */
 FOUNDATION_EXPORT NSString *const EDOExceptionPortKey;
 
+/** A generic eDO service exception, usually containing an unrecognized selector. */
+FOUNDATION_EXPORT NSString *const EDOObjectCalledUnrecognizedSelectorException;
+
 NS_ASSUME_NONNULL_END
