@@ -30,12 +30,12 @@ size_t EDOGetPayloadHeaderSize(void);
 size_t EDOGetPayloadSizeFromFrameData(dispatch_data_t data);
 
 /**
- *  Creates @c dispatch_data_t from NSData that has the frame header and is ready to be sent.
+ * Creates @c dispatch_data_t from NSData that has the frame header and is ready to be sent.
  *
- *  @param data   The data to be sent.
- *  @param queue  The dispatch queue on which to release the @c data.
+ * @param data   The data to be sent.
+ * @param queue  The dispatch queue on which to release the @c data.
  *
- *  @return The dispatch data containing the frame header and the given data.
+ * @return The dispatch data containing the frame header and the given data.
  */
 dispatch_data_t EDOBuildFrameFromDataWithQueue(NSData *data, dispatch_queue_t queue);
 

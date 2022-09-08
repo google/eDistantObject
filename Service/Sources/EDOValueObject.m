@@ -38,9 +38,9 @@
 }
 
 /**
- *  forwardingTargetForSelector will be triggered firstly when unrecognized message is sent to
- *  the target. If _localObject is nil, it will fallback to methodSignatureForSelector and
- *  forwardInvocation.
+ * forwardingTargetForSelector will be triggered firstly when unrecognized message is sent to
+ * the target. If _localObject is nil, it will fallback to methodSignatureForSelector and
+ * forwardInvocation.
  */
 - (id)forwardingTargetForSelector:(SEL)aSelector {
   return _localObject;

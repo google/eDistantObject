@@ -19,17 +19,17 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The destination host that the channel can connect to.
+ * The destination host that the channel can connect to.
  *
- *  This interface represents a host port that can be on a local machine or on a real device.
+ * This interface represents a host port that can be on a local machine or on a real device.
  */
 @interface EDOHostPort : NSObject <NSCopying, NSSecureCoding>
 
 /**
- *  The unique device identifier for the current running process.
+ * The unique device identifier for the current running process.
  *
- *  TODO(haowoo): This will be used to identify whether the host is on a real device or a machine
- *                later, to replace deviceSerialNumber.
+ * TODO(haowoo): This will be used to identify whether the host is on a real device or a machine
+ *               later, to replace deviceSerialNumber.
  */
 @property(readonly, class) NSString *deviceIdentifier;
 
@@ -52,21 +52,21 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly, nonatomic) NSData *data;
 
 /**
- *  Creates a host port instance with local port number. This is used for host ports on a local
- *  machine.
+ * Creates a host port instance with local port number. This is used for host ports on a local
+ * machine.
  */
 + (instancetype)hostPortWithLocalPort:(UInt16)port;
 
 /**
- *  Creates a host port instance with a unique name which is to identify the host port when
- *  communicate with a service on Mac from an iOS physical device.
- *  In this case the @c port is always 0 and @c deviceSerialNumber is always @c nil.
+ * Creates a host port instance with a unique name which is to identify the host port when
+ * communicate with a service on Mac from an iOS physical device.
+ * In this case the @c port is always 0 and @c deviceSerialNumber is always @c nil.
  */
 + (instancetype)hostPortWithName:(NSString *)name;
 
 /**
- *  Creates a host port instance with local port number and optional service name. This is used for
- *  host ports on a local machine.
+ * Creates a host port instance with local port number and optional service name. This is used for
+ * host ports on a local machine.
  */
 + (instancetype)hostPortWithLocalPort:(UInt16)port serviceName:(NSString *_Nullable)name;
 
@@ -81,7 +81,7 @@ NS_ASSUME_NONNULL_BEGIN
           deviceSerialNumber:(nullable NSString *)deviceSerialNumber;
 
 /**
- *  Initializes the host port from the data representation. Returns @c nil if the data is not valid.
+ * Initializes the host port from the data representation. Returns @c nil if the data is not valid.
  */
 - (nullable instancetype)initWithData:(NSData *)data;
 

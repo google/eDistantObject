@@ -86,13 +86,13 @@ const MethodFamily kRetainReturnsMethodsFamily[] = {
 };
 
 /**
- *  Gets the family type of the method belonging to the ns_returns_retained family.
+ * Gets the family type of the method belonging to the ns_returns_retained family.
  *
- *  More info here:
- *  https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values.
+ * More info here:
+ * https://clang.llvm.org/docs/AutomaticReferenceCounting.html#retained-return-values.
  *
- *  @param methodName The method name.
- *  @return The method family type.
+ * @param methodName The method name.
+ * @return The method family type.
  */
 static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName, Class targetClass) {
   if (!methodName ||
@@ -101,12 +101,12 @@ static EDOMethodFamily MethodTypeOfRetainsReturn(const char *methodName, Class t
   }
 
   /**
-   *  To find out if a selector is in a certain method family:
+   * To find out if a selector is in a certain method family:
    *
-   *  A selector is in a certain selector family if, ignoring any leading underscores, the first
-   *  component of the selector either consists entirely of the name of the method family or it
-   *  begins with that name followed by a character other than a lowercase letter.
-   *  http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
+   * A selector is in a certain selector family if, ignoring any leading underscores, the first
+   * component of the selector either consists entirely of the name of the method family or it
+   * begins with that name followed by a character other than a lowercase letter.
+   * http://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families
    */
 
   // Skip the leading underscore as it is considered to be the same method family.

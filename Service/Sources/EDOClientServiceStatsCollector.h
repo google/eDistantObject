@@ -24,8 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDORequestMeasurement : NSObject
 
 /**
- *  The measure for the request excluding the time spent for handling the response, that is,
- *  the time spent only for eDO to send the request and receive the response.
+ * The measure for the request excluding the time spent for handling the response, that is,
+ * the time spent only for eDO to send the request and receive the response.
  */
 @property(readonly, nonatomic) EDONumericMeasure *requestMeasure;
 /** The measure measurement for the response. */
@@ -34,10 +34,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly, nonatomic) double requestRatio;
 
 /**
- *  Completes the request and response measure so it can be read.
+ * Completes the request and response measure so it can be read.
  *
- *  @note You don't need to call this directly but EDOClientServiceStatsCollector will take care of
- *        this.
+ * @note You don't need to call this directly but EDOClientServiceStatsCollector will take care of
+ *       this.
  */
 - (void)complete;
 

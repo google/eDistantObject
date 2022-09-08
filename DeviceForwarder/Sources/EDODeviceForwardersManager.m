@@ -24,10 +24,10 @@
 #import "Device/Sources/EDODeviceConnector.h"
 
 /**
- *  The number of tries the manager attempts to connect to the multiplexer at start.
+ * The number of tries the manager attempts to connect to the multiplexer at start.
  *
- *  @note The manager can start trying before the device starts the multiplexer, so we have a fair
- *        number of tries in case.
+ * @note The manager can start trying before the device starts the multiplexer, so we have a fair
+ *       number of tries in case.
  */
 static const int kEDODeviceConnectMaxRetries = 15;
 static const int kEDODeviceRetryIntervalInSeconds = 1;
@@ -96,10 +96,10 @@ static const int kEDODeviceRetryIntervalInSeconds = 1;
 }
 
 /**
- *  Starts a new forwarder to connect to the multiplexer and ready for forwarding.
+ * Starts a new forwarder to connect to the multiplexer and ready for forwarding.
  *
- *  @note It only starts a new forwarder if it doesn't exceed the limit.
- *  @return The device identifier from the device's multiplexer.
+ * @note It only starts a new forwarder if it doesn't exceed the limit.
+ * @return The device identifier from the device's multiplexer.
  */
 - (NSString *)startForwarding {
   EDOChannelForwarder *forwarder;

@@ -19,14 +19,14 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The helper class to manage a set of forwarders connecting to the device's multiplexer.
+ * The helper class to manage a set of forwarders connecting to the device's multiplexer.
  *
- *  The manager attempts to connect to the device's multiplexer and manages the established
- *  forwarders. The manager will set up two forwarder in the beginning so it can handle two
- *  concurrent connections. Once the forwarder starts to forwarding, the manager will attempt
- *  to establish another one, it not exceeding the limit, so the multiplexer can make concurrent
- *  requests. If the multiplexer closes, the manager will invalidate all the forwarders
- *  automatically.
+ * The manager attempts to connect to the device's multiplexer and manages the established
+ * forwarders. The manager will set up two forwarder in the beginning so it can handle two
+ * concurrent connections. Once the forwarder starts to forwarding, the manager will attempt
+ * to establish another one, it not exceeding the limit, so the multiplexer can make concurrent
+ * requests. If the multiplexer closes, the manager will invalidate all the forwarders
+ * automatically.
  */
 @interface EDODeviceForwardersManager : NSObject
 
@@ -50,14 +50,14 @@ NS_ASSUME_NONNULL_BEGIN
                    numOfForwarders:(NSUInteger)numOfForwarders NS_DESIGNATED_INITIALIZER;
 
 /**
- *  Starts to connect to the device asynchronously.
+ * Starts to connect to the device asynchronously.
  *
- *  @note Calling this again before the @c block is invoked will corrupt the manager. You should
- *        only start again after the completion @c block is invoked.
+ * @note Calling this again before the @c block is invoked will corrupt the manager. You should
+ *       only start again after the completion @c block is invoked.
  *
- *  @param block The completion block that is invoked when it finishes attempts to connect.
- *               If it successfully connects to the device's multiplexer, the @c deviceIdentifier
- *               will be set, otherwise it is set to @c nil.
+ * @param block The completion block that is invoked when it finishes attempts to connect.
+ *              If it successfully connects to the device's multiplexer, the @c deviceIdentifier
+ *              will be set, otherwise it is set to @c nil.
  */
 - (void)startWithCompletionBlock:(void (^)(EDODeviceForwardersManager *))block;
 

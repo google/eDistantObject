@@ -27,12 +27,12 @@ NSString *const kDeviceIDArgumentKey = @"udid";
 NSString *const kTimeoutArgumentKey = @"timeout";
 
 /**
- *  Starts 30 @c EDOHostService and registers them on target device, and keeps the process running.
- *  This is to test multiple services registration and communication, and validating the system is
- *  still stable under the pressure.
+ * Starts 30 @c EDOHostService and registers them on target device, and keeps the process running.
+ * This is to test multiple services registration and communication, and validating the system is
+ * still stable under the pressure.
  *
- *  Pass -udid $(DEVICE_ID) to specify a connected target device.
- *  Pass -timeout $(TIMEOUT) to specify a timeout for service registration.
+ * Pass -udid $(DEVICE_ID) to specify a connected target device.
+ * Pass -timeout $(TIMEOUT) to specify a timeout for service registration.
  */
 int main(int argc, const char *argv[]) {
   NSString *deviceSerial = [NSUserDefaults.standardUserDefaults stringForKey:kDeviceIDArgumentKey];

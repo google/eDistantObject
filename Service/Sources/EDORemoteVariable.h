@@ -19,14 +19,14 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  EDORemoteVariable wraps out parameters for use beyond the scope of the current remote
- *  invocation.
+ * EDORemoteVariable wraps out parameters for use beyond the scope of the current remote
+ * invocation.
  *
- *  If an object receives a remote invocation containing an out parameter, that parameter is only
- *  valid within the scope of the execution of the containing invocation. If the out parameter needs
- *  to be stored and dereferenced later (after the remote invocation), the later dereference will
- *  crash due to an invalid memory access. In such cases, this class should be used instead of an
- *  out parameter because it will persist past the lifetime of the remote invocation.
+ * If an object receives a remote invocation containing an out parameter, that parameter is only
+ * valid within the scope of the execution of the containing invocation. If the out parameter needs
+ * to be stored and dereferenced later (after the remote invocation), the later dereference will
+ * crash due to an invalid memory access. In such cases, this class should be used instead of an
+ * out parameter because it will persist past the lifetime of the remote invocation.
  */
 @interface EDORemoteVariable <ObjectType> : NSObject
 

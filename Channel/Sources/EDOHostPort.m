@@ -26,11 +26,11 @@ static NSString *const kEDOHostPortCoderNameKey = @"serviceName";
 static NSString *const kEDOHostPortCoderDeviceSerialKey = @"deviceSerialNumber";
 
 /**
- *  The host port data layout
- *  |--- 32 bit ---|-- 16 bit --|--- 16 bit ----|---- 16 bit -----|--- name ----|--- serial ---|
- *  |- data size --|-  port #  -|- name offset -|- serial offset -|--- "name"---|-- "serial" --|
+ * The host port data layout
+ * |--- 32 bit ---|-- 16 bit --|--- 16 bit ----|---- 16 bit -----|--- name ----|--- serial ---|
+ * |- data size --|-  port #  -|- name offset -|- serial offset -|--- "name"---|-- "serial" --|
  *
- *  Note the name and serial both have the ending '\0' to tell it's nil or an empty string.
+ * Note the name and serial both have the ending '\0' to tell it's nil or an empty string.
  */
 typedef struct EDOHostPortData_s {
   uint32_t size;

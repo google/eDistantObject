@@ -280,17 +280,17 @@ static BOOL IsFromSameProcess(id object1, id object2);
 #pragma mark - NSFastEnumeration
 
 /**
- *  Implement the fast enumeration protocol that works for the remote container like NSArray, NSSet
- *  and NSDictionary who implements "slow" enumeration's NSEnumerator. This doesn't provide the
- *  performance gain usually given by the fast enumeration but a syntax benefit such that the
- *  existing code will also work.
+ * Implement the fast enumeration protocol that works for the remote container like NSArray, NSSet
+ * and NSDictionary who implements "slow" enumeration's NSEnumerator. This doesn't provide the
+ * performance gain usually given by the fast enumeration but a syntax benefit such that the
+ * existing code will also work.
  *
- *  @param state    Context information that is used in the enumeration to, in addition to other
- *                  possibilities, ensure that the collection has not been mutated.
- *  @param buffer   A C array of objects over which the sender is to iterate.
- *  @param len      The maximum number of objects to return in stackbuf.
+ * @param state    Context information that is used in the enumeration to, in addition to other
+ *                 possibilities, ensure that the collection has not been mutated.
+ * @param buffer   A C array of objects over which the sender is to iterate.
+ * @param len      The maximum number of objects to return in stackbuf.
  *
- *  @return The number of objects returned in stackbuf, or 0 when the iteration is finished.
+ * @return The number of objects returned in stackbuf, or 0 when the iteration is finished.
  */
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state
                                   objects:(id __unsafe_unretained _Nullable[_Nonnull])buffer
@@ -389,10 +389,10 @@ static BOOL IsFromSameProcess(id object1, id object2);
 }
 
 /**
- *  Forwards the @c selector to the remote underlying object.
+ * Forwards the @c selector to the remote underlying object.
  *
- *  @param selector      The selector to forward to the underlying remote object.
- *  @return The object returned by the remote invocation.
+ * @param selector      The selector to forward to the underlying remote object.
+ * @return The object returned by the remote invocation.
  */
 - (id)edo_forwardInvocationForSelector:(SEL)selector {
   NSInvocation *invocation = [self edo_invocationForSelector:selector];
@@ -404,11 +404,11 @@ static BOOL IsFromSameProcess(id object1, id object2);
 }
 
 /**
- *  Creates NSInvocation with the @c selector by fetching the method signature from the underlying
- *  remote object.
+ * Creates NSInvocation with the @c selector by fetching the method signature from the underlying
+ * remote object.
  *
- *  @param  selector The selector to forward to the underlying remote object.
- *  @return The NSInvocation instance that can be passed to [self -forwardInvocation:].
+ * @param  selector The selector to forward to the underlying remote object.
+ * @return The NSInvocation instance that can be passed to [self -forwardInvocation:].
  */
 - (NSInvocation *)edo_invocationForSelector:(SEL)selector {
   NSMethodSignature *methodSignature = [self methodSignatureForSelector:selector];

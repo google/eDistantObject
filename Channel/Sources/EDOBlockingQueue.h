@@ -19,14 +19,14 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The simple double-ended queue that provides synchronized append and remove operations.
+ * The simple double-ended queue that provides synchronized append and remove operations.
  *
- *  Elements can be appended to the blocking queue and retrieved from either end. The retrieval can
- *  be synchronized in the way that it waits until there is an element. This is primarily for
- *  producer-consumer use cases.
+ * Elements can be appended to the blocking queue and retrieved from either end. The retrieval can
+ * be synchronized in the way that it waits until there is an element. This is primarily for
+ * producer-consumer use cases.
  *
- *  After the queue is closed, no more objects can be appended but one can still fetch objects
- *  until it is empty, in such case, the timeout will not affect and return @c nil immediately.
+ * After the queue is closed, no more objects can be appended but one can still fetch objects
+ * until it is empty, in such case, the timeout will not affect and return @c nil immediately.
  */
 @interface EDOBlockingQueue<ObjectType> : NSObject
 
@@ -38,36 +38,36 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** Appends the @c object to the end of the queue.
  *
- *  @return YES if the object is appended; NO, if the queue is closed already and the message
- *          will not be enqueued.
+ * @return YES if the object is appended; NO, if the queue is closed already and the message
+ *         will not be enqueued.
  */
 - (BOOL)appendObject:(ObjectType)object;
 
 /**
- *  Fetches an object from the head of the queue.
+ * Fetches an object from the head of the queue.
  *
- *  @note This will block the current thread until an object has been added to the queue.
+ * @note This will block the current thread until an object has been added to the queue.
  *
- *  @param timeout The timeout to wait until the element is available.
- *  @return The object in the queue, or @c nil if timing out.
+ * @param timeout The timeout to wait until the element is available.
+ * @return The object in the queue, or @c nil if timing out.
  */
 - (nullable ObjectType)firstObjectWithTimeout:(dispatch_time_t)timeout;
 
 /**
- *  Fetches an object from the tail of the queue.
+ * Fetches an object from the tail of the queue.
  *
- *  @note This will block the current thread until an object has been added to the queue.
+ * @note This will block the current thread until an object has been added to the queue.
  *
- *  @param timeout The timeout to wait until the element is available.
- *  @return The object in the queue, or @c nil if timing out.
+ * @param timeout The timeout to wait until the element is available.
+ * @return The object in the queue, or @c nil if timing out.
  */
 - (nullable ObjectType)lastObjectWithTimeout:(dispatch_time_t)timeout;
 
 /**
- *  Closes the queue so no more messages can be appended.
+ * Closes the queue so no more messages can be appended.
  *
- *  @note The closed queue can still fetch objects but will not wait if the queue is empty.
- *  @return YES if the queue is just closed; NO if the queue is already closed.
+ * @note The closed queue can still fetch objects but will not wait if the queue is empty.
+ * @return YES if the queue is just closed; NO if the queue is already closed.
  */
 - (BOOL)close;
 

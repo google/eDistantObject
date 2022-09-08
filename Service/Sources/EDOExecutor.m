@@ -120,13 +120,13 @@
 #pragma mark - Private
 
 /**
- *  Check if a message can be enqueued to a message queue that will be executed on the
- *  @c executionQueue. The message is appended to the message queue if this passes.
+ * Check if a message can be enqueued to a message queue that will be executed on the
+ * @c executionQueue. The message is appended to the message queue if this passes.
  *
- *  @param message The message to be enqueued.
+ * @param message The message to be enqueued.
  *
- *  @return @c YES if message is enqueued to a message queue; @c NO if no message queue is
- *          available.
+ * @return @c YES if message is enqueued to a message queue; @c NO if no message queue is
+ *         available.
  */
 - (BOOL)enqueueMessage:(EDOExecutorMessage *)message {
   __block BOOL messageEnqueued = NO;

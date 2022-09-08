@@ -30,9 +30,9 @@
 @end
 
 /**
- *  Adding forwardInvocation: and methodSignatureForSelector: to NSBlock so when _objc_msgForward
- *  is attempting to recover from the failure, we can capture the invocation to reconstruct the
- *  call stack.
+ * Adding forwardInvocation: and methodSignatureForSelector: to NSBlock so when _objc_msgForward
+ * is attempting to recover from the failure, we can capture the invocation to reconstruct the
+ * call stack.
  */
 @implementation NSBlock (EDOInvocation)
 

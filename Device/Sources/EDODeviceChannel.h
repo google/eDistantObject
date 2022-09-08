@@ -19,48 +19,48 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  @typedef EDODevicePacketReceivedHandler
- *  The type handlers handling how the device packet is received.
+ * @typedef EDODevicePacketReceivedHandler
+ * The type handlers handling how the device packet is received.
  *
- *  When the channel is closed, the handler is dispatched with both the @c data and @c error being
- *  nil. In the case of errors, the @c packet is nil and the @c error parameter holding the reason
- *  for failure.
+ * When the channel is closed, the handler is dispatched with both the @c data and @c error being
+ * nil. In the case of errors, the @c packet is nil and the @c error parameter holding the reason
+ * for failure.
  *
- *  @param packet The packet being received. The channel is closed when it's nil.
- *  @param error  The error when it fails to receive data.
+ * @param packet The packet being received. The channel is closed when it's nil.
+ * @param error  The error when it fails to receive data.
  */
 typedef void (^EDODevicePacketReceivedHandler)(NSDictionary<NSString *, id> *_Nullable packet,
                                                NSError *_Nullable error);
 
 /**
- *  @typedef EDODevicePacketSentHandler
- *  The type handlers handling after the packet is sent.
+ * @typedef EDODevicePacketSentHandler
+ * The type handlers handling after the packet is sent.
  *
- *  @param error The error object if the packet is failed to send.
+ * @param error The error object if the packet is failed to send.
  */
 typedef void (^EDODevicePacketSentHandler)(NSError *_Nullable error);
 
 /**
- *  Represents a channel of communication between a Mac process and usbmuxd.
+ * Represents a channel of communication between a Mac process and usbmuxd.
  **/
 @interface EDODeviceChannel : NSObject
 
 /**
- *  Creates a channel connected to usbmuxd. If any problem happens, @c nil will be returned and
- *  error details will be saved in @c error if not @c nil.
+ * Creates a channel connected to usbmuxd. If any problem happens, @c nil will be returned and
+ * error details will be saved in @c error if not @c nil.
  **/
 + (instancetype)channelWithError:(NSError *_Nullable *_Nullable)error;
 
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Releases the ownership of the socket descriptor and returns it as a dispatch I/O.
+ * Releases the ownership of the socket descriptor and returns it as a dispatch I/O.
  *
- *  After calling this, the underlying channel will be released and the device channel will not be
- *  available anymore. Usually it will be used after successfully sending a connect message to a
- *  port on an iOS device.
+ * After calling this, the underlying channel will be released and the device channel will not be
+ * available anymore. Usually it will be used after successfully sending a connect message to a
+ * port on an iOS device.
  *
- *  @return An instance of @c dispatch_io_t that's bound to underlying device socket.
+ * @return An instance of @c dispatch_io_t that's bound to underlying device socket.
  */
 - (dispatch_io_t)releaseAsDispatchIO;
 

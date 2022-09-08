@@ -136,8 +136,8 @@
 }
 
 /**
- *  Test that makes sure local block is resolved to its address, when it is decoded from the service
- *  which is different from the service it is encoded.
+ * Test that makes sure local block is resolved to its address, when it is decoded from the service
+ * which is different from the service it is encoded.
  */
 - (void)testBlockResolveToLocalAddress {
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];

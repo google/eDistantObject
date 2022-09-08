@@ -19,9 +19,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The helper class for the connected socket to retrieve its peer socket info.
+ * The helper class for the connected socket to retrieve its peer socket info.
  *
- *  @note This class supports both IPv4 and IPv6 addresses, but currently only IPv4 is used.
+ * @note This class supports both IPv4 and IPv6 addresses, but currently only IPv4 is used.
  */
 @interface EDOSocketPort : NSObject
 

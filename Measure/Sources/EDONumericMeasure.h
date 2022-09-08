@@ -19,13 +19,13 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The numerical measurement to record the minimum, maximum, and average values from a streaming
- *  input.
+ * The numerical measurement to record the minimum, maximum, and average values from a streaming
+ * input.
  *
- *  The measurement continues to read values in a streaming manner and the statistics are available
- *  after the measurement completes by calling -complete. Any reads of @c average, @c minimum,
- *  and @c maximum will throw an exception if the measurement has not yet completed. The write is
- *  thread-safe.
+ * The measurement continues to read values in a streaming manner and the statistics are available
+ * after the measurement completes by calling -complete. Any reads of @c average, @c minimum,
+ * and @c maximum will throw an exception if the measurement has not yet completed. The write is
+ * thread-safe.
  */
 @interface EDONumericMeasure : NSObject
 /** The average value, the default is 0.0. */
@@ -41,19 +41,19 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)measure;
 
 /**
- *  Adds a new value to calculate the measurement.
+ * Adds a new value to calculate the measurement.
  *
- *  @note If the measurement is completed, this becomes a no-op.
+ * @note If the measurement is completed, this becomes a no-op.
  *
- *  @param value The measurement value to be added.
+ * @param value The measurement value to be added.
  */
 - (void)addSingleValue:(double)value;
 
 /**
- *  Completes the current measurement. After invoking this method, all future writes will be
- *  discarded.
+ * Completes the current measurement. After invoking this method, all future writes will be
+ * discarded.
  *
- *  @return @c NO if the measurement has already completed, @c YES otherwise.
+ * @return @c NO if the measurement has already completed, @c YES otherwise.
  */
 - (BOOL)complete;
 

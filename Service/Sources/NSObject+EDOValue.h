@@ -22,11 +22,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSObject (EDOValue)
 
 /**
- *  Check if the type is a value type to pass by copy.
+ * Check if the type is a value type to pass by copy.
  *
- *  Override this property to return true if the object is passed by copy. By default, the built-in
- *  value types (NSValue, NSString, NSError, NSException) and the container types (NSArray, NSSet,
- *  NSDictionary) will be passed by value.
+ * Override this property to return true if the object is passed by copy. By default, the built-in
+ * value types (NSValue, NSString, NSError, NSException) and the container types (NSArray, NSSet,
+ * NSDictionary) will be passed by value.
  */
 @property(readonly, getter=edo_isEDOValueType) BOOL edoValueType;
 

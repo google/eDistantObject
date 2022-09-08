@@ -48,10 +48,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Unbox the value to save it to the given buffer.
+ * Unbox the value to save it to the given buffer.
  *
- *  @note   It will not retain nor release any hold object.
- *  @param  buffer The buffer to save the value.
+ * @note   It will not retain nor release any hold object.
+ * @param  buffer The buffer to save the value.
  */
 - (void)getValue:(void *)buffer;
 
@@ -71,13 +71,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)parameterForDoublePointerNullValue;
 
 /**
- *  Check if the double pointer is nil.
+ * Check if the double pointer is nil.
  *
- *  When passing down a pointer to an object, the value will be coerced into the object itself:
- *  a) if the value is nullBoxedValue, the original pointer is nil;
- *  b) if the value is nilBoxedValue, the original pointer points to an address that's nil.
- *  c) if the value is an object, the original pointer points to that address, and the address is
- *     reconstructed in the local memory space.
+ * When passing down a pointer to an object, the value will be coerced into the object itself:
+ * a) if the value is nullBoxedValue, the original pointer is nil;
+ * b) if the value is nilBoxedValue, the original pointer points to an address that's nil.
+ * c) if the value is an object, the original pointer points to that address, and the address is
+ *    reconstructed in the local memory space.
  */
 - (BOOL)isDoublePointerNullValue;
 

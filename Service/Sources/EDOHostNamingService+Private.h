@@ -21,16 +21,16 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  A category provides methods for eDO to manage information of running @c EDOHostService
- *  instances.
+ * A category provides methods for eDO to manage information of running @c EDOHostService
+ * instances.
  *
- *  @note eDO clients should only make any remote invocation of methods in this category.
+ * @note eDO clients should only make any remote invocation of methods in this category.
  */
 @interface EDOHostNamingService (Private)
 
 /**
- *  Adds a service port to track associated @c EDOHostService instance. Returns @c NO if a service
- *  port with the same name already exists.
+ * Adds a service port to track associated @c EDOHostService instance. Returns @c NO if a service
+ * port with the same name already exists.
  */
 - (BOOL)addServicePort:(EDOServicePort *)servicePort;
 

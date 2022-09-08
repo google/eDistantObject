@@ -27,20 +27,20 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Creates an EDOObjectReleaseRequest for EDOObjects.
+ * Creates an EDOObjectReleaseRequest for EDOObjects.
  *
- *  @param remoteAddress The remote address for the EDOObject that is going to be released.
+ * @param remoteAddress The remote address for the EDOObject that is going to be released.
  *
- *  @return An instance of EDOObjectReleaseRequest that removes the EDOObject from dictionary.
+ * @return An instance of EDOObjectReleaseRequest that removes the EDOObject from dictionary.
  */
 + (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress;
 
 /**
- *  Creates an EDOObjectReleaseRequest for weak EDOObjects.
+ * Creates an EDOObjectReleaseRequest for weak EDOObjects.
  *
- *  @param remoteAddress The remote address for the weak EDOObject that is going to be released.
+ * @param remoteAddress The remote address for the weak EDOObject that is going to be released.
  *
- *  @return An instance of EDOObjectReleaseRequest that removes the weak EDOObject from dictionary.
+ * @return An instance of EDOObjectReleaseRequest that removes the weak EDOObject from dictionary.
  */
 + (instancetype)requestWithWeakRemoteAddress:(EDOPointerType)remoteAddress;
 

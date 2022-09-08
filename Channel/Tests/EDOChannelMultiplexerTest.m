@@ -255,11 +255,11 @@
 }
 
 /**
- *  Gets a channel connecting to the multiplexer at the given port.
+ * Gets a channel connecting to the multiplexer at the given port.
  *
- *  @param port       The host port the multiplexer listens on.
- *  @param handShaked Whether to send the initial handshake data so the multiplexer can add it to
- *                    the channels pool.
+ * @param port       The host port the multiplexer listens on.
+ * @param handShaked Whether to send the initial handshake data so the multiplexer can add it to
+ *                   the channels pool.
  */
 - (id<EDOChannel>)channelWithPort:(EDOHostPort *)port handShaked:(BOOL)handShaked {
   UInt16 portNumber = port.port;

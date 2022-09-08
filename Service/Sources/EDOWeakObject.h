@@ -19,10 +19,10 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The EDOWeakObject wraps the weak object as an NSProxy. EDOWeakObject is weakly associated with
- *  the underlying object (weak object). For a weak object, users would use [object remoteWeak],
- *  which will wrap the object inside the EDOWeakObject and return the EDOWeakObject. NSProxy helps
- *  to monitor the case where remote object has been released yet being called by the other process.
+ * The EDOWeakObject wraps the weak object as an NSProxy. EDOWeakObject is weakly associated with
+ * the underlying object (weak object). For a weak object, users would use [object remoteWeak],
+ * which will wrap the object inside the EDOWeakObject and return the EDOWeakObject. NSProxy helps
+ * to monitor the case where remote object has been released yet being called by the other process.
  */
 @interface EDOWeakObject : NSProxy
 
@@ -32,9 +32,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Creates EDOWeakObject by wrapping the underlying weak object.
+ * Creates EDOWeakObject by wrapping the underlying weak object.
  *
- *  @param weakObject The underlying object that is weakly referenced.
+ * @param weakObject The underlying object that is weakly referenced.
  */
 - (instancetype)initWithWeakObject:(id)weakObject;
 

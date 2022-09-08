@@ -25,10 +25,10 @@
 #import "Service/Sources/NSObject+EDOValue.h"
 
 /**
- *  Change the implementation of -edo_parameterForTarget:service:hostPort: for the target class.
+ * Change the implementation of -edo_parameterForTarget:service:hostPort: for the target class.
  *
- *  @param targetClass    The class to apply.
- *  @param implementation The implementation to apply.
+ * @param targetClass    The class to apply.
+ * @param implementation The implementation to apply.
  */
 static void UpdateEDOParameterForTarget(Class targetClass, IMP implementation) {
   static SEL selector;

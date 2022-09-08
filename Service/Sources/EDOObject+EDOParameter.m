@@ -28,7 +28,7 @@
  *
  * @see -[NSObject edo_parameterForTarget:service:hostPort:]
  * @note Because EDOObject is an NSProxy, it doesn't inherit category methods from NSObject and
- *       needs to implement it.
+ *      needs to implement it.
  */
 - (EDOParameter *)edo_parameterForTarget:(EDOObject *)target
                                  service:(EDOHostService *)service

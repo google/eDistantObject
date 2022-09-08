@@ -29,7 +29,7 @@ NS_ERROR_ENUM(EDOChannelErrorDomain){
 FOUNDATION_EXPORT NSErrorUserInfoKey const EDOChannelFetchFailedCode;
 
 /**
- *  Key in userInfo, the value is a host port which the error generating channel
+ * Key in userInfo, the value is a host port which the error generating channel
  * that connects to it.
  */
 FOUNDATION_EXPORT NSErrorUserInfoKey const EDOChannelPortKey;

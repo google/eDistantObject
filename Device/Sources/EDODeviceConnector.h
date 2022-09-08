@@ -28,14 +28,14 @@ extern NSString *const EDODeviceSerialKey;
 extern NSString *const EDODeviceIDKey;
 
 /**
- *  This singleton class connects to the listen port of @c EDOHostService on physical iOS device
- *  from Mac.
+ * This singleton class connects to the listen port of @c EDOHostService on physical iOS device
+ * from Mac.
  *
- *  When fetching @c connectedDevices, the connector will implicitly connect to usbmuxd, and then
- *  return all connected device. Listening to
- *  @c EDODeviceDidAttachNotification/EDODeviceDidDetachNotification
- *  will work after connector starts listening. By calling connectToDevice:onPort:error:, a channel
- *  connected to the listen port in the iOS device will be created.
+ * When fetching @c connectedDevices, the connector will implicitly connect to usbmuxd, and then
+ * return all connected device. Listening to
+ * @c EDODeviceDidAttachNotification/EDODeviceDidDetachNotification
+ * will work after connector starts listening. By calling connectToDevice:onPort:error:, a channel
+ * connected to the listen port in the iOS device will be created.
  */
 @interface EDODeviceConnector : NSObject
 
@@ -47,15 +47,15 @@ extern NSString *const EDODeviceIDKey;
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Synchronously connects to a given @c deviceSerial and @c port listening on the connected device
- *  of that device serial.
+ * Synchronously connects to a given @c deviceSerial and @c port listening on the connected device
+ * of that device serial.
  *
- *  @param deviceSerial The device serial string of the device to connect.
- *  @param port         The listen port number running on the target device.
- *  @param error        The out error indicating failures of connect to the listen port.
+ * @param deviceSerial The device serial string of the device to connect.
+ * @param port         The listen port number running on the target device.
+ * @param error        The out error indicating failures of connect to the listen port.
  *
- *  @return The dispatch I/O channel connected to the target device and ready to use. @c NULL if
- *          any error occurred during the connection.
+ * @return The dispatch I/O channel connected to the target device and ready to use. @c NULL if
+ *         any error occurred during the connection.
  */
 - (dispatch_io_t)connectToDevice:(NSString *)deviceSerial
                           onPort:(UInt16)port

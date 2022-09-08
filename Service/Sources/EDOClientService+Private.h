@@ -50,45 +50,45 @@ NS_ASSUME_NONNULL_BEGIN
 + (id)cachedEDOFromObjectUpdateIfNeeded:(id)object;
 
 /**
- *  Synchronously sends the request and waits for the response with the executor to process
- *  any incoming requests.
+ * Synchronously sends the request and waits for the response with the executor to process
+ * any incoming requests.
  *
- *  @note When sending a request, the executor will starts to process any incoming requests, this
- *        makes it possible to process intercepted requests, for example, the nested remote
- *        invocations.
+ * @note When sending a request, the executor will starts to process any incoming requests, this
+ *       makes it possible to process intercepted requests, for example, the nested remote
+ *       invocations.
  *
- *  @param request  The request to be sent.
- *  @param port     The service host port.
- *  @param executor The executor to run and process the incoming requests.
- *  @throw NSInternalInconsistencyException if it fails to communicate with the service.
+ * @param request  The request to be sent.
+ * @param port     The service host port.
+ * @param executor The executor to run and process the incoming requests.
+ * @throw NSInternalInconsistencyException if it fails to communicate with the service.
  *
- *  @return The response from the service.
+ * @return The response from the service.
  */
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(EDOHostPort *)port
                                   withExecutor:(EDOExecutor *)executor;
 
 /**
- *  Synchronously sends the request and waits for the response.
+ * Synchronously sends the request and waits for the response.
  *
- *  @param request The request to be sent.
- *  @param port    The service host port.
- *  @throw NSInternalInconsistencyException if it fails to communicate with the service.
+ * @param request The request to be sent.
+ * @param port    The service host port.
+ * @throw NSInternalInconsistencyException if it fails to communicate with the service.
  *
- *  @return The response from the service.
+ * @return The response from the service.
  */
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(EDOHostPort *)port;
 
 /**
- *  Unwraps an @c object to a local object if it comes from the local process.
+ * Unwraps an @c object to a local object if it comes from the local process.
  *
- *  @note When nil is given, this is a no-op. This can happen when it is used to unwrap
- *        parameters of a method which may accept nil as an input argument.
+ * @note When nil is given, this is a no-op. This can happen when it is used to unwrap
+ *       parameters of a method which may accept nil as an input argument.
  *
- *  @param  object The object to be unwrapped.
- *  @return The unwrapped local object if the given object is an EDOObject and it comes from the
- *          current process; otherwise, the original object is returned.
+ * @param  object The object to be unwrapped.
+ * @return The unwrapped local object if the given object is an EDOObject and it comes from the
+ *         current process; otherwise, the original object is returned.
  */
 + (nullable id)unwrappedObjectFromObject:(nullable id)object;
 

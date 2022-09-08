@@ -289,9 +289,9 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 #if TARGET_IPHONE_SIMULATOR && !TARGET_OS_IPHONE
 /**
- *  Verifies the temporary host keeps being reused until the end of an external autorelease pool.
- *  TODO(b/224669049): this test fails in guitar job of edo device testing. Not reproducible with
- *                     local runs or manual MH runs. Should re-enable when we find the cause.
+ * Verifies the temporary host keeps being reused until the end of an external autorelease pool.
+ * TODO(b/224669049): this test fails in guitar job of edo device testing. Not reproducible with
+ *                    local runs or manual MH runs. Should re-enable when we find the cause.
  */
 - (void)testTemporaryServiceIsReleasedLazily {
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);

@@ -25,30 +25,30 @@
 @property(nonatomic, readonly) EDOTestDummy *remoteRootObject;
 
 /**
- *  Launches the application with the @c port serving @c EDOHostService
+ * Launches the application with the @c port serving @c EDOHostService
  *
- *  @param port  The port to serve @c EDOHostService.
- *  @param value The value to initialize the root object @c EDOTestDummy.
- *  @return The instance of the launched XCUIApplication, which can be used to terminate or
- *          query the status of the running application.
+ * @param port  The port to serve @c EDOHostService.
+ * @param value The value to initialize the root object @c EDOTestDummy.
+ * @return The instance of the launched XCUIApplication, which can be used to terminate or
+ *         query the status of the running application.
  */
 - (XCUIApplication *)launchApplicationWithPort:(int)port initValue:(int)value;
 
 /**
- *  Launches the application with the @c serviceName of an @c EDOHostService.
+ * Launches the application with the @c serviceName of an @c EDOHostService.
  *
- *  @param serviceName  The service name of @c EDOHostService to be started.
- *  @param value        The value to initialize the root object @c EDOTestDummy.
- *  @return The instance of the launched XCUIApplication, which can be used to terminate or
- *          query the status of the running application.
+ * @param serviceName  The service name of @c EDOHostService to be started.
+ * @param value        The value to initialize the root object @c EDOTestDummy.
+ * @return The instance of the launched XCUIApplication, which can be used to terminate or
+ *         query the status of the running application.
  */
 - (XCUIApplication *)launchApplicationWithServiceName:(NSString *)serviceName initValue:(int)value;
 
 /**
- *  Asserts the @c block throws an exception that contains @c errorMessage.
+ * Asserts the @c block throws an exception that contains @c errorMessage.
  *
- *  @param block        The execution block that is expected to throw an exception.
- *  @param errorMessage The expected substring of the exception message.
+ * @param block        The execution block that is expected to throw an exception.
+ * @param errorMessage The expected substring of the exception message.
  */
 - (void)assertBlock:(void (^)(void))block throwsExceptionContaining:(NSString *)errorMessage;
 

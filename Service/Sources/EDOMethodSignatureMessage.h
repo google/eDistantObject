@@ -27,12 +27,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Create a request with the given class and selector.
+ * Create a request with the given class and selector.
  *
- *  @param object   The pointer to the object.
- *  @param port     The service port to validate whether the underlying object are for the
- *                  same service.
- *  @param selector The selector.
+ * @param object   The pointer to the object.
+ * @param port     The service port to validate whether the underlying object are for the
+ *                 same service.
+ * @param selector The selector.
  */
 + (instancetype)requestWithObject:(EDOPointerType)object
                              port:(EDOServicePort *_Nullable)port

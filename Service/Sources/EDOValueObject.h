@@ -21,8 +21,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The proxy object for @c EDOObject to implement by-value behavior. A remote invocation using
- *  @c EDOValueObject as param or return value will have pass-by-value/return-by-value behavior.
+ * The proxy object for @c EDOObject to implement by-value behavior. A remote invocation using
+ * @c EDOValueObject as param or return value will have pass-by-value/return-by-value behavior.
  */
 @interface EDOValueObject : NSProxy
 

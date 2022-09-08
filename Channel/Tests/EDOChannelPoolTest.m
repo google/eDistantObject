@@ -111,8 +111,8 @@
 }
 
 /**
- *  Tests register a dummy service name in the app process, and verifies that the host channel can
- *  receive test message from the app client channel.
+ * Tests register a dummy service name in the app process, and verifies that the host channel can
+ * receive test message from the app client channel.
  */
 - (void)testConnectChannelWithServiceName {
   UInt16 serviceConnectionPort = EDOChannelPool.sharedChannelPool.serviceConnectionPort;

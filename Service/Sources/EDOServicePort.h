@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class EDOHostPort;
 
 /**
- *  The port information of a @c EDOHostService.
+ * The port information of a @c EDOHostService.
  */
 @interface EDOServicePort : NSObject <NSSecureCoding>
 
@@ -39,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)match:(EDOServicePort *)otherPort;
 
 /**
- *  Creates an instance with the given port number and service name.
+ * Creates an instance with the given port number and service name.
  */
 + (instancetype)servicePortWithPort:(UInt16)port serviceName:(NSString *_Nullable)serviceName;
 

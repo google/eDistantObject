@@ -23,10 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 typedef int64_t EDOPointerType;
 
 /**
- *  The internal use to create a EDOObject.
+ * The internal use to create a EDOObject.
  *
- *  The EDOObject is an opaque object that user doesn't need to be aware of its existence. User
- *  will not directly create any EDOObject.
+ * The EDOObject is an opaque object that user doesn't need to be aware of its existence. User
+ * will not directly create any EDOObject.
  */
 @interface EDOObject (Private)
 
@@ -56,17 +56,17 @@ typedef int64_t EDOPointerType;
 + (EDOObject *)edo_remoteProxyFromUnderlyingObject:(id)object withPort:(EDOServicePort *)port;
 
 /**
- *  The method to forward invocation.
+ * The method to forward invocation.
  *
- *  @note The object invocation has the first two arguments being the object and the selector,
- *        whereas the block invocation only has the first argument being the block, and the rest
- *        of arguments follow. Because we cannot tell if the invocation is from a block or an
- *        object, the selector received from the @c invocation object may or may not be valid
- *        depending on the type of invocation. The @c selector is thus passed explicitly here.
- *  @param  invocation    The invocation to forward.
- *  @param  selector      The selector to be sent. @c nil if it forwards a block invocation.
- *  @param  returnByValue If @c YES, the invocation will return the object by value instead
- *                        of by reference.
+ * @note The object invocation has the first two arguments being the object and the selector,
+ *       whereas the block invocation only has the first argument being the block, and the rest
+ *       of arguments follow. Because we cannot tell if the invocation is from a block or an
+ *       object, the selector received from the @c invocation object may or may not be valid
+ *       depending on the type of invocation. The @c selector is thus passed explicitly here.
+ * @param  invocation    The invocation to forward.
+ * @param  selector      The selector to be sent. @c nil if it forwards a block invocation.
+ * @param  returnByValue If @c YES, the invocation will return the object by value instead
+ *                       of by reference.
  */
 - (void)edo_forwardInvocation:(NSInvocation *)invocation
                      selector:(SEL _Nullable)selector

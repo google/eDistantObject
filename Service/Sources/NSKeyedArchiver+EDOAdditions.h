@@ -22,10 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSKeyedArchiver (EDOAdditions)
 
 /**
- *  Returns an @c NSData object containing the given encoded @c object.
+ * Returns an @c NSData object containing the given encoded @c object.
  *
- *  @param object The object to be encoded.
- *  @return The @c NSData object containing the encoded @c object.
+ * @param object The object to be encoded.
+ * @return The @c NSData object containing the encoded @c object.
  */
 + (NSData *)edo_archivedDataWithObject:(id)object;
 

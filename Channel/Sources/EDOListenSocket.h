@@ -21,11 +21,11 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The socket that listens on the given port.
+ * The socket that listens on the given port.
  *
- *  It keeps track of the associated socket descriptor like @c EDOSocket, but it doesn't hold its
- *  lifecycle as it will create a dispatch source to manage it. The block will be dispatched when
- *  there is an incoming connection.
+ * It keeps track of the associated socket descriptor like @c EDOSocket, but it doesn't hold its
+ * lifecycle as it will create a dispatch source to manage it. The block will be dispatched when
+ * there is an incoming connection.
  */
 @interface EDOListenSocket : EDOSocket
 
@@ -37,14 +37,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)releaseSocket NS_UNAVAILABLE;
 
 /**
- *  Create a listen socket.
+ * Create a listen socket.
  *
- *  @param socketFD The already created and bound socket file descriptor.
- *  @param block    The block to be dispatched when there is an incoming connection.
+ * @param socketFD The already created and bound socket file descriptor.
+ * @param block    The block to be dispatched when there is an incoming connection.
  *
- *  @return An instance of @c EDOListenSocket.
- *  @remark The block will be dispatched to its internal serial queue. Blocking it will suspend the
- *          following requests to be proccessed.
+ * @return An instance of @c EDOListenSocket.
+ * @remark The block will be dispatched to its internal serial queue. Blocking it will suspend the
+ *         following requests to be proccessed.
  */
 + (EDOListenSocket *_Nullable)listenSocketWithSocket:(dispatch_fd_t)socketFD
                                       connectedBlock:(EDOSocketConnectedBlock)block;

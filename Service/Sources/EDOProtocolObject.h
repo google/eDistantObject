@@ -19,7 +19,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  EDOProtocolObject encodes and decodes a protocol to be transferred within a single service
+ * EDOProtocolObject encodes and decodes a protocol to be transferred within a single service
  */
 @interface EDOProtocolObject : NSObject <NSSecureCoding>
 
@@ -35,8 +35,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithProtocol:(Protocol *)protocol NS_DESIGNATED_INITIALIZER;
 
 /**
- *  @remark init is not an available initializer. Use the <b>EarlGrey</b> macro
- *  to start an interaction.
+ * @remark init is not an available initializer. Use the <b>EarlGrey</b> macro
+ * to start an interaction.
  */
 - (instancetype)init NS_UNAVAILABLE;
 

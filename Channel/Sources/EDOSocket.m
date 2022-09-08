@@ -30,12 +30,12 @@ static EDOSocketConnectedBlock gNoOpHandlerBlock = ^(EDOSocket *socket, NSError 
 
 #pragma mark - Socket help functions
 /**
- *  Create a non-block socket.
+ * Create a non-block socket.
  *
- *  @param errNo the out parameter when it errors.
+ * @param errNo the out parameter when it errors.
  *
- *  @return -1, if fails to create and @c errNo contains @c errno value;
- *          the socket file descriptor, otherwise.
+ * @return -1, if fails to create and @c errNo contains @c errno value;
+ *         the socket file descriptor, otherwise.
  */
 static dispatch_fd_t edo_CreateSocket(int *errNo) {
   NSCAssert(errNo, @"errNo cannot be nil");

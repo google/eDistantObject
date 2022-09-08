@@ -126,11 +126,11 @@ typedef EDOTestDummy * (^EDOMultiTypesHandler)(EDOTestDummyStruct, int, id, EDOT
 - (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray *)value;
 
 /**
- *  Gets the class name for the given object reference.
+ * Gets the class name for the given object reference.
  *
- *  @param objRef The reference to an object.
- *  @return @c nil if objRef is @c nil; @"" if *objRef is @c nil; otherwise the
- *          class name of *objRef.
+ * @param objRef The reference to an object.
+ * @return @c nil if objRef is @c nil; @"" if *objRef is @c nil; otherwise the
+ *         class name of *objRef.
  */
 - (NSString *)returnClassNameWithObjectRef:(id *)objRef;
 

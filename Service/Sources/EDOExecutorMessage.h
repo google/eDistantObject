@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class EDOServiceResponse;
 
 /**
- *  The message being sent to the EDOExecutor to process.
+ * The message being sent to the EDOExecutor to process.
  */
 @interface EDOExecutorMessage : NSObject
 

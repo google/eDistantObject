@@ -34,11 +34,11 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 /**
- *  The class response for the class request.
+ * The class response for the class request.
  *
- *  @note Both the object and class request will return a object response as both the object and
- *        class is an object. The class response will return the meta class object and the object
- *        itself points to a class object.
+ * @note Both the object and class request will return a object response as both the object and
+ *       class is an object. The class response will return the meta class object and the object
+ *       itself points to a class object.
  */
 @interface EDOClassResponse : EDOObjectResponse
 @end

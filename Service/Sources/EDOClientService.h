@@ -30,18 +30,18 @@ extern "C" {
 typedef void (^EDOClientErrorHandler)(NSError *_Nonnull);
 
 /**
- *  Sets the error handler for the client, and returns the error handler that is previously set for
- *  the client. The procedure is thread-safe.
+ * Sets the error handler for the client, and returns the error handler that is previously set for
+ * the client. The procedure is thread-safe.
  *
- *  The handler will be invoked if there is an error when sending a request. The default handler
- *  throws an EDOServiceGenericException for any reported error. The exception's user info contains
- *  the entry EDOUnderlyingErrorKey that embeds the @c NSError object.
+ * The handler will be invoked if there is an error when sending a request. The default handler
+ * throws an EDOServiceGenericException for any reported error. The exception's user info contains
+ * the entry EDOUnderlyingErrorKey that embeds the @c NSError object.
  *
- *  @param errorHandler The error handler to be used for the client. If it's @c nil, the default
- *                      handler will be used.
+ * @param errorHandler The error handler to be used for the client. If it's @c nil, the default
+ *                     handler will be used.
  *
- *  @return The old error handler that is set for the client previously, or the default handler
- *          if it get called the first time.
+ * @return The old error handler that is set for the client previously, or the default handler
+ *         if it get called the first time.
  */
 EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable errorHandler);
 
@@ -50,27 +50,27 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
 #endif
 
 /**
- *  The EDOClientService manages the communication to the remote objects in remote process.
+ * The EDOClientService manages the communication to the remote objects in remote process.
  *
- *  The service manages the distant objects fetched from remote process. It provides API to make
- *  remote invocation to a @c EDOHostService running in the remote process.
+ * The service manages the distant objects fetched from remote process. It provides API to make
+ * remote invocation to a @c EDOHostService running in the remote process.
  */
 @interface EDOClientService<ObjectType> : NSObject
 
 /**
- *  Gets the root object on the host port.
+ * Gets the root object on the host port.
  *
- *  @param hostPort The host port the service is running on.
- *  @return The remote root object.
+ * @param hostPort The host port the service is running on.
+ * @return The remote root object.
  */
 + (ObjectType)rootObjectWithHostPort:(EDOHostPort *)hostPort;
 
 /**
- *  Gets the remote class object on the host port.
+ * Gets the remote class object on the host port.
  *
- *  @param className The class name.
- *  @param hostPort   The host port the service is running on.
- *  @return The remote @c Class object.
+ * @param className The class name.
+ * @param hostPort   The host port the service is running on.
+ * @return The remote @c Class object.
  */
 + (nullable Class)classObjectWithName:(NSString *)className hostPort:(EDOHostPort *)hostPort;
 
@@ -96,10 +96,10 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
 @interface EDOClientService (Device)
 
 /**
- *  Fetches the naming service remote instance running on the physical device with given device
- *  @c serial synchronously.
+ * Fetches the naming service remote instance running on the physical device with given device
+ * @c serial synchronously.
  *
- *  @note This is used to get the service's listen port on the host side by service name.
+ * @note This is used to get the service's listen port on the host side by service name.
  */
 + (EDOHostNamingService *)namingServiceWithDeviceSerial:(NSString *)serial
                                                   error:(NSError *_Nullable *_Nullable)error;
@@ -109,24 +109,24 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
 NS_ASSUME_NONNULL_END
 
 /**
- *  Stub the class implementation so it can resolve symbol lookup errors for the class methods.
+ * Stub the class implementation so it can resolve symbol lookup errors for the class methods.
  *
- *  The linker can't resolve class symbols when it compiles the class method statically. This macro
- *  helps to generate the stub implementation where it forwards the class method to the remote
- *  class object.
+ * The linker can't resolve class symbols when it compiles the class method statically. This macro
+ * helps to generate the stub implementation where it forwards the class method to the remote
+ * class object.
  *
- *  @note   This is generally not encouraged because this could cause retain/release imbalance
- *          if not used properly. For example, custom ns_returns_retained will not be
- *          captured at runtime and may lead to a memory crash. This is useful if only the class
- *          methods are used and any method from the +alloc, +new, +copy, and mutableCopy methods
- *          families are not used.
+ * @note   This is generally not encouraged because this could cause retain/release imbalance
+ *         if not used properly. For example, custom ns_returns_retained will not be
+ *         captured at runtime and may lead to a memory crash. This is useful if only the class
+ *         methods are used and any method from the +alloc, +new, +copy, and mutableCopy methods
+ *         families are not used.
  *
- *  @note   +allocWithZone: is forwarded. +alloc is not forwarded as it calls into the forwarded
- *          method +allocWithZone: for historical reasons.
- *          https://developer.apple.com/documentation/objectivec/nsobject/1571958-alloc?language=objc
+ * @note   +allocWithZone: is forwarded. +alloc is not forwarded as it calls into the forwarded
+ *         method +allocWithZone: for historical reasons.
+ *         https://developer.apple.com/documentation/objectivec/nsobject/1571958-alloc?language=objc
  *
- *  @param  __class  The class literal.
- *  @param  __port   The port that the service listens on.
+ * @param  __class  The class literal.
+ * @param  __port   The port that the service listens on.
  */
 // TODO(haowoo): Cache the class object when we can know when the service is invalid.
 // Refer to https://clang.llvm.org/docs/DiagnosticsReference.html for information about the
@@ -156,16 +156,16 @@ _Pragma("clang diagnostic pop")
 // clang-format on
 
 /**
- *  Fetch the remote class type.
+ * Fetch the remote class type.
  *
- *  When the stub is not used and the reference to the remote class is needed, this method can do
- *  the type checking and bypass the symbol lookup.
+ * When the stub is not used and the reference to the remote class is needed, this method can do
+ * the type checking and bypass the symbol lookup.
  *
- *  @note   The explicit conversion is used to have the compiler check the spelling because it
- *          converts the class literal into a NSString.
+ * @note   The explicit conversion is used to have the compiler check the spelling because it
+ *         converts the class literal into a NSString.
  *
- *  @param  __class The class literal
- *  @param  __port  The port that the service listens on.
+ * @param  __class The class literal
+ * @param  __port  The port that the service listens on.
  */
 #define EDO_REMOTE_CLASS(__class, __port) \
   ((Class)(__class *)[EDOClientService classObjectWithName:@"" #__class port:(__port)])

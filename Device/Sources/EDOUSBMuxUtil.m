@@ -187,13 +187,13 @@ const uint32_t kEDOPacketMaxPayloadSize = UINT32_MAX - (uint32_t)sizeof(EDOUSBMu
 #pragma mark - Private
 
 /**
- *  Creates a packet with given @c messageType and @c payload.
+ * Creates a packet with given @c messageType and @c payload.
  *
- *  @param messageType The type of message usbmuxd accepts. See @c EDOUSBMuxUtil.h for all
- *                     available types.
- *  @param payload     The payload sent to usbmuxd. The content depends on the type of message.
+ * @param messageType The type of message usbmuxd accepts. See @c EDOUSBMuxUtil.h for all
+ *                    available types.
+ * @param payload     The payload sent to usbmuxd. The content depends on the type of message.
  *
- *  @return The data of the packet to send to usbmuxd.
+ * @return The data of the packet to send to usbmuxd.
  */
 + (NSDictionary *)packetDictionaryWithMessageType:(NSString *)messageType
                                           payload:(NSDictionary<NSString *, id> *)payload {

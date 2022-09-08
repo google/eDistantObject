@@ -20,15 +20,15 @@ extern "C" {
 #endif
 
 /**
- *  Fetches the method signature of @c sel of @c target. If @c target doesn't
- *  have instance method for @c sel but forwards invocations through
- *  -forwardingTargetForSelector:, this function will also traverse along the
- *  forwarding chain.
+ * Fetches the method signature of @c sel of @c target. If @c target doesn't
+ * have instance method for @c sel but forwards invocations through
+ * -forwardingTargetForSelector:, this function will also traverse along the
+ * forwarding chain.
  *
- *  @param target The object to fetch the method signature.
- *  @param sel   The selector of the method.
+ * @param target The object to fetch the method signature.
+ * @param sel   The selector of the method.
  *
- *  @return The NSMethodSignature instance that describes the method.
+ * @return The NSMethodSignature instance that describes the method.
  */
 NSMethodSignature *EDOGetMethodSignature(id target, SEL sel);
 

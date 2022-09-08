@@ -27,8 +27,8 @@ static NSString *const kEDOBlockObjectCoderSignatureKey = @"signature";
 static NSString *const kEDOBlockObjectCoderHasStretKey = @"hasStret";
 
 /**
- *  The block structure defined in ABI here:
- *  https://clang.llvm.org/docs/Block-ABI-Apple.html#id2
+ * The block structure defined in ABI here:
+ * https://clang.llvm.org/docs/Block-ABI-Apple.html#id2
  */
 
 struct EDOBlockHeader;

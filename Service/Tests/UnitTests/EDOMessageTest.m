@@ -45,10 +45,10 @@
 }
 
 /**
- *  Check if the @c class implements +supportsSecureCoding on its own.
+ * Check if the @c class implements +supportsSecureCoding on its own.
  *
- *  @note @c NSSecureCoding requires the subclasses also implements +supportsSecureCoding, so it
- *  needs to manually to look up the methods in the class itself.
+ * @note @c NSSecureCoding requires the subclasses also implements +supportsSecureCoding, so it
+ * needs to manually to look up the methods in the class itself.
  */
 - (BOOL)implementsSecureCoding:(Class)class {
   unsigned int methodCount = 0;

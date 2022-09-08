@@ -23,8 +23,8 @@ typedef void (^EDOBroadcastHandler)(NSDictionary<NSString*, id>*, NSError* _Null
 @interface EDODeviceDetector : NSObject
 
 /**
- *  Starts listening the broadcast of device events with a callback handler. Returns @YES if
- *  connects to usbmuxd successfully.
+ * Starts listening the broadcast of device events with a callback handler. Returns @YES if
+ * connects to usbmuxd successfully.
  */
 - (BOOL)listenToBroadcastWithError:(NSError* _Nullable* _Nullable)error
                     receiveHandler:(EDOBroadcastHandler)receiveHandler;

@@ -22,12 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol EDOChannel;
 
 /**
- *  The @c EDOChannelPool manages reusable channels that are already connected and ready to send and
- *  receive data.
+ * The @c EDOChannelPool manages reusable channels that are already connected and ready to send and
+ * receive data.
  *
- *  @c EDOSocketChannel objects that are available can be stored here for future reuse. Reuse will
- *  help reduce the amount to time spent rebuilding and reestablishing a connection. Channels are
- *  clustered with the port they are connected to.
+ * @c EDOSocketChannel objects that are available can be stored here for future reuse. Reuse will
+ * help reduce the amount to time spent rebuilding and reestablishing a connection. Channels are
+ * clustered with the port they are connected to.
  */
 @interface EDOChannelPool : NSObject
 
@@ -35,36 +35,36 @@ NS_ASSUME_NONNULL_BEGIN
 @property(class, readonly) EDOChannelPool *sharedChannelPool;
 
 /**
- *  A port for clients to accept connection, and receive host name to register as service. This port
- *  will lazily create a listen socket when accessed.
+ * A port for clients to accept connection, and receive host name to register as service. This port
+ * will lazily create a listen socket when accessed.
  */
 @property(readonly) UInt16 serviceConnectionPort;
 
 /**
- *  Fetches an already-connected channel from the pool, keyed by the host @c port.
+ * Fetches an already-connected channel from the pool, keyed by the host @c port.
  *
- *  @note If there is no channel for the host port, it will attempt to create one by connecting
- *        to the host. In case of real devices, it waits for the remote to be connected because the
- *        device cannot initiate the connection to the Mac host via usbmuxd. It will time out if
- *        there is no connection set up and return @c nil.
+ * @note If there is no channel for the host port, it will attempt to create one by connecting
+ *       to the host. In case of real devices, it waits for the remote to be connected because the
+ *       device cannot initiate the connection to the Mac host via usbmuxd. It will time out if
+ *       there is no connection set up and return @c nil.
  *
- *  @return The channel that's ready to send and receive data, or @c nil if there is an error.
+ * @return The channel that's ready to send and receive data, or @c nil if there is an error.
  */
 - (nullable id<EDOChannel>)channelWithPort:(EDOHostPort *)port
                                      error:(NSError *_Nullable *_Nullable)error;
 
 /**
- *  Adds the @c channel to the pool.
+ * Adds the @c channel to the pool.
  *
- *  @param channel The channel being added to be reused.
- *  @param port    The port the channel connects to as the key.
+ * @param channel The channel being added to be reused.
+ * @param port    The port the channel connects to as the key.
  */
 - (void)addChannel:(id<EDOChannel>)channel forPort:(EDOHostPort *)port;
 
 /**
- *  Removes all the channels by the given host port.
+ * Removes all the channels by the given host port.
  *
- *  @note This should be called when the service the host port belongs to is closed.
+ * @note This should be called when the service the host port belongs to is closed.
  */
 - (void)removeChannelsWithPort:(EDOHostPort *)port;
 

@@ -50,7 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  * @param object   The object to be wrapped as a remote object.
  * @param hostPort The port that the remote object connects to. If nil, the default host port from
- *                 the service will be used.
+ *                the service will be used.
  * @return The remote object that proxies the given object.
  */
 - (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(nullable EDOHostPort *)hostPort;

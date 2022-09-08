@@ -129,11 +129,11 @@
 #pragma mark - Helper methods
 
 /**
- *  Creates a socket that listens on any available port.
+ * Creates a socket that listens on any available port.
  *
- *  @param isIPV4 YES if an IPV4 socket is created, otherwise IPV6.
+ * @param isIPV4 YES if an IPV4 socket is created, otherwise IPV6.
  *
- *  @return The listening socket descriptor.
+ * @return The listening socket descriptor.
  */
 - (dispatch_fd_t)createListenSocket:(BOOL)isIPV4 {
   dispatch_fd_t fd = socket(isIPV4 ? AF_INET : AF_INET6, SOCK_STREAM, 0);
@@ -185,9 +185,9 @@
 }
 
 /**
- *  Creates a Unix domain socket under the temporary folder.
+ * Creates a Unix domain socket under the temporary folder.
  *
- *  @return The path that the socket is listening to.
+ * @return The path that the socket is listening to.
  */
 - (NSString *)createUnixDomainSocket {
   NSString *UUID = [NSUUID UUID].UUIDString;

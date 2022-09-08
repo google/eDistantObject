@@ -32,17 +32,17 @@ typedef EDOParameter EDOBoxedValueType;
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Creates an invocation request.
+ * Creates an invocation request.
  *
- *  @param target        The remote target's plain address. The caller needs to make sure the
- *                       address is valid.
- *  @param selector      The selector that is sent to the @c target. @c nil if the target is a
- *                       block.
- *  @param arguments     The array of arguments to send.
- *  @param hostPort      The host port the request is sent to.
- *  @param returnByValue @c YES if the invocation should return the object by value instead of by
- *                       reference (for value-types that are already return-by-value by default,
- *                       this will be a no-op).
+ * @param target        The remote target's plain address. The caller needs to make sure the
+ *                      address is valid.
+ * @param selector      The selector that is sent to the @c target. @c nil if the target is a
+ *                      block.
+ * @param arguments     The array of arguments to send.
+ * @param hostPort      The host port the request is sent to.
+ * @param returnByValue @c YES if the invocation should return the object by value instead of by
+ *                      reference (for value-types that are already return-by-value by default,
+ *                      this will be a no-op).
  */
 + (instancetype)requestWithTarget:(EDOPointerType)target
                          selector:(SEL _Nullable)selector
@@ -51,18 +51,18 @@ typedef EDOParameter EDOBoxedValueType;
                     returnByValue:(BOOL)returnByValue;
 
 /**
- *  Creates an invocation request from an @c invocation on an EDOObject.
+ * Creates an invocation request from an @c invocation on an EDOObject.
  *
- *  @param invocation    The invocation.
- *  @param target        The EDOObject.
- *  @param selector      The selector to be sent. When this is nil, the case for a block invocation,
- *                       the index of the actual arguments starts at 1; otherwise the case for an
- *                       object invocation, it starts at 2.
- *  @param returnByValue @c YES if the invocation should return the object by value instead of by
- *                       reference.
- *  @param service       The host service used to wrap the arguments in the @c invocation if any.
+ * @param invocation    The invocation.
+ * @param target        The EDOObject.
+ * @param selector      The selector to be sent. When this is nil, the case for a block invocation,
+ *                      the index of the actual arguments starts at 1; otherwise the case for an
+ *                      object invocation, it starts at 2.
+ * @param returnByValue @c YES if the invocation should return the object by value instead of by
+ *                      reference.
+ * @param service       The host service used to wrap the arguments in the @c invocation if any.
  *
- *  @return An instance of EDOInvocationRequest.
+ * @return An instance of EDOInvocationRequest.
  */
 + (instancetype)requestWithInvocation:(NSInvocation *)invocation
                                target:(EDOObject *)target
@@ -82,24 +82,24 @@ typedef EDOParameter EDOBoxedValueType;
 /** The boxed values for out parameter. */
 @property(nonatomic, readonly, nullable) NSArray<EDOBoxedValueType *> *outValues;
 /**
- *  Whether the returned object is retained.
+ * Whether the returned object is retained.
  *
- *  With ARC, -retain, -release, and -autorelease, or equivalent methods will be inserted at
- *  compile time to ensure the correct ownership, according to Objective-C memory conventions,
- *  however it doesn't guarantee that the retain count will always balance, for example,
- *  NS_RETURNS_RETAINED will instruct ARC to explicitly transfer the ownership without adding
- *  an extra -retain. ARC reserves the right to remove any -retain/-release if safe in the context
- *  of a source file. As eDO builds the remote invocation using @c NSInvocation, this context will
- *  be lost and ARC treats the memory as what @c NSInvocation states, that is, the annotation gets
- *  lost and all the returns are already balanced. However the returned object will still be
- *  retained if the method family is one of +alloc, +new, -mutableCopy, or -copy. ARC will balance
- *  this by inserting an extra release on the caller, and the object returned will have an extra
- *  retain count, thus we need to:
- *   1) insert an extra retain on the caller;
- *   2) insert an extra release on the receiver,
- *  to ensure that the retain count is balanced.
+ * With ARC, -retain, -release, and -autorelease, or equivalent methods will be inserted at
+ * compile time to ensure the correct ownership, according to Objective-C memory conventions,
+ * however it doesn't guarantee that the retain count will always balance, for example,
+ * NS_RETURNS_RETAINED will instruct ARC to explicitly transfer the ownership without adding
+ * an extra -retain. ARC reserves the right to remove any -retain/-release if safe in the context
+ * of a source file. As eDO builds the remote invocation using @c NSInvocation, this context will
+ * be lost and ARC treats the memory as what @c NSInvocation states, that is, the annotation gets
+ * lost and all the returns are already balanced. However the returned object will still be
+ * retained if the method family is one of +alloc, +new, -mutableCopy, or -copy. ARC will balance
+ * this by inserting an extra release on the caller, and the object returned will have an extra
+ * retain count, thus we need to:
+ *  1) insert an extra retain on the caller;
+ *  2) insert an extra release on the receiver,
+ * to ensure that the retain count is balanced.
  *
- *  For more details see
+ * For more details see
  * [ARC
  * documentation](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html),
  * [the method

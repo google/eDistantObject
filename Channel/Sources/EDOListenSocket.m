@@ -107,12 +107,12 @@ static char const *gListenSocketQueueLabel = "com.google.edo.socketListen";
 }
 
 /**
- *  Accept the incoming socket fd.
+ * Accept the incoming socket fd.
  *
- *  The socket fd is wrapped in a @c EDOSocket to be used for creating the socket connection
- *  object.
+ * The socket fd is wrapped in a @c EDOSocket to be used for creating the socket connection
+ * object.
  *
- *  @param fd The incoming socket descriptor.
+ * @param fd The incoming socket descriptor.
  */
 - (EDOSocket *)accept:(dispatch_fd_t)fd {
   struct sockaddr_in addr;

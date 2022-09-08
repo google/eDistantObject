@@ -19,30 +19,30 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  By default, NSObject has pass-by-value behavior during remote invocation.
+ * By default, NSObject has pass-by-value behavior during remote invocation.
  *
- *  This category provides APIs to do pass-by-value (or return-by-value) for one invocation, or
- *  statically enable a class to be pass-by-value. All APIs require the class to conform to
- *  NSCoding.
+ * This category provides APIs to do pass-by-value (or return-by-value) for one invocation, or
+ * statically enable a class to be pass-by-value. All APIs require the class to conform to
+ * NSCoding.
  */
 @interface NSObject (EDOValueObject)
 
 /**
- *  Enables this type to be a value type so it will be passed by value.
+ * Enables this type to be a value type so it will be passed by value.
  *
- *  If a class is enabled as a value type, during remote invocation the objects of the class will
- *  be passed by value. Only classes conforming to @c NSCoding protocol can be passed by value.
+ * If a class is enabled as a value type, during remote invocation the objects of the class will
+ * be passed by value. Only classes conforming to @c NSCoding protocol can be passed by value.
  */
 + (void)edo_enableValueType;
 
 /**
- *  Method to be called on invocation target to get a value object from remote invocation.
- *  This should not be called on a non-remote object.
+ * Method to be called on invocation target to get a value object from remote invocation.
+ * This should not be called on a non-remote object.
  */
 - (instancetype)returnByValue;
 
 /**
- *  Method to be called on method parameter to pass a value object to remote invocation.
+ * Method to be called on method parameter to pass a value object to remote invocation.
  */
 - (instancetype)passByValue;
 

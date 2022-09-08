@@ -19,7 +19,7 @@
 @class EDOTestDummy;
 
 /**
- *  The test dummy class defined in the test process to test the distant object.
+ * The test dummy class defined in the test process to test the distant object.
  */
 @interface EDOTestDummyInTest : NSObject
 @property NSNumber *value;

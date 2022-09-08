@@ -56,8 +56,8 @@ static const UInt16 kDummyServicePort = 1234;
 }
 
 /**
- *  Tests sending object request to the naming service after stopping it, and verifies that
- *  exception happens.
+ * Tests sending object request to the naming service after stopping it, and verifies that
+ * exception happens.
  */
 - (void)testStopEDONamingServiceObject {
   EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
@@ -123,9 +123,9 @@ static const UInt16 kDummyServicePort = 1234;
 }
 
 /**
- *  Tests thread safety of adding/removing services.
- *  This test adds two service ports concurrently to the naming service, and then removes them
- *  concurrently. And it verifies the state of the naming service after each step.
+ * Tests thread safety of adding/removing services.
+ * This test adds two service ports concurrently to the naming service, and then removes them
+ * concurrently. And it verifies the state of the naming service after each step.
  */
 - (void)testUpdateServicesConcurrently {
   EDOHostNamingService *namingService = EDOHostNamingService.sharedService;
@@ -159,8 +159,8 @@ static const UInt16 kDummyServicePort = 1234;
 }
 
 /**
- *  Tests accessing service connection port and verifies the listen socket is created and returns a
- *  non-zero port.
+ * Tests accessing service connection port and verifies the listen socket is created and returns a
+ * non-zero port.
  */
 - (void)testAccessServiceConnectionPort {
   EDOHostNamingService *namingService = EDOHostNamingService.sharedService;

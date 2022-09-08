@@ -67,28 +67,28 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
 }
 
 /**
- *  The extension of EDOObject to handle the message forwarding.
+ * The extension of EDOObject to handle the message forwarding.
  *
- *  When a method is not implemented, the objc runtime executes a sequence of events to recover
- *  before it sends doesNotRecognizeSelector: or raises an exception. It requests an
- *  NSMethodSignature using -/+methodSignatureForSelector:, which bundles with arguments types and
- *  return type information. And from there, it creates an NSInvocation object which captures the
- *  full message being sent, including the target, the selector and all the arguments. After this,
- *  the runtime invokes -/+forwardInvocation: method and here it serializes all the arguments and
- *  sends it across the wire; once it returns, it sets its return value back to the NSInvocation
- *  object. This allows us dynamically to turn a local invocation into a remote invocation.
+ * When a method is not implemented, the objc runtime executes a sequence of events to recover
+ * before it sends doesNotRecognizeSelector: or raises an exception. It requests an
+ * NSMethodSignature using -/+methodSignatureForSelector:, which bundles with arguments types and
+ * return type information. And from there, it creates an NSInvocation object which captures the
+ * full message being sent, including the target, the selector and all the arguments. After this,
+ * the runtime invokes -/+forwardInvocation: method and here it serializes all the arguments and
+ * sends it across the wire; once it returns, it sets its return value back to the NSInvocation
+ * object. This allows us dynamically to turn a local invocation into a remote invocation.
  *
  */
 @implementation EDOObject (Invocation)
 
 /**
- *  Get an instance method signature for the @c EDOObject
+ * Get an instance method signature for the @c EDOObject
  *
- *  This is called from the callee's thread and it is synchronous.
+ * This is called from the callee's thread and it is synchronous.
  *
- *  @param selector The selector.
+ * @param selector The selector.
  *
- *  @return         The instance method signature.
+ * @return         The instance method signature.
  */
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
   // TODO(haowoo): Cache the signature.

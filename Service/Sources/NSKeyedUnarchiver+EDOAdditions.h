@@ -22,12 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSKeyedUnarchiver (EDOAdditions)
 
 /**
- *  Decodes the object from the given archive, previously encoded by
- *  -[NSKeyedArchiver edo_archivedDataWithObject].
+ * Decodes the object from the given archive, previously encoded by
+ * -[NSKeyedArchiver edo_archivedDataWithObject].
  *
- *  @param data The archived data.
- *  @return The decoded object if no error occurs. @c nil for any error and the exception will be
- *          thrown.
+ * @param data The archived data.
+ * @return The decoded object if no error occurs. @c nil for any error and the exception will be
+ *         thrown.
  */
 + (id)edo_unarchiveObjectWithData:(NSData *)data;
 

@@ -21,8 +21,8 @@
 
 @interface EDODeviceDetector ()
 /**
- *  The channel to communicate with usbmuxd. It is lazily loaded when listenWithBroadcastHandler:
- *  is called.
+ * The channel to communicate with usbmuxd. It is lazily loaded when listenWithBroadcastHandler:
+ * is called.
  */
 @property(nonatomic) EDODeviceChannel *channel;
 /** @c YES if the detector has already started to listen to broadcast. */

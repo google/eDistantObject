@@ -62,8 +62,8 @@ extern const uint32_t kEDOPacketMaxPayloadSize;
 + (NSDictionary *)payloadDictionaryFromPacketData:(dispatch_data_t)data error:(NSError **)error;
 
 /**
- *  Generates an error from the response packet from usbmuxd. Returns @c nil if no error is present
- *  in the response.
+ * Generates an error from the response packet from usbmuxd. Returns @c nil if no error is present
+ * in the response.
  */
 + (NSError *)errorFromPlistResponsePacket:(NSDictionary<NSString *, id> *)packet;
 

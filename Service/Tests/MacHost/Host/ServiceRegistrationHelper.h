@@ -21,11 +21,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ServiceRegistrationHelper : NSObject
 
 /**
- *  Initializes the helper for test to register all services with prepared info.
+ * Initializes the helper for test to register all services with prepared info.
  *
- *  @param prefix           The prefix of service name. All services will be appended with an index
- *                          number.
- *  @param numberOfServices The number of services to register to the target device.
+ * @param prefix           The prefix of service name. All services will be appended with an index
+ *                         number.
+ * @param numberOfServices The number of services to register to the target device.
  */
 - (instancetype)initWithServiceNamePrefix:(NSString *)prefix
                          numberOfServices:(NSUInteger)numberOfServices NS_DESIGNATED_INITIALIZER;
@@ -33,11 +33,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  Register all services to the target device asynchronously.
+ * Register all services to the target device asynchronously.
  *
- *  @param deviceID  The ID of the target device to register services.
- *  @param queue     The queue to handle incoming requests to registered services.
- *  @timeout timeout The timeout of service registration.
+ * @param deviceID  The ID of the target device to register services.
+ * @param queue     The queue to handle incoming requests to registered services.
+ * @timeout timeout The timeout of service registration.
  */
 - (void)registerServicesToDevice:(NSString *)deviceID
                            queue:(dispatch_queue_t)queue

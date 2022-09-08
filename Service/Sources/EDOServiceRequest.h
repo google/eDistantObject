@@ -26,12 +26,12 @@ NS_ASSUME_NONNULL_BEGIN
 @class EDOServiceResponse;
 
 /**
- *  The request handler.
+ * The request handler.
  *
- *  @param request The incoming request.
- *  @param context The context of the response handler. It is usually the host service instance.
+ * @param request The incoming request.
+ * @param context The context of the response handler. It is usually the host service instance.
  *
- *  @return The response.
+ * @return The response.
  */
 typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *request,
                                                           id _Nullable context);
@@ -40,24 +40,24 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
 @interface EDOServiceRequest : EDOMessage
 
 /**
- *  The request handler.
+ * The request handler.
  *
- *  The sub classes should override this and provide its own handler. The default implementation
- *  returns an EDOErrorRequestNotHandled response.
+ * The sub classes should override this and provide its own handler. The default implementation
+ * returns an EDOErrorRequestNotHandled response.
  */
 @property(readonly, class) EDORequestHandler requestHandler;
 
 - (instancetype)initWithMessageID:(NSString *)messageID NS_UNAVAILABLE;
 
 /**
- *  Checks if the request matches the @c port.
+ * Checks if the request matches the @c port.
  *
- *  @note The default implementation will always return YES. Subclasses should override this
- *        if it contains the service-sensitive information such as the object address.
+ * @note The default implementation will always return YES. Subclasses should override this
+ *       if it contains the service-sensitive information such as the object address.
  *
- *  @param port The service identity from which this request will send to.
+ * @param port The service identity from which this request will send to.
  *
- *  @return YES if both the service port and UUID matches, that is, for the same service.
+ * @return YES if both the service port and UUID matches, that is, for the same service.
  */
 - (BOOL)matchesService:(EDOServicePort *)port;
 

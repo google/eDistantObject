@@ -19,13 +19,13 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  EDOObject proxies for objects in other processes (or threads).
+ * EDOObject proxies for objects in other processes (or threads).
  *
- *  When a distant object receives a message, it forwards the message through its service object to
- *  the real object in another process, supplying the return value and out parameters if any, and
- *  propagating any exception back to the invoker of the method that raised it. The EDOObject is a
- *  transparent proxy to its user and should only be retrieved from the @c EDOHostService or
- *  @c EDOClientService.
+ * When a distant object receives a message, it forwards the message through its service object to
+ * the real object in another process, supplying the return value and out parameters if any, and
+ * propagating any exception back to the invoker of the method that raised it. The EDOObject is a
+ * transparent proxy to its user and should only be retrieved from the @c EDOHostService or
+ * @c EDOClientService.
  */
 @interface EDOObject : NSProxy <NSSecureCoding>
 
@@ -38,7 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (id)returnByValue;
 
 /** Method to wrap an NSObject into a EDOWeakObject. Throws an
- *  EDOWeakObjectRemoteWeakMisuseException when invoked on EDOObject. */
+ * EDOWeakObjectRemoteWeakMisuseException when invoked on EDOObject. */
 - (id)remoteWeak;
 @end
 

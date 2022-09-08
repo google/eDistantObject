@@ -19,11 +19,11 @@
 static const uint64_t kGEDOSocketFrameHeaderTag = 0xc080c080;
 
 /**
- *  The data header for each data package being sent.
+ * The data header for each data package being sent.
  *
- *  The header data layout:
- *  |--- 32bit ---|--- 32bit ---|----- 32 bit -----|--- flexible ---|
- *  |-- type(1) --|- 0xc080c080-|- length of data -|--*-* data *-*--|
+ * The header data layout:
+ * |--- 32bit ---|--- 32bit ---|----- 32 bit -----|--- flexible ---|
+ * |-- type(1) --|- 0xc080c080-|- length of data -|--*-* data *-*--|
  */
 typedef struct EDOSocketFrameHeader_s {
   // Type of frame, always 1.

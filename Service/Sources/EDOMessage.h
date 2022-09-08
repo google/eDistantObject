@@ -34,12 +34,12 @@ typedef NSString EDOMessageID;
 - (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 /**
- *  Init with a given message identifier.
+ * Init with a given message identifier.
  *
- *  @param messageID The message identifier.
- *  @remark The message Id is a unique identifier to track, it is usually generated via UUID
- *          generator. For instance, the message Id will be the same if the response is for a
- *          request.
+ * @param messageID The message identifier.
+ * @remark The message Id is a unique identifier to track, it is usually generated via UUID
+ *         generator. For instance, the message Id will be the same if the response is for a
+ *         request.
  */
 - (instancetype)initWithMessageID:(NSString *)messageID NS_DESIGNATED_INITIALIZER;
 

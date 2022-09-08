@@ -21,8 +21,8 @@
 #import "Channel/Sources/EDOHostPort.h"
 
 /**
- *  Creates a receiveHandler for the multiplexer to receive the data and forwards to the forwarded
- *  channel.
+ * Creates a receiveHandler for the multiplexer to receive the data and forwards to the forwarded
+ * channel.
  */
 static EDOChannelReceiveHandler GetMultiplexerReceiveHandler(
     id<EDOChannel> forwardedChannel, EDOForwarderErrorHandler errorHandler) {
@@ -44,8 +44,8 @@ static EDOChannelReceiveHandler GetMultiplexerReceiveHandler(
 }
 
 /**
- *  Creates a receiveHandler for the forwarded channel to receive the data and forwards to the
- *  multiplexer.
+ * Creates a receiveHandler for the forwarded channel to receive the data and forwards to the
+ * multiplexer.
  */
 static EDOChannelReceiveHandler GetForwarderReceiveHandler(id<EDOChannel> multiplexerChannel,
                                                            EDOForwarderErrorHandler errorHandler) {
@@ -128,9 +128,9 @@ static EDOChannelReceiveHandler GetForwarderReceiveHandler(id<EDOChannel> multip
 }
 
 /**
- *  Creates a receiveHandler to handle the initial port data and set up the connection.
+ * Creates a receiveHandler to handle the initial port data and set up the connection.
  *
- *  @param deviceIdentifier The data received in the handshake to ackknowledge the connection.
+ * @param deviceIdentifier The data received in the handshake to ackknowledge the connection.
  */
 - (EDOChannelReceiveHandler)portHandlerWithDeviceIdentifier:(NSData *)deviceIdentifier
                                                errorHandler:(EDOForwarderErrorHandler)errorHandler {

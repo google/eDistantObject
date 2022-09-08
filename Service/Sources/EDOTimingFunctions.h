@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 /**
- *  Gets the elapsed time between now and the given @c machTime and converts
- *  into milliseconds.
+ * Gets the elapsed time between now and the given @c machTime and converts
+ * into milliseconds.
  */
 double EDOGetMillisecondsSinceMachTime(uint64_t machTime);
 
