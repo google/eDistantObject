@@ -22,3 +22,4 @@ NSErrorUserInfoKey const EDOErrorRequestKey = @"EDOErrorRequestKey";
 NSErrorUserInfoKey const EDOErrorResponseKey = @"EDOErrorResponseKey";
 NSErrorUserInfoKey const EDOErrorPortKey = @"EDOErrorPortKey";
 NSErrorUserInfoKey const EDOErrorConnectAttemptKey = @"EDOErrorConnectAttemptKey";
+NSErrorUserInfoKey const EDOErrorEncodingFailureReasonKey = @"EDOErrorEncodingFailureReasonKey";

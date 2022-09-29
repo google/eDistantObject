@@ -152,6 +152,10 @@ static const NSInteger kLargeArraySize = 1000;
            @"It should not be possible to pass a non-NULL value to this parameter.");
 }
 
+- (void)voidWithObjectArray:(NSArray<id> *)array {
+  // Do nothing
+}
+
 - (EDOTestDummyStruct)returnStructWithBlockStret:(EDOTestDummyStruct (^)(void))block {
   return block();
 }

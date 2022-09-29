@@ -36,6 +36,9 @@ FOUNDATION_EXPORT NSExceptionName const EDOWeakReferenceBlockObjectException;
 /** The eDO parameter type check exception, usually used in NSException.*/
 FOUNDATION_EXPORT NSExceptionName const EDOParameterTypeException;
 
+/** The eDO parameter encoding exception, usually used in NSException. */
+FOUNDATION_EXPORT NSExceptionName const EDOTypeEncodingException;
+
 /** Key in userInfo, describing the embedded NSError object. */
 FOUNDATION_EXPORT NSString *const EDOExceptionUnderlyingErrorKey;
 

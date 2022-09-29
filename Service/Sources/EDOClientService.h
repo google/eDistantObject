@@ -106,6 +106,15 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
 
 @end
 
+/**
+ * Checks if @c object is an eDO proxy.
+ *
+ * @param object The object that performs the type check.
+ *
+ * @return @c YES if it's an eDO proxy; @c NO otherwise.
+ */
+BOOL EDOIsRemoteObject(id object);
+
 NS_ASSUME_NONNULL_END
 
 /**

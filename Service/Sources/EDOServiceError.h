@@ -42,4 +42,7 @@ FOUNDATION_EXPORT NSErrorUserInfoKey const EDOErrorPortKey;
 /** Key in userInfo, the value is an NSNumber describing the attemp to connect to the service. */
 FOUNDATION_EXPORT NSErrorUserInfoKey const EDOErrorConnectAttemptKey;
 
+/** Key in userInfo, the value is an NSString describing the reason of the type encoding error. */
+FOUNDATION_EXPORT NSErrorUserInfoKey const EDOErrorEncodingFailureReasonKey;
+
 NS_ASSUME_NONNULL_END

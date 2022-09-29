@@ -567,4 +567,23 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
       throwsExceptionContaining:@"cannot decode object of class (EDONotExist)"];
 }
 
+/** Verifies that eDO reveals polished error message for containers encoding failure. */
+- (void)testEncodeArrayThrowsExceptionWhenContainerItemsDoNotCodable {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  NSArray<id> *codableArray = @[ @(1), @"2", @[ @(3), @"4" ] ];
+  XCTAssertNoThrow([dummy voidWithObjectArray:[codableArray passByValue]]);
+  NSArray<id> *nonCodableArray = @[ @(1), @"2", @[ @(3), [[NSObject alloc] init] ] ];
+  XCTAssertNoThrow([dummy voidWithObjectArray:nonCodableArray]);
+  NSException *capturedException = nil;
+  @try {
+    [dummy voidWithObjectArray:[nonCodableArray passByValue]];
+  } @catch (NSException *exception) {
+    capturedException = exception;
+  }
+  XCTAssertNotNil(capturedException);
+  XCTAssertTrue([capturedException.reason
+      containsString:@"eDO fails to encode a parameter which is sent for remote invocation."]);
+}
+
 @end

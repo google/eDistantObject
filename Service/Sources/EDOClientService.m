@@ -418,3 +418,19 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
 }
 
 @end
+
+/**
+ * This check is called frequently within the library. The shared function caches the checked
+ * classes to optimize the check.
+ */
+BOOL EDOIsRemoteObject(id object) {
+  static Class remoteObjectClass;
+  static Class remoteBlockClass;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    remoteObjectClass = [EDOObject class];
+    remoteBlockClass = [EDOBlockObject class];
+  });
+  Class objectClass = [object class];
+  return objectClass == remoteObjectClass || objectClass == remoteBlockClass;
+}

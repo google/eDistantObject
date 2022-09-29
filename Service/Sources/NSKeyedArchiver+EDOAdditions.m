@@ -16,6 +16,76 @@
 
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
 
+#import <objc/runtime.h>
+
+#import "Service/Sources/EDOClientService.h"
+#import "Service/Sources/EDOServiceError.h"
+#import "Service/Sources/EDOServiceException.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+/** The delegate used for encoding eDO outgoing parameters. */
+@interface EDOKeyedArchiverDelegate : NSObject <NSKeyedArchiverDelegate>
+
+/** Initializes the object with the root object that is going to be encoded. */
+- (instancetype)initWithRootObject:(id)rootObject NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)init NS_UNAVAILABLE;
+
+@end
+
+@implementation EDOKeyedArchiverDelegate {
+  /** The object that is encoded by the attached NSKeyedArchiver of this delegate. */
+  id _rootObject;
+}
+
+- (instancetype)initWithRootObject:(id)rootObject {
+  self = [super init];
+  if (self) {
+    _rootObject = rootObject;
+  }
+  return self;
+}
+
+#pragma mark - NSKeyedArchiverDelegate
+
+- (nullable id)archiver:(NSKeyedArchiver *)archiver willEncodeObject:(id)object {
+  if (!EDOIsRemoteObject(object) &&
+      [object respondsToSelector:@selector(EDOCheckEncodingConformance:)]) {
+    NSError *error;
+    if (![object EDOCheckEncodingConformance:&error]) {
+      [self raiseEncodingConformanceError:error withEncodingObject:object];
+    }
+  }
+  return object;
+}
+
+#pragma mark - Private
+
+/**
+ * Throws an exception for the failed NSCoding conformance check during the encoding procedure.
+ *
+ * @param error  The error that contains the underlying reason that encoding will fail. The error
+ *               reason must be included in the `EDOErrorEncodingFailureReasonKey` of the
+ *               `userInfo`.
+ * @param object The object that will cause the encoding failure.
+ */
+- (void)raiseEncodingConformanceError:(NSError *)error withEncodingObject:(id)object {
+  NSString *reason = [NSString
+      stringWithFormat:
+          @"eDO fails to encode a parameter which is sent for remote invocation. Please check if "
+          @"the parameter fully conforming to NSCoding.\n\nThe parameter is: %@\nDetail: %@",
+          [_rootObject description], error.userInfo[EDOErrorEncodingFailureReasonKey]];
+  [[NSException exceptionWithName:EDOTypeEncodingException reason:reason userInfo:nil] raise];
+}
+
+/** @return Awalys @c NO because this class doesn't conform to NSCoding. */
+- (BOOL)EDOCheckEncodingConformance:(NSError **)error {
+  return NO;
+}
+
+@end
+
 @implementation NSKeyedArchiver (EDOAdditions)
 
 + (NSData *)edo_archivedDataWithObject:(id)object {
@@ -30,6 +100,9 @@
     // fail to protect it.
     if ([NSKeyedArchiver instancesRespondToSelector:@selector(initRequiringSecureCoding:)]) {
       NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initRequiringSecureCoding:NO];
+      EDOKeyedArchiverDelegate *delegate =
+          [[EDOKeyedArchiverDelegate alloc] initWithRootObject:object];
+      archiver.delegate = delegate;
       [archiver encodeObject:object forKey:NSKeyedArchiveRootObjectKey];
       [archiver finishEncoding];
       return archiver.encodedData;
@@ -45,3 +118,5 @@
 }
 
 @end
+
+NS_ASSUME_NONNULL_END
