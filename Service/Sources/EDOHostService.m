@@ -428,8 +428,13 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     //    compatibility issue or security attack.
     if (data == nil) {
       // the client socket is closed.
-      NSLog(@"The channel (%p) with port %d and name %@ is closed", targetChannel,
+      NSLog(@"[eDistantObject] The channel (%@) with port %d and name %@ is closed", targetChannel,
             strongSelf.port.hostPort.port, strongSelf.port.hostPort.name);
+      if (error) {
+        NSLog(@"[eDistantObject] The channel is closed with the error: %@", error);
+      } else {
+        NSLog(@"[eDistantObject] The channel is closed from the other side.");
+      }
       dispatch_queue_t handlerSyncQueue = strongSelf.handlerSyncQueue;
       if (handlerSyncQueue) {
         dispatch_sync(handlerSyncQueue, ^{
@@ -558,7 +563,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 - (void)edo_registerServiceAsyncOnDevice {
   __block NSTimeInterval secondsLeft = self.deviceConnectionTimeout;
   // The time interval of registration retry interval.
-  NSTimeInterval retryInterval = 1;
+  const NSTimeInterval retryInterval = 1;
+  __block NSUInteger retryAttempts = 0;
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
 
   // Keep trying to register the service before timeout. Using dispatch_after instead of CFRunloop
@@ -572,17 +578,24 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     NSError *error;
     BOOL success = [self edo_registerServiceOnDevice:self.deviceSerial error:&error];
     if (!success && secondsLeft > 0) {
+      // Prints logs of failed connection every 10 seconds.
+      if (retryAttempts % 10 == 0) {
+        NSLog(@"[eDistantObject] The EDOHostService %@ still fails to register to device %@, "
+              @"retrying... error is %@",
+              self->_port.hostPort.name, self.deviceSerial, error);
+      }
+      retryAttempts += 1;
       secondsLeft -= retryInterval;
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, retryInterval * NSEC_PER_SEC),
                      backgroundQueue, weakServiceRegistrationBlock);
     } else {
       if (success) {
-        NSLog(@"The EDOHostService %@ is registered to device %@", self->_port.hostPort.name,
-              self.deviceSerial);
+        NSLog(@"[eDistantObject] The EDOHostService %@ is registered to device %@",
+              self->_port.hostPort.name, self.deviceSerial);
         self->_registeredToDevice = YES;
       } else {
-        NSLog(@"Timeout: unable to register service %@ on device %@.", self->_port.hostPort.name,
-              self.deviceSerial);
+        NSLog(@"[eDistantObject] Timeout: unable to register service %@ on device %@.",
+              self->_port.hostPort.name, self.deviceSerial);
       }
     }
   };
