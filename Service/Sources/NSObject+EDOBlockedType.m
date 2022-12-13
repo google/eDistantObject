@@ -47,10 +47,10 @@ static void UpdateEDOParameterForTarget(Class targetClass, IMP implementation) {
 @implementation NSObject (EDOBlockedType)
 
 + (void)edo_disallowRemoteInvocation {
-  [self edo_disallowRemoteInvocationWithExlcusion:@[]];
+  [self edo_disallowRemoteInvocationWithExclusion:@[]];
 }
 
-+ (void)edo_disallowRemoteInvocationWithExlcusion:(NSArray<Class> *)excludedSubclasses {
++ (void)edo_disallowRemoteInvocationWithExclusion:(NSArray<Class> *)excludedSubclasses {
   // This method may swizzle the original [NSObject -edo_parameterForTarget:service:hostPort:] so
   // it caches the original method before it gets changed.
   static dispatch_once_t onceToken;

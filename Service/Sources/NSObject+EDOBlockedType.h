@@ -43,7 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param excludedSubclasses The classes to be excluded from the blocklist. They must be the
  *                           subclasses of the caller class.
  */
-+ (void)edo_disallowRemoteInvocationWithExlcusion:(NSArray<Class> *)excludedSubclasses;
++ (void)edo_disallowRemoteInvocationWithExclusion:(NSArray<Class> *)excludedSubclasses;
 
 /**
  * Allow this type to be a parameter of remote invocation, even if its super class is disallowed.
