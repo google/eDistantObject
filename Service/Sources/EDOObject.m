@@ -218,7 +218,7 @@ static BOOL IsFromSameProcess(id object1, id object2);
         @"arguments will be dropped. Use +arrayWithArray: or NSMutableArray instead.",
         self.className);
 
-  NSInvocation *invocation = [self edo_invocationForSelector:_cmd];
+  NSInvocation *invocation = [self edo_invocationForSelector:@selector(arrayWithObject:)];
   [invocation setArgument:&object1 atIndex:2];
   [self forwardInvocation:invocation];
   id __unsafe_unretained returnValue = nil;
