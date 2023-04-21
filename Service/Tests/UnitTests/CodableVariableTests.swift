@@ -13,7 +13,7 @@ final class CodableVariableTests: XCTestCase {
   func testSerializeStruct() throws {
     let structValue = EDOTestingStruct(intValue: 0, stringValue: "foo", floatValue: -1.0)
     let serialized = structValue.eDOCodableVariable
-    let deserialized = try serialized.unwrap(EDOTestingStruct.self)
+    let deserialized: EDOTestingStruct = try serialized.unwrap()
     XCTAssertEqual(deserialized.intValue, structValue.intValue)
     XCTAssertEqual(deserialized.stringValue, structValue.stringValue)
     XCTAssertEqual(deserialized.floatValue, structValue.floatValue)
@@ -26,7 +26,7 @@ final class CodableVariableTests: XCTestCase {
     }
     let optionalValue: Int? = nil
     let serialized = optionalValue.eDOCodableVariable
-    let deserialized = try serialized.unwrap(Int?.self)
+    let deserialized: Int? = try serialized.unwrap()
     XCTAssertNil(deserialized)
   }
 
@@ -35,7 +35,7 @@ final class CodableVariableTests: XCTestCase {
     let structValue = EDOTestingStruct(intValue: 0, stringValue: "foo", floatValue: -1.0)
     let serialized = structValue.eDOCodableVariable
     var thrownError: Error?
-    XCTAssertThrowsError(try serialized.unwrap(Int?.self)) {
+    XCTAssertThrowsError(try serialized.unwrap() as Int?) {
       thrownError = $0
     }
     let expectedError =

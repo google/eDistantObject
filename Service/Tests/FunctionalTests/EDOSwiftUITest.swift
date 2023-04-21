@@ -56,7 +56,8 @@ class EDOSwiftUITest: XCTestCase {
     XCTAssertEqual(swiftClass.returnWithDictionarySum(data: data), 3)
     let testingStruct = EDOTestSwiftStruct(intValues: [1, 2, 3, 4, 5])
     let codedResult = try swiftClass.sumFrom(codedStruct: testingStruct.eDOCodableVariable)
-    XCTAssertEqual(try codedResult.unwrap([Int].self).first, 15)
+    let result: [Int] = try codedResult.unwrap()
+    XCTAssertEqual(result.first, 15)
     service.invalidate()
   }
 

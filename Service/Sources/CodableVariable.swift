@@ -75,11 +75,11 @@ public class CodableVariable: NSObject, NSSecureCoding, Codable {
   /// - Parameter type: The expected type of the decoded instance.
   /// - Returns: The decoded instance of `type`.
   /// - Throws: `CodableVariable.DecodingError` if decoding fails.
-  public func unwrap<T: Decodable>(_ type: T.Type) throws -> T {
-    guard self.type == String(describing: type) else {
+  public func unwrap<T: Decodable>() throws -> T {
+    guard self.type == String(describing: T.self) else {
       throw DecodingError.typeUnmatched(
         expectedType: self.type,
-        actualType: String(describing: type))
+        actualType: String(describing: T.self))
     }
     let decoder = JSONDecoder()
     return try decoder.decode(T.self, from: data)

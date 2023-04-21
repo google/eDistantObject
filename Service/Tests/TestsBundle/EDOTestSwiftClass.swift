@@ -43,7 +43,7 @@ public class EDOTestSwiftClass: NSObject, EDOTestSwiftProtocol {
   }
 
   public func sumFrom(codedStruct: CodableVariable) throws -> CodableVariable {
-    let structValue = try codedStruct.unwrap(EDOTestSwiftStruct.self)
+    let structValue: EDOTestSwiftStruct = try codedStruct.unwrap()
     return self.sumFrom(structValue: structValue).eDOCodableVariable
   }
 }
