@@ -15,6 +15,7 @@
 //
 
 #import "Service/Sources/EDOObject.h"
+#import <Foundation/Foundation.h>
 
 #include <objc/runtime.h>
 
@@ -23,6 +24,7 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOParameter.h"
+#import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOValueObject.h"
@@ -275,6 +277,24 @@ static BOOL IsFromSameProcess(id object1, id object2);
 
 - (NSString *)description {
   return [self edo_forwardInvocationForSelector:_cmd];
+}
+
+/**
+ * The override for __SwiftNativeNSError Swift-only method.
+ *
+ * This method is being called when a Swift error is propagated beyond the Swift XCTestCase. The
+ * proxied error doesn't reveal useful information as the local Swift error, so eDO rethrows the
+ * error message through its client error handler.
+ */
+- (BOOL)xct_shouldBeRecordedAsTestFailure {
+  NSDictionary<NSErrorUserInfoKey, id> *userInfo = @{
+    EDOErrorSwiftErrorDescription : [(id)self localizedDescription],
+  };
+  NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
+                                       code:EDOServiceErrorSwiftErrorThrow
+                                   userInfo:userInfo];
+  EDOExportEDOClientError(error);
+  return NO;
 }
 
 #pragma mark - NSFastEnumeration

@@ -23,6 +23,7 @@
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClassMessage.h"
+#import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOClientServiceStatsCollector.h"
 #import "Service/Sources/EDOExecutor.h"
 #import "Service/Sources/EDOHostNamingService.h"
@@ -434,3 +435,5 @@ BOOL EDOIsRemoteObject(id object) {
   Class objectClass = [object class];
   return objectClass == remoteObjectClass || objectClass == remoteBlockClass;
 }
+
+void EDOExportEDOClientError(NSError *error) { gEDOClientErrorHandler(error); }

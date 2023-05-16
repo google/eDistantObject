@@ -73,4 +73,36 @@ class EDOSwiftUITest: XCTestCase {
     XCTAssertNotNil(target[1])
     service.invalidate()
   }
+
+  /// Verifies Swift error is propagated through `throw`, and can be accessed through `localizedDescription`.
+  func testRemoteSwiftError() {
+    launchAppWithPort(port: 1234, value: 10)
+    let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
+    let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
+    let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
+      .returnProtocol()
+    var propagatedError: AnyObject? = nil
+
+    do {
+      try testDummy.propagateError(withCustomizedDescription: false)
+    } catch EDOTestError.intentionalError {
+      XCTFail("Remote Swift error is identified locally, which is supported before")
+    } catch {
+      propagatedError = error as AnyObject
+    }
+    XCTAssertTrue(propagatedError?.localizedDescription?.contains("EDOTestError") ?? false)
+
+    do {
+      try testDummy.propagateError(withCustomizedDescription: true)
+    } catch EDOCustomizedTestError.intentionalError {
+      XCTFail("Remote Swift error is identified locally, which is supported before")
+    } catch {
+      propagatedError = error as AnyObject
+    }
+    XCTAssertEqual(
+      propagatedError?.localizedDescription,
+      "An override for EDOCustomizedTestError.intentionalError")
+
+    service.invalidate()
+  }
 }

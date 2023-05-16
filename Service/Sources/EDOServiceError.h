@@ -24,10 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 FOUNDATION_EXPORT NSErrorDomain const EDOServiceErrorDomain;
 
 NS_ERROR_ENUM(EDOServiceErrorDomain){
-    EDOServiceErrorCannotConnect = -1000,
-    EDOServiceErrorConnectTimeout,
-    EDOServiceErrorRequestNotHandled,
-    EDOServiceErrorNamingServiceUnavailable,
+    EDOServiceErrorCannotConnect = -1000, EDOServiceErrorConnectTimeout,
+    EDOServiceErrorRequestNotHandled,     EDOServiceErrorNamingServiceUnavailable,
+    EDOServiceErrorSwiftErrorThrow,
 };
 
 /** Key in userInfo, the value is an NSString describing the request being sent. */
@@ -44,5 +43,8 @@ FOUNDATION_EXPORT NSErrorUserInfoKey const EDOErrorConnectAttemptKey;
 
 /** Key in userInfo, the value is an NSString describing the reason of the type encoding error. */
 FOUNDATION_EXPORT NSErrorUserInfoKey const EDOErrorEncodingFailureReasonKey;
+
+/** Key in userInfo, the value is an NSString describing the bridged Swift error. */
+FOUNDATION_EXPORT NSErrorUserInfoKey const EDOErrorSwiftErrorDescription;
 
 NS_ASSUME_NONNULL_END

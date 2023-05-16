@@ -46,6 +46,14 @@ public class EDOTestSwiftClass: NSObject, EDOTestSwiftProtocol {
     let structValue: EDOTestSwiftStruct = try codedStruct.unwrap()
     return self.sumFrom(structValue: structValue).eDOCodableVariable
   }
+
+  public func propagateError(withCustomizedDescription isCustomized: Bool) throws {
+    if isCustomized {
+      throw EDOCustomizedTestError.intentionalError
+    } else {
+      throw EDOTestError.intentionalError
+    }
+  }
 }
 
 extension EDOTestDummy: EDOTestDummyExtension {

@@ -25,6 +25,25 @@ public struct EDOTestSwiftStruct: Codable {
   }
 }
 
+public enum EDOTestError: Swift.Error {
+  case intentionalError
+}
+
+public enum EDOCustomizedTestError: Swift.Error {
+  case intentionalError
+}
+
+extension EDOCustomizedTestError: LocalizedError {
+  public var errorDescription: String? {
+    switch self {
+    case .intentionalError:
+      return NSLocalizedString(
+        "An override for EDOCustomizedTestError.intentionalError", comment: "EDOCustomizedTestError"
+      )
+    }
+  }
+}
+
 @objc
 public protocol EDOTestSwiftProtocol {
   func returnString() -> NSString
@@ -32,6 +51,7 @@ public protocol EDOTestSwiftProtocol {
   func returnWithDictionarySum(data: NSDictionary) -> Int
   func returnSwiftArray() -> [AnyObject]
   func sumFrom(codedStruct: CodableVariable) throws -> CodableVariable
+  func propagateError(withCustomizedDescription isCustomized: Bool) throws
 }
 
 @objc

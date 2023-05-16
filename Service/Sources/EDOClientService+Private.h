@@ -18,6 +18,7 @@
 
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -26,6 +27,9 @@ NS_ASSUME_NONNULL_BEGIN
 @class EDOHostPort;
 @class EDOServiceRequest;
 @class EDOServiceResponse;
+
+/** Propagates @c error to eDO client error handler. */
+void EDOExportEDOClientError(NSError *error);
 
 /** The internal use for sending and receiving EDOObject. */
 @interface EDOClientService (Private)
