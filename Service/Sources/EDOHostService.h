@@ -126,6 +126,15 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly) BOOL registeredToDevice;
 
 /**
+ * Convenience method for +serviceWithName:registerToDevice:rootObject:queue:timeout:errorHandler:.
+ */
++ (instancetype)serviceWithName:(NSString *)name
+               registerToDevice:(NSString *)deviceSerial
+                     rootObject:(nullable id)rootObject
+                          queue:(dispatch_queue_t)queue
+                        timeout:(NSTimeInterval)seconds;
+
+/**
  * Creates an @c EDOHostService on host machine and registers the service @c name to the connected
  * iOS device with the provided @c deviceSerial.
  *
@@ -140,6 +149,8 @@ NS_ASSUME_NONNULL_BEGIN
  * @param rootObject   The root object of the service. @c nil for temporary services.
  * @param queue        The dispatch queue that the invocation will be executed on.
  * @param seconds      The seconds to wait to successfully register the service name to the device.
+ * @param errorHandler The callback being invoked when the service fails to connect to the target
+ *                     device.
  *
  * @return An instance of EDOHostService that starts listening on the given port.
  *
@@ -150,7 +161,8 @@ NS_ASSUME_NONNULL_BEGIN
                registerToDevice:(NSString *)deviceSerial
                      rootObject:(nullable id)rootObject
                           queue:(dispatch_queue_t)queue
-                        timeout:(NSTimeInterval)seconds;
+                        timeout:(NSTimeInterval)seconds
+                   errorHandler:(nullable void (^)(NSError *))errorHandler;
 
 @end
 

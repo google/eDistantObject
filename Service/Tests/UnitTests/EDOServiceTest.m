@@ -26,6 +26,7 @@
 #import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDORemoteException.h"
+#import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
@@ -795,6 +796,29 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 - (void)testEDOHostServiceTrackedByNamingService {
   EDOHostNamingService *namingServiceObject = EDOHostNamingService.sharedService;
   XCTAssertFalse([namingServiceObject portForServiceWithName:kTestServiceName] == 0);
+}
+
+/** Verifies the connection error handler being called if service fails to connect to device. */
+- (void)testEDOHostServiceExportsDeviceConnectionError {
+  dispatch_queue_t testingQueue = dispatch_queue_create("com.google.edo.unittest", NULL);
+  XCTestExpectation *expectation =
+      [self expectationWithDescription:@"host triggers timeout after 10 seconds"];
+  __block NSError *error = nil;
+  EDOHostService *service = [EDOHostService serviceWithName:@"foo"
+                                           registerToDevice:@"not_exist"
+                                                 rootObject:nil
+                                                      queue:testingQueue
+                                                    timeout:10.0
+                                               errorHandler:^(NSError *deviceError) {
+                                                 error = deviceError;
+                                                 [expectation fulfill];
+                                               }];
+
+  [self waitForExpectations:@[ expectation ] timeout:20.0];
+  XCTAssertEqualObjects(error.domain, EDOServiceErrorDomain);
+  XCTAssertEqual(error.code, EDOServiceErrorConnectTimeout);
+
+  [service invalidate];
 }
 
 - (void)testClientErrorHandlerNotNil {

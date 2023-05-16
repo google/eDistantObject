@@ -35,6 +35,7 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/EDOTimingFunctions.h"
@@ -110,6 +111,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 @property(nonatomic, readonly) NSString *deviceSerial;
 /** Internal property of the timeout of device connection. */
 @property(nonatomic, readonly) NSTimeInterval deviceConnectionTimeout;
+/** Internal property of the error handler of device connection failure. */
+@property(nonatomic, readonly) void (^deviceErrorHandler)(NSError *);
 /** Internal flag that indicates if reconnection is needed for the device connection. */
 @property(atomic, readwrite) BOOL keepDeviceConnection;
 @end
@@ -156,7 +159,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                         serviceName:nil
                               queue:queue
                        deviceSerial:nil
-            deviceConnectionTimeout:0];
+            deviceConnectionTimeout:0
+                 deviceErrorHandler:nil];
 }
 
 + (instancetype)serviceWithRegisteredName:(NSString *)name
@@ -167,20 +171,36 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                         serviceName:name
                               queue:queue
                        deviceSerial:nil
-            deviceConnectionTimeout:0];
+            deviceConnectionTimeout:0
+                 deviceErrorHandler:nil];
 }
 
 + (instancetype)serviceWithName:(NSString *)name
                registerToDevice:(NSString *)deviceSerial
-                     rootObject:(id)object
+                     rootObject:(id)rootObject
                           queue:(dispatch_queue_t)queue
                         timeout:(NSTimeInterval)seconds {
+  return [self serviceWithName:name
+              registerToDevice:deviceSerial
+                    rootObject:rootObject
+                         queue:queue
+                       timeout:seconds
+                  errorHandler:nil];
+}
+
++ (instancetype)serviceWithName:(NSString *)name
+               registerToDevice:(NSString *)deviceSerial
+                     rootObject:(nullable id)rootObject
+                          queue:(dispatch_queue_t)queue
+                        timeout:(NSTimeInterval)seconds
+                   errorHandler:(nullable void (^)(NSError *))errorHandler {
   EDOHostService *service = [[self alloc] initWithPort:0
-                                            rootObject:object
+                                            rootObject:rootObject
                                            serviceName:name
                                                  queue:queue
                                           deviceSerial:deviceSerial
-                               deviceConnectionTimeout:seconds];
+                               deviceConnectionTimeout:seconds
+                                    deviceErrorHandler:errorHandler];
   [service edo_registerServiceAsyncOnDevice];
   return service;
 }
@@ -190,7 +210,8 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                  serviceName:(NSString *)serviceName
                        queue:(dispatch_queue_t)queue
                 deviceSerial:(NSString *)deviceSerial
-     deviceConnectionTimeout:(NSTimeInterval)deviceConnectionTimeout {
+     deviceConnectionTimeout:(NSTimeInterval)deviceConnectionTimeout
+          deviceErrorHandler:(nullable void (^)(NSError *))deviceErrorHandler {
   self = [super init];
   if (self) {
     _registeredToDevice = NO;
@@ -214,6 +235,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     if (deviceSerial) {
       _deviceSerial = deviceSerial;
       _deviceConnectionTimeout = deviceConnectionTimeout;
+      _deviceErrorHandler = deviceErrorHandler;
       _keepDeviceConnection = YES;
       _port = [EDOServicePort servicePortWithPort:0 serviceName:serviceName];
     } else if (port != 0 || object) {
@@ -596,6 +618,12 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
       } else {
         NSLog(@"[eDistantObject] Timeout: unable to register service %@ on device %@.",
               self->_port.hostPort.name, self.deviceSerial);
+        if (self.deviceErrorHandler) {
+          NSError *deviceConnectionError = [NSError errorWithDomain:EDOServiceErrorDomain
+                                                               code:EDOServiceErrorConnectTimeout
+                                                           userInfo:nil];
+          self.deviceErrorHandler(deviceConnectionError);
+        }
       }
     }
   };
