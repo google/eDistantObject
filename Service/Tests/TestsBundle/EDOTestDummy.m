@@ -340,6 +340,10 @@ static const NSInteger kLargeArraySize = 1000;
   return [self returnSumWithArray:value];
 }
 
+- (int *)returnIntPointer {
+  return NULL;
+}
+
 - (UInt64)memoryAddressFromObject:(id)object {
   return (UInt64)(__bridge void *)object;
 }

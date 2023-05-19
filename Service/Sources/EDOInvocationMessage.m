@@ -260,6 +260,16 @@ static EDORemoteException *CreateRemoteException(id localException) {
                         returnByValue:(BOOL)returnByValue
                               service:(EDOHostService *)service {
   NSMethodSignature *signature = invocation.methodSignature;
+  char const *returnType = signature.methodReturnType;
+  if (EDO_IS_POINTER(returnType)) {
+    NSString *errorMessage =
+        [NSString stringWithFormat:
+                      @"Failed to make remote invocation to [%@ %@]: the return type is a pointer!",
+                      target.className, selector ? NSStringFromSelector(selector) : @"(block)"];
+    [[NSException exceptionWithName:EDOTypeEncodingException reason:errorMessage
+                           userInfo:nil] raise];
+  }
+
   NSUInteger numOfArgs = signature.numberOfArguments;
   // If the target is a block, the first argument starts at index 1, whereas for a regular object
   // invocation, the first argument starts at index 2, with the selector being the second argument.
@@ -292,9 +302,17 @@ static EDORemoteException *CreateRemoteException(id localException) {
       // exception.  This opens up partial support for key-value observing and other APIs that take
       // optional context pointers (so long as the caller doesn't provide one).
       if (objRef != NULL) {
-        // TODO(haowoo): Add the proper error and/or exception handler.
-        NSAssert(NO, @"Not supported type (%s) in argument %@ for selector (%@).", ctype, @(i),
-                 selector ? NSStringFromSelector(selector) : @"(block)");
+        NSString *errorMessage =
+            [NSString stringWithFormat:
+                          @"Failed to make remote invocation to [%@ %@]: the %@%@ parameter is a "
+                          @"non-nil C pointer!",
+                          target.className, selector ? NSStringFromSelector(selector) : @"(block)",
+                          @(i - firstArgumentIndex + 1),
+                          i == firstArgumentIndex       ? @"st"
+                          : i == firstArgumentIndex + 1 ? @"nd"
+                                                        : @"th"];
+        [[NSException exceptionWithName:EDOTypeEncodingException reason:errorMessage
+                               userInfo:nil] raise];
       }
       value = [EDOBoxedValueType parameterForNilValue];
     } else {
@@ -445,10 +463,8 @@ static EDORemoteException *CreateRemoteException(id localException) {
             }
           }
         } else if (EDO_IS_POINTER(returnType)) {
-          // TODO(haowoo): Handle this early and populate the exception.
-
           // We don't/can't support the plain memory access.
-          NSAssert(NO, @"Doesn't support pointer returns.");
+          NSAssert(NO, @"Doesn't support pointer returns and it should be caught at client.");
         } else {
           void *returnBuf = alloca(length);
           [invocation getReturnValue:returnBuf];

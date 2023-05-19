@@ -586,4 +586,29 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
       containsString:@"eDO fails to encode a parameter which is sent for remote invocation."]);
 }
 
+/** Verifies the errors are thrown when eDO making invocations with pointer arguments. */
+- (void)testThrowExceptionForMethodsWithPointer {
+  [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
+  EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
+  NSException *capturedException;
+  int value = 0;
+  @try {
+    [dummy voidWithNullCPointer:&value];
+  } @catch (NSException *e) {
+    capturedException = e;
+  }
+  XCTAssertEqualObjects(capturedException.reason,
+                        @"Failed to make remote invocation to [EDOTestDummy "
+                        @"voidWithNullCPointer:]: the 1st parameter is a non-nil C pointer!");
+
+  @try {
+    [dummy returnIntPointer];
+  } @catch (NSException *e) {
+    capturedException = e;
+  }
+  XCTAssertEqualObjects(capturedException.reason,
+                        @"Failed to make remote invocation to [EDOTestDummy returnIntPointer]: the "
+                        @"return type is a pointer!");
+}
+
 @end

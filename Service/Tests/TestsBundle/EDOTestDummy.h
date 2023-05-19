@@ -125,6 +125,7 @@ typedef EDOTestDummy * (^EDOMultiTypesHandler)(EDOTestDummyStruct, int, id, EDOT
 - (NSInteger)returnCountWithArray:(NSArray *)value;
 - (NSInteger)returnSumWithArray:(NSArray *)value;
 - (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray *)value;
+- (int *)returnIntPointer;
 
 /**
  * Gets the class name for the given object reference.
