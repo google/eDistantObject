@@ -102,7 +102,7 @@ public class CodableVariable: NSObject, NSSecureCoding, Codable {
     coder.encode(type, forKey: CodableVariable.typeKey)
   }
 
-  @objc public var edo_isEDOValueType: Bool { return true }
+  @objc public override var edo_isEDOValueType: Bool { return true }
 
   @objc public static var supportsSecureCoding: Bool { return true }
 }

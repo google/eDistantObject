@@ -410,9 +410,9 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   return responseData;
 }
 
-+ (EDOObject *)responseObjectWithRequest:(EDOServiceRequest *)request onPort:(EDOHostPort *)port {
++ (id)responseObjectWithRequest:(EDOServiceRequest *)request onPort:(EDOHostPort *)port {
   EDOServiceResponse *response = [self sendSynchronousRequest:request onPort:port];
-  EDOObject *remoteObject = ((EDOObjectResponse *)response).object;
+  id remoteObject = ((EDOObjectResponse *)response).object;
   remoteObject = [self unwrappedObjectFromObject:remoteObject];
   remoteObject = [self cachedEDOFromObjectUpdateIfNeeded:remoteObject];
   return remoteObject;

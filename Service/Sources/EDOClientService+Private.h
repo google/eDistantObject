@@ -96,6 +96,21 @@ void EDOExportEDOClientError(NSError *error);
  */
 + (nullable id)unwrappedObjectFromObject:(nullable id)object;
 
+/**
+ * Synchronously sends the request and unwraps the result object from the response.
+ *
+ * If the object from the response can be resolved as a local object, the local object will be
+ * returned; If the object is the same remote object being received before, the previous remote
+ * object will be returned.
+ *
+ * @param request The request to be sent.
+ * @param port    The service host port.
+ * @throw NSInternalInconsistencyException if it fails to communicate with the service.
+ *
+ * @return The object being wrapped by the response.
+ */
++ (nullable id)responseObjectWithRequest:(EDOServiceRequest *)request onPort:(EDOHostPort *)port;
+
 @end
 
 NS_ASSUME_NONNULL_END
