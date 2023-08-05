@@ -212,7 +212,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
                                           forKey:kEDOInvocationCoderReturnValueKey];
     _exception = [aDecoder decodeObjectOfClass:[EDORemoteException class]
                                         forKey:kEDOInvocationCoderExceptionKey];
-    NSSet *anyClasses =
+    NSSet<Class> *anyClasses =
         [NSSet setWithObjects:[EDOBlockObject class], [NSObject class], [EDOObject class], nil];
     _outValues = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOInvocationCoderOutValuesKey];
   }
@@ -515,7 +515,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
   self = [super initWithCoder:aDecoder];
   if (self) {
-    NSSet *anyClasses =
+    NSSet<Class> *anyClasses =
         [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], [NSObject class], nil];
     _target = [aDecoder decodeInt64ForKey:kEDOInvocationCoderTargetKey];
     _selectorName = [aDecoder decodeObjectOfClass:[NSString class]
