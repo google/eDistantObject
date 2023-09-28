@@ -40,12 +40,7 @@
     }
   }
 #endif
-  // This API is deprecated in iOS 12/macOS 10.14, so we suppress warning here in case its
-  // minimum required SDKs are lower.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  return [NSKeyedUnarchiver unarchiveObjectWithData:data];
-#pragma clang diagnostic pop
+  return [NSKeyedUnarchiver unarchivedObjectOfClass:[NSObject class] fromData:data error:nil];
 }
 
 @end
