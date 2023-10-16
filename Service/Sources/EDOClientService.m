@@ -146,6 +146,19 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   return nil;
 }
 
++ (BOOL)isServiceAvailableOnPort:(UInt16)port {
+  EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
+  EDOServiceRequest *classRequest =
+      [EDOClassRequest requestWithClassName:NSStringFromClass([NSObject class]) hostPort:hostPort];
+  EDOHostService *service = [EDOHostService serviceForCurrentExecutingQueue];
+  NSError *error = nil;
+  [self sendSynchronousRequest:classRequest
+                        onPort:hostPort
+                  withExecutor:service.executor
+                         error:&error];
+  return error == nil;
+}
+
 #pragma mark - Private Category
 
 + (NSMapTable *)localDistantObjects {
@@ -235,6 +248,13 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(EDOHostPort *)port
                                   withExecutor:(EDOExecutor *)executor {
+  return [self sendSynchronousRequest:request onPort:port withExecutor:executor error:NULL];
+}
+
++ (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
+                                        onPort:(EDOHostPort *)port
+                                  withExecutor:(EDOExecutor *)executor
+                                         error:(NSError **)errorOut {
   EDOClientServiceStatsCollector *stats = EDOClientServiceStatsCollector.sharedServiceStats;
 
   int maxAttempts = 2;
@@ -257,7 +277,11 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
       NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
                                            code:EDOServiceErrorCannotConnect
                                        userInfo:userInfo];
-      gEDOClientErrorHandler(error);
+      if (errorOut != NULL) {
+        *errorOut = error;
+      } else {
+        gEDOClientErrorHandler(error);
+      }
       return nil;
     }
 
@@ -327,7 +351,11 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   NSError *error = [NSError errorWithDomain:EDOServiceErrorDomain
                                        code:EDOServiceErrorConnectTimeout
                                    userInfo:userInfo];
-  gEDOClientErrorHandler(error);
+  if (errorOut != NULL) {
+    *errorOut = error;
+  } else {
+    gEDOClientErrorHandler(error);
+  }
   return nil;
 }
 

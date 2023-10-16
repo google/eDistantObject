@@ -76,6 +76,15 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler _Nullable e
 
 - (instancetype)init NS_UNAVAILABLE;
 
+/**
+ * Determines if an @c EDOHostService is listening on @c port.
+ *
+ * @param port The port to check if an @c EDOHostService is listening on.
+ * @return @c YES if an @c EDOHostService is listening on @c port and it is safe to connect, @c NO
+ * otherwise.
+ */
++ (BOOL)isServiceAvailableOnPort:(UInt16)port;
+
 #pragma mark - Deprecated APIs
 
 /** Retrieve the root object from the given host port of a service. */
