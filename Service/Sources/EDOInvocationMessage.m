@@ -310,6 +310,7 @@ static EDORemoteException *CreateRemoteException(id localException) {
                           @(i - firstArgumentIndex + 1),
                           i == firstArgumentIndex       ? @"st"
                           : i == firstArgumentIndex + 1 ? @"nd"
+                          : i == firstArgumentIndex + 2 ? @"rd"
                                                         : @"th"];
         [[NSException exceptionWithName:EDOTypeEncodingException reason:errorMessage
                                userInfo:nil] raise];
