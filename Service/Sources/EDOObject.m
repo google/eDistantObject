@@ -267,6 +267,24 @@ static BOOL IsFromSameProcess(id object1, id object2);
   return [self objectAtIndex:index];
 }
 
+/** Overrides NSDictionary enumeration to bypass the restriction of the C pointer. */
+- (void)enumerateKeysAndObjectsUsingBlock:(void (^)(id key, id obj, BOOL *stop))block {
+  NSMethodSignature *methodSignature = [self methodSignatureForSelector:_cmd];
+  if (methodSignature) {
+    __block BOOL stopped = NO;
+    id modifiedBlock = ^(id key, id obj, NSUInteger unusedStop) {
+      if (!stopped) {
+        block(key, obj, &stopped);
+      }
+    };
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+    invocation.target = self;
+    invocation.selector = _cmd;
+    [invocation setArgument:&modifiedBlock atIndex:2];
+    [self forwardInvocation:invocation];
+  }
+}
+
 - (NSUInteger)hash {
   NSUInteger remoteHash = 0;
   NSInvocation *invocation = [self edo_invocationForSelector:_cmd];

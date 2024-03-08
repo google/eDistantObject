@@ -519,6 +519,8 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
                         [self fastEnumerateArray:self.rootObject]);
   XCTAssertEqualObjects([self fastEnumerateSet:dummyOnBackground],
                         [self fastEnumerateSet:self.rootObject]);
+  XCTAssertEqualObjects([self enumerateDictionary:dummyOnBackground],
+                        [self enumerateDictionary:self.rootObject]);
   XCTAssertNoThrow([self fastEnumerateCustom:self.rootObject]);
   XCTAssertThrowsSpecificNamed([self fastEnumerateCustom:dummyOnBackground], NSException,
                                NSInternalInconsistencyException);
@@ -909,6 +911,15 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   for (NSNumber *obj in [dummy returnSet]) {
     [allElements addObject:obj];
   }
+  return [allElements copy];
+}
+
+- (NSDictionary<NSString *, NSNumber *> *)enumerateDictionary:(EDOTestDummy *)dummy {
+  NSMutableDictionary<NSString *, NSNumber *> *allElements = [NSMutableDictionary dictionary];
+  [[dummy returnDictionary]
+      enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSNumber *value, BOOL *stop) {
+        allElements[key] = value;
+      }];
   return [allElements copy];
 }
 
