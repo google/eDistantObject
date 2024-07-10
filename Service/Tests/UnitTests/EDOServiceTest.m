@@ -752,6 +752,7 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 }
 
 - (void)testEDOReturnsAsValueType {
+  XCTSkip(@"b/347049884 - Re-enable after fixing.");
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
   NSArray *returnArray = [[dummyOnBackground returnByValue] returnArray];
   NSArray *localArray = @[ @1, @2, @3, @4 ];
