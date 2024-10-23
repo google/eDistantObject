@@ -32,7 +32,7 @@ static EDOChannelReceiveHandler GetMultiplexerReceiveHandler(
     // The multiplexer closes or errors.
     if (error || !data) {
       [forwardedChannel invalidate];
-      errorHandler(EDOForwarderErrorMultiplerxerClosed);
+      errorHandler(EDOForwarderErrorMultiplexerClosed);
       return;
     }
     [forwardedChannel sendData:data withCompletionHandler:nil];
