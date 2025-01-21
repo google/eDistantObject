@@ -841,8 +841,8 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 }
 
 - (void)testServicePopulateExecutorHandlingError {
-  EDOHostService *hostService = [EDOHostService serviceWithPort:2233 rootObject:self queue:nil];
-  EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:2233];
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:nil];
+  EDOHostPort *port = hostService.port.hostPort;
   XCTAssertThrows([EDOClientService
       sendSynchronousRequest:[EDOObjectRequest requestWithHostPort:port]
                       onPort:port]);
@@ -851,10 +851,8 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testServiceRecordProcessTime {
   dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
-  EDOHostService *hostService = [EDOHostService serviceWithPort:2234
-                                                     rootObject:self
-                                                          queue:testQueue];
-  EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:2234];
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  EDOHostPort *port = hostService.port.hostPort;
   EDOServiceResponse *response =
       [EDOClientService sendSynchronousRequest:[EDOObjectRequest requestWithHostPort:port]
                                         onPort:port];
@@ -866,11 +864,9 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testUnrecognizedSelectorExceptionHandling {
   dispatch_queue_t testQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
-  EDOHostService *hostService = [EDOHostService serviceWithPort:2234
-                                                     rootObject:self
-                                                          queue:testQueue];
+  EDOHostService *hostService = [EDOHostService serviceWithPort:0 rootObject:self queue:testQueue];
+  EDOHostPort *port = hostService.port.hostPort;
   @try {
-    EDOHostPort *port = [EDOHostPort hostPortWithLocalPort:2234];
     Class testObject = [EDOClientService classObjectWithName:@"NSObject" hostPort:port];
     [testObject stringWithFormat:@"Hello World !!"];
   } @catch (NSException *e) {
