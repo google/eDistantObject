@@ -39,6 +39,9 @@ NS_ASSUME_NONNULL_BEGIN
  * and won't get deallocated immediately. After the underlying object is out of scope, the
  * deallocation tracker helps to remove the strong reference to EDOWeakObject, so the memory gets
  * released.
+ *
+ * Passing weak objects that point to the same underlying object to multiple EDO client services is
+ * *not* supported and doing so will lead to objects not being cleaned up properly on the client.
  */
 - (instancetype)remoteWeak;
 

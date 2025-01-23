@@ -35,6 +35,10 @@
 @implementation EDODeallocationTracker
 
 + (void)enableTrackingForObject:(EDOWeakObject *)trackedObject hostPort:(EDOHostPort *)hostPort {
+  // This does not support multiple weak objects (e.g. from different services) that point to the
+  // same underlying object, as only one single deallocation tracker is associated with the
+  // underlying object. The host port is merely used to decide where the release request should be
+  // sent and only the first port associated with the underlying object is used.
   if (!objc_getAssociatedObject(trackedObject.weakObject, &_cmd)) {
     EDODeallocationTracker *tracker = [[self alloc] initWithTrackedObject:trackedObject
                                                                  hostPort:hostPort];

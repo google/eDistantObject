@@ -34,6 +34,8 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * Creates EDOWeakObject by wrapping the underlying weak object.
  *
+ * Do not call this directly. Use -[NSObject remoteWeak] instead.
+ *
  * @param weakObject The underlying object that is weakly referenced.
  */
 - (instancetype)initWithWeakObject:(id)weakObject;

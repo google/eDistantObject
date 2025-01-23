@@ -356,10 +356,9 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
 }
 
 - (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(EDOHostPort *)hostPort {
-  // TODO(haowoo): The edoObject shouldn't be shared across different services, currently there is
-  //               only one edoObject associated with the underlying object. We need to have a
-  //               edoObject for each service per object.
-
+  // The edoObject shouldn't be shared across different services, currently there is only one
+  // edoObject associated with the underlying object. We need to have a edoObject for each service
+  // per object.
   BOOL isObjectBlock = [EDOBlockObject isBlock:object];
   // We need to make a copy for the block object. This will move the stack block to the heap so
   // we can still access it. For other types of blocks, i.e. global and malloc, it may only increase
