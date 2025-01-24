@@ -22,26 +22,22 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSObject (EDOWeakObject)
 
 /**
- * Wraps an NSObject into a EDOWeakObject.
+ * Wraps an @c NSObject into a @c EDOWeakObject, which can be held weakly by a remote process.
  *
- * Boxes an object into a EDOWeakObject, which is an NSProxy that directs any call to the original
- * object. User would use this method when testing with weakly referenced objects.
+ * When an object is wrapped in an @c EDOObject and passed to a remote process, and the remote
+ * process only holds a weak reference to the @c EDOObject, the @c EDOObject may be deallocated
+ * prematurely without other strong references.
  *
- * Usage for assigning a weak reference to object:
- * Original usage: weakReference = object;
- * Updated usage:  weakReference = [object remoteWeak];
- *
- * When a user references an underlying object weakly across processes remotely, since there were
- * no ownership to the object across processes, the underlying object will be deallocated
- * immediately. Through the usage of remoteWeak, the underlying object is wrapped to an
- * EDOWeakObject which directs any call to the underlying object. At the same time, EDOWeakObject
- * is added and owned by a weakly referenced objects library at the host side. It is then retained
- * and won't get deallocated immediately. After the underlying object is out of scope, the
- * deallocation tracker helps to remove the strong reference to EDOWeakObject, so the memory gets
- * released.
+ * With @c remoteWeak, the object is wrapped in an @c EDOWeakObject, which triggers additional logic
+ * on the remote process to retain the @c EDOObject until the underlying object has been released.
  *
  * Passing weak objects that point to the same underlying object to multiple EDO client services is
  * *not* supported and doing so will lead to objects not being cleaned up properly on the client.
+ *
+ * Usage for assigning a local object to a weak reference of a remote object:
+ * @code
+ *   remoteObject.weakReference = [localObject remoteWeak];
+ * @endcode
  */
 - (instancetype)remoteWeak;
 

@@ -22,6 +22,47 @@
 
 @implementation NSObject (EDOWeakObject)
 
+// When an object is passed from the client to the host, it is wrapped in an @c EDOObject that acts
+// as a proxy to the original object. As long as the host holds a reference to the @c EDOObject, the
+// original object is retained.
+//
+// This breaks when the host is only holding a weak reference to the @c EDOObject as it may be
+// deallocated immediately
+//
+// == Client ==               | == Host ==
+//                            |
+//     ┌────────┐             | ┌──────────────┐
+// ┌──▶│ object │             | │ RemoteObject │─┐
+// │   └────────┘             | └──────────────┘ │ weak
+// │ ┌────────────────────┐   |  ┌───────────┐   │
+// └─│ localObjects (eDO) │◀--|--│ EDOObject │◀──┘
+//   └────────────────────┘   |  └───────────┘
+//
+// Through the use of @c remoteWeak:
+// 1. The client wraps the object in an @c EDOWeakObject, which triggers additional handling on the
+//    host side when the object is passed to a remote process.
+// 2. The host tracks the @c EDOObject in @c localWeakObjects to prevent premature deallocation.
+// 3. The client associates a deallocation tracker to the object. When the object is deallocated,
+//    the tracker's @c dealloc triggers an object release request to remove the @c EDOObject from
+//    the host's @c localWeakObjects. Once the @c EDOObject is deallocated on the host, the usual
+//    cleanup flow ensues, removing the @c EDOWeakObject from the client's @c localObjects.
+// 4. When an message is sent to the @c EDOObject, it is forwarded to the @c EDOWeakObject, which is
+//    itself an @c NSProxy and forwards the invocation to the original object.
+//
+// == Client ==                | == Host ==
+//                             |
+//    ┌─────────────────────┐  |   ┌────────────────────────┐
+// ┌─▶│ DeallocationTracker │--|--▶│ localWeakObjects (eDO) │─┐
+// │  └─────────────────────┘  |   └────────────────────────┘ │
+// └───────┌────────┐          |                              │
+//      ┌─▶│ object │────────┐ |                              │
+// weak │  └────────┘        │ |                              │
+//      └─┌───────────────┐  │ | ┌──────────────┐             │
+//  ┌────▶│ EDOWeakObject │◀─┘ | │ RemoteObject │─┐           │
+//  │     └───────────────┘    | └──────────────┘ │ weak      │
+//  │ ┌────────────────────┐   |  ┌───────────┐   │           │
+//  └─│ localObjects (eDO) │◀--|--│ EDOObject │◀──┴───────────┘
+//    └────────────────────┘   |  └───────────┘
 - (instancetype)remoteWeak {
   static dispatch_queue_t syncQueue;
   static dispatch_once_t onceToken;
