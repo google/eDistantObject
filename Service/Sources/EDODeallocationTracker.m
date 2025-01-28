@@ -18,6 +18,7 @@
 
 #include <objc/runtime.h>
 
+#import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOObject+Private.h"
@@ -39,10 +40,16 @@
   // same underlying object, as only one single deallocation tracker is associated with the
   // underlying object. The host port is merely used to decide where the release request should be
   // sent and only the first port associated with the underlying object is used.
-  if (!objc_getAssociatedObject(trackedObject.weakObject, &_cmd)) {
-    EDODeallocationTracker *tracker = [[self alloc] initWithTrackedObject:trackedObject
-                                                                 hostPort:hostPort];
+  EDODeallocationTracker *tracker = objc_getAssociatedObject(trackedObject.weakObject, &_cmd);
+  if (!tracker) {
+    tracker = [[self alloc] initWithTrackedObject:trackedObject hostPort:hostPort];
     objc_setAssociatedObject(trackedObject.weakObject, &_cmd, tracker, OBJC_ASSOCIATION_RETAIN);
+  } else {
+    NSAssert(
+        [tracker.hostPort isEqual:hostPort],
+        @"Deallocation tracker does not support tracking the same object from multiple host ports."
+        @"Existing port: %@\nNew port: %@",
+        tracker.hostPort, hostPort);
   }
 }
 
