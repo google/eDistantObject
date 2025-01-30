@@ -401,8 +401,8 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 - (void)testRemoteObjectCopy {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  NSArray *remoteArray = [dummy returnArray];
-  NSArray *remoteArrayCopy;
+  NSArray<NSNumber*> *remoteArray = [dummy returnArray];
+  NSArra<NSNumber*>y *remoteArrayCopy;
   XCTAssertNoThrow(remoteArrayCopy = [remoteArray copy]);
   XCTAssertEqual(remoteArray, remoteArrayCopy);
 }
@@ -410,8 +410,8 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 - (void)testRemoteObjectMutableCopy {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *dummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  NSArray *remoteArray = [dummy returnArray];
-  NSMutableArray *remoteArrayCopy = [remoteArray mutableCopy];
+  NSArray<NSNumber*> *remoteArray = [dummy returnArray];
+  NSMutableArray<NSNumber*> *remoteArrayCopy = [remoteArray mutableCopy];
   XCTAssertNotEqual(remoteArray, remoteArrayCopy);
   XCTAssertEqualObjects(remoteArray, remoteArrayCopy);
   [remoteArrayCopy addObject:@"test"];
