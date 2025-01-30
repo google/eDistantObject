@@ -153,6 +153,15 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "C845034420DDA1E800D7350F"
+            BuildableName = "TestsHost.app"
+            BlueprintName = "TestsHost"
+            ReferencedContainer = "container:eDistantObject.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -208,24 +217,13 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C55B85D822419D0800B568FA"
+               BlueprintIdentifier = "C55B85E82241AEAC00B568FA"
                BuildableName = "DeviceUnitTests.xctest"
                BlueprintName = "DeviceUnitTests"
                ReferencedContainer = "container:eDistantObject.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C845034420DDA1E800D7350F"
-            BuildableName = "TestsHost.app"
-            BlueprintName = "TestsHost"
-            ReferencedContainer = "container:eDistantObject.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -247,8 +245,6 @@
             ReferencedContainer = "container:eDistantObject.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
