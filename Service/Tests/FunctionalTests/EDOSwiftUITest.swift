@@ -16,7 +16,8 @@
 
 import Foundation
 import XCTest
-import SwiftUtil
+@testable import SwiftUtil
+
 class EDOSwiftUITest: XCTestCase {
   @discardableResult
   func launchAppWithPort(port: Int, value: Int) -> XCUIApplication {
@@ -159,4 +160,19 @@ class EDOSwiftUITest: XCTestCase {
 
     service.invalidate()
   }
+
+  func testIsNativeObjCClass() {
+    XCTAssertTrue(IsNativeObjCClass(NSObject.self))
+    XCTAssertTrue(IsNativeObjCClass(EDOTestClassDummy.self))
+
+    XCTAssertFalse(IsNativeObjCClass(SwiftClassMarkedAsObjC.self))
+    XCTAssertFalse(IsNativeObjCClass(SwiftClassInheritingNSObject.self))
+    XCTAssertFalse(IsNativeObjCClass(PureSwiftClass.self))
+  }
 }
+
+@objc private class SwiftClassMarkedAsObjC: NSObject {}
+
+private class SwiftClassInheritingNSObject: NSObject {}
+
+private class PureSwiftClass {}
