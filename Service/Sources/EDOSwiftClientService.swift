@@ -28,6 +28,15 @@ public func remoteClassObject<T: NSObject>(of aClass: T.Type, on port: EDOHostPo
     return nil
   }
 
+  if !IsNativeObjCClass(T.self) {
+    print(
+      """
+      EDO WARNING: '\(T.self)' is a Swift class from the remote process. Invoking methods not \
+      marked `@objc dynamic` is unsupported and will lead to failures.
+      """
+    )
+  }
+
   // The following cast is safe because `remoteClass` is `AnyObject`, which will be treated the same
   // as `T.Type` when the compiler generates code to call a class method.
   //
@@ -53,4 +62,26 @@ public func remoteClassObject<T: NSObject>(of aClass: T.Type, on port: EDOHostPo
   // the function returns the value as-is. Thus, the `AnyObject` value will be returned and then
   // passed to `objc_msgSend` as desired.
   return unsafeBitCast(remoteClass as AnyObject, to: T.Type.self)
+}
+
+// Whether the object is a class implemented in Objective-C (as opposed to a Swift class inheriting
+// `NSObject`).
+func IsNativeObjCClass(_ aClass: AnyClass) -> Bool {
+  let metadataPointer = unsafeBitCast(aClass, to: UnsafePointer<TypeMetadata>.self)
+  return metadataPointer.pointee.kind == MetadataKind.objCClassWrapper.rawValue
+}
+
+private enum MetadataKind: UInt {
+  // Value taken from ABI.
+  //
+  // See: https://github.com/swiftlang/swift/blob/a184782a38406d2a04e717d0725f42d46258b422/include/swift/ABI/MetadataKind.def#L74
+  case objCClassWrapper = 0x305
+}
+
+private struct TypeMetadata {
+  // According to the ABI doc about TypeMetadata, the first pointer-sized
+  // integer described the kind of the type.
+  //
+  // See: https://github.com/swiftlang/swift/blob/main/docs/ABI/TypeMetadata.rst#common-metadata-layout
+  let kind: UInt
 }
