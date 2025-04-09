@@ -116,14 +116,29 @@ class EDOSwiftUITest: XCTestCase {
     XCTAssertEqual(sumResult, 6)
   }
 
-  /// Verifies Swift array can be passed across the process and used by other Swift code.
+  /// Verifies Swift array of AnyObjects can be passed across the process and used by other Swift
+  /// code.
+  func testRemoteSwiftAnyObjectArray() {
+    launchAppWithPort(port: 1234, value: 10)
+    let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
+    let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
+    let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
+    let swiftClass = testDummy.returnProtocol()
+    let target = swiftClass.returnSwiftAnyObjectArray()
+    XCTAssertNotNil(target[0].description)
+    XCTAssertNotNil(target[1].description)
+    service.invalidate()
+  }
+
+  /// Verifies Swift array of objects should be converted to local array before it can be used by
+  /// other Swift code.
   func testRemoteSwiftArray() {
     launchAppWithPort(port: 1234, value: 10)
     let service = EDOHostService(port: 2234, rootObject: self, queue: DispatchQueue.main)
     let hostPort = EDOHostPort(port: 1234, name: nil, deviceSerialNumber: nil)
     let testDummy = EDOClientService<EDOTestDummyExtension>.rootObject(with: hostPort)
     let swiftClass = testDummy.returnProtocol()
-    let target = swiftClass.returnSwiftArray()
+    let target = swiftClass.returnSwiftArray().localArray
     XCTAssertNotNil(target[0])
     XCTAssertNotNil(target[1])
     service.invalidate()

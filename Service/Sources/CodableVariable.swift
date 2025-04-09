@@ -116,3 +116,11 @@ extension Encodable {
     return try! CodableVariable.wrap(self)
   }
 }
+
+extension Array where Element: AnyObject {
+  // Workaround to interact with a Swift array obtained via eDO to avoid the type mismatch failure
+  // when bridging between NSArray and Swift Array.
+  public var localArray: Self {
+    (self as [AnyObject]).map { unsafeBitCast($0, to: Element.self) }
+  }
+}

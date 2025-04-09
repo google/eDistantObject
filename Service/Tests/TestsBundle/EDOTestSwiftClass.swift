@@ -34,8 +34,12 @@ public class EDOTestSwiftClass: NSObject, EDOTestSwiftProtocol {
     return sum
   }
 
-  public func returnSwiftArray() -> [AnyObject] {
-    return [NSObject.init(), NSObject.init()]
+  public func returnSwiftAnyObjectArray() -> [AnyObject] {
+    return [NSObject(), NSObject()]
+  }
+
+  public func returnSwiftArray() -> [NSObject] {
+    return [NSObject(), NSObject()]
   }
 
   public func sumFrom(structValue: EDOTestSwiftStruct) -> [Int] {

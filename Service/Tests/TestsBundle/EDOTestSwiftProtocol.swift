@@ -49,7 +49,8 @@ public protocol EDOTestSwiftProtocol {
   func returnString() -> NSString
   func returnWithBlock(block: @escaping (NSString) -> EDOTestSwiftProtocol) -> NSString
   func returnWithDictionarySum(data: NSDictionary) -> Int
-  func returnSwiftArray() -> [AnyObject]
+  func returnSwiftAnyObjectArray() -> [AnyObject]
+  func returnSwiftArray() -> [NSObject]
   func sumFrom(codedStruct: CodableVariable) throws -> CodableVariable
   func propagateError(withCustomizedDescription isCustomized: Bool) throws
 }
