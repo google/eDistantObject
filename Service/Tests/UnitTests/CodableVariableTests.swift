@@ -19,6 +19,14 @@ final class CodableVariableTests: XCTestCase {
     XCTAssertEqual(deserialized.floatValue, structValue.floatValue)
   }
 
+  /// Verifies CodableVariable will return nil when deserializing with optional try.
+  func testOptionallyDeserializingStructReturnsNil() {
+    let structValue = EDOTestingStruct(intValue: 0, stringValue: "foo", floatValue: -1.0)
+    let serialized = structValue.eDOCodableVariable
+    let deserialized: EDOTestingStruct? = try? serialized.unwrap()
+    XCTAssertNil(deserialized)
+  }
+
   /// Verifies CodableVariable can wrap/unwrap optional primitive types.
   func testSerializeOptionalPrimitive() throws {
     guard #available(iOS 13.0, *) else {
