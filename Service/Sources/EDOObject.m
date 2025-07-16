@@ -198,12 +198,29 @@ static BOOL IsFromSameProcess(id object1, id object2);
 
 - (BOOL)isKindOfClass:(Class)aClass {
   if (!IsFromSameProcess(self, aClass)) {
-    NSLog(@"EDO WARNING: %@'s class is being compared via isKindOfClass: with the class that "
-          @"doesn't belong to the process of the callee object. It will always return NO. To "
-          @"expect isKindOfClass: to return YES, please use a class object that is fetched by "
-          @"EDOClientService::classObjectWithName:hostPort:.",
-          self.className);
-    return NO;
+    NSString *warningMessage = [NSString
+        stringWithFormat:
+            @"EDO WARNING: %@'s class is being compared via isKindOfClass: with a class that "
+            @"doesn't belong to the process of the callee object. It will always return NO. To "
+            @"expect isKindOfClass: to return YES, please use a class object that is fetched by "
+            @"-[EDOClientService classObjectWithName:hostPort:].",
+            self.className];
+    // Starting with Xcode 16.3, errors thrown by Swift functions are captured by Swift testing and
+    // go through a backtracing step, where the @c EDOObject is force cast to a @c Swift.Error,
+    // resulting in a crash. To get around this, the check is forwarded to the actual object.
+    // Note that only checks for @c NSError are forwarded to address this specific case. Attempts to
+    // forward other checks, most notably for @c NSArray, have resulted in exceptions and require
+    // further investigation.
+    if (aClass != NSError.class) {
+      NSLog(@"%@", warningMessage);
+      return NO;
+    }
+    NSString *className = NSStringFromClass(aClass);
+    aClass = [EDOClientService classObjectWithName:className hostPort:self.servicePort.hostPort];
+    if (!aClass) {
+      NSLog(@"%@", warningMessage);
+      return NO;
+    }
   }
 
   NSInvocation *invocation = [self edo_invocationForSelector:_cmd];
