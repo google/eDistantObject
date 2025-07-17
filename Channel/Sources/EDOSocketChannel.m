@@ -62,8 +62,9 @@
   if (self) {
     // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
     // are not reentrant and only one block will be scheduled by dispatch io and dispatch source.
+    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class( DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INTERACTIVE, 0);
     _handlerQueue =
-        dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_create("com.google.edo.socketChannel.handler", queueAttributes);
   }
   return self;
 }
