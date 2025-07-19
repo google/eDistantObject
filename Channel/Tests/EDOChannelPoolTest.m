@@ -56,7 +56,7 @@
 
   for (int i = 0; i < 10; i++) {
     UInt16 port = i % 2 == 0 ? host1.socketPort.port : host2.socketPort.port;
-    NSMutableSet *set = i % 2 == 0 ? set1 : set2;
+    NSMutableSet<EDOSocketChannel *> *set = i % 2 == 0 ? set1 : set2;
     EDOHostPort *hostPort = [EDOHostPort hostPortWithLocalPort:port];
     id<EDOChannel> socketChannel = [channelPool channelWithPort:hostPort error:nil];
 

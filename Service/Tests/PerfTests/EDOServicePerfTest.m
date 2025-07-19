@@ -194,7 +194,7 @@ static const size_t kNumOfBenchmarkExecutions = 100;
       assertPerformBlockWithWeight:1
                         executions:10
                              block:^(EDOTestDummy *remoteDummy) {
-                               NSArray *result = [[remoteDummy returnByValue] returnLargeArray];
+                               NSArray<NSNumber *>  *result = [[remoteDummy returnByValue] returnLargeArray];
                                for (NSInteger i = 0; i < 1000; i++) {
                                  XCTAssert(((NSNumber *)result[i]).integerValue == i);
                                }
@@ -203,7 +203,7 @@ static const size_t kNumOfBenchmarkExecutions = 100;
       [self assertPerformBlockWithWeight:1000
                               executions:10
                                    block:^(EDOTestDummy *remoteDummy) {
-                                     NSArray *result = [remoteDummy returnLargeArray];
+                                     NSArray<NSNumber *>  *result = [remoteDummy returnLargeArray];
                                      for (NSInteger i = 0; i < 1000; i++) {
                                        XCTAssert(((NSNumber *)result[i]).integerValue == i);
                                      }
@@ -212,7 +212,7 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 }
 
 - (void)testIteratingPassByValueParameterLotsTimes {
-  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:1000];
+  NSMutableArray<NSNumber *>  *array = [[NSMutableArray alloc] initWithCapacity:1000];
   for (int i = 0; i < 1000; i++) {
     [array addObject:@(i)];
   }

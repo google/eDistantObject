@@ -695,9 +695,9 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testEDOAsDictKey {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSSet *returnSet = [dummyOnBackground returnSet];
-  NSArray *returnArray = [dummyOnBackground returnArray];
-  NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+  NSSet<NSNumber *>  *returnSet = [dummyOnBackground returnSet];
+  NSArray<NSNumber *>  *returnArray = [dummyOnBackground returnArray];
+  NSMutableDictionary<NSString *, NSNumber *>  *dictionary = [[NSMutableDictionary alloc] init];
 
   XCTAssertNil(dictionary[returnSet]);
   XCTAssertNoThrow(dictionary[returnSet] = @1);
@@ -709,8 +709,8 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testEDOAsCFDictKey {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSSet *returnSet = [dummyOnBackground returnSet];
-  NSArray *returnArray = [dummyOnBackground returnArray];
+  NSSet<NSNumber *> *returnSet = [dummyOnBackground returnSet];
+  NSArray<NSNumber *> *returnArray = [dummyOnBackground returnArray];
   CFMutableDictionaryRef cfDictionary = CFDictionaryCreateMutable(
       NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 
@@ -754,8 +754,8 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 - (void)testEDOReturnsAsValueType {
   XCTSkip(@"b/347049884 - Re-enable after fixing.");
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSArray *returnArray = [[dummyOnBackground returnByValue] returnArray];
-  NSArray *localArray = @[ @1, @2, @3, @4 ];
+  NSArray<NSNumber *> *returnArray = [[dummyOnBackground returnByValue] returnArray];
+  NSArray<NSNumber *> *localArray = @[ @1, @2, @3, @4 ];
   XCTAssertEqual([returnArray class], [localArray class]);
   XCTAssertTrue([returnArray isEqualToArray:localArray]);
 }
@@ -774,25 +774,25 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
 
 - (void)testEDOPassByValueWithRemoteObject {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSArray *array = [dummyOnBackground returnArray];
+  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
   XCTAssertEqual([dummyOnBackground returnCountWithArray:[array passByValue]], 4);
 }
 
 - (void)testEDOPassByValueNestedWithReturnByValue {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSArray *array = [dummyOnBackground returnArray];
+  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
   XCTAssertEqual([dummyOnBackground returnCountWithArray:[[array returnByValue] passByValue]], 4);
 }
 
 - (void)testEDOPassByValueNestedWithPassByValue {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSArray *array = [dummyOnBackground returnArray];
+  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
   XCTAssertEqual([dummyOnBackground returnCountWithArray:[[array passByValue] passByValue]], 4);
 }
 
 - (void)testEDOReturnByValueNestedWithPassByValue {
   EDOTestDummy *dummyOnBackground = self.rootObjectOnBackground;
-  NSArray *array = [dummyOnBackground returnArray];
+  NSArray<NSNumber *> *array = [dummyOnBackground returnArray];
   XCTAssertEqual([dummyOnBackground returnCountWithArray:[[array passByValue] returnByValue]], 4);
 }
 
