@@ -175,7 +175,9 @@ static void edo_RunHandlerWithErrorInQueueWithBlock(int code, dispatch_queue_t q
                      queue:(dispatch_queue_t)queue
             connectedBlock:(EDOSocketConnectedBlock)block {
   block = block ?: gNoOpHandlerBlock;
-  queue = queue ?: dispatch_queue_create("com.google.edo.connectSocket", DISPATCH_QUEUE_SERIAL);
+  dispatch_queue_attr_t queueAttributes =
+      dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
+  queue = queue ?: dispatch_queue_create("com.google.edo.connectSocket", queueAttributes);
 
   int socketErr = 0;
   dispatch_fd_t socketFD = edo_CreateSocket(&socketErr);
