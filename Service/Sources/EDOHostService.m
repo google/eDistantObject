@@ -576,7 +576,19 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
                            return;
                          }
 
-                         id<EDOChannel> clientChannel = [EDOSocketChannel channelWithSocket:socket];
+                         dispatch_queue_t handlerQueue = nil;
+                         dispatch_queue_t executionQueue = strongSelf.executionQueue;
+                         if (executionQueue) {
+                           dispatch_qos_class_t qos =
+                               dispatch_queue_get_qos_class(executionQueue, nil);
+                           dispatch_queue_attr_t queueAttributes =
+                               dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, qos,
+                                                                       0);
+                           handlerQueue = dispatch_queue_create(
+                               "com.google.edo.socketChannel.handler", queueAttributes);
+                         }
+                         id<EDOChannel> clientChannel =
+                             [EDOSocketChannel channelWithSocket:socket handlerQueue:handlerQueue];
                          [strongSelf startReceivingRequestsForChannel:clientChannel];
                        }];
 }
