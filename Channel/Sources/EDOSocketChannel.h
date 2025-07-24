@@ -34,16 +34,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface EDOSocketChannel : NSObject <EDOChannel>
 
-/** Convenience creation method. See -initWithSocket:. */
-+ (nullable instancetype)channelWithSocket:(EDOSocket *)socket;
-
 /**
  * Initializes a channel with the established socket.
  *
  * @param socket The established socket from the @c EDOSocketConnectedBlock callback.
  * @return An instance of @c EDOSocketChannel on success; @c nil if the @c socket is invalid.
  */
-- (nullable instancetype)initWithSocket:(EDOSocket *)socket;
++ (nullable instancetype)channelWithSocket:(EDOSocket *)socket;
 
 /**
  * Initializes a channel with the given dispatch I/O channel.
