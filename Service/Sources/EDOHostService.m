@@ -54,6 +54,9 @@ static const char kEDOExecutingQueueKey = '\0';
 /** The context key to find the temporary service for current thread. */
 static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService";
 
+/** Release the context saved to the dispatch queue. */
+static void ReleaseContext(void *context) { CFBridgingRelease(context); }
+
 #pragma mark - EDODispatchQueueWeakRef
 
 /**
@@ -253,11 +256,11 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
     //               as the client is relying on this behavior.
     if (queue) {
       dispatch_queue_set_specific(queue, gServiceKey, (void *)CFBridgingRetain(self),
-                                  (dispatch_function_t)CFBridgingRelease);
+                                  ReleaseContext);
 
       EDOWeakReference *selfRef = [[EDOWeakReference alloc] initWithObject:self];
       dispatch_queue_set_specific(queue, &kEDOExecutingQueueKey, (void *)CFBridgingRetain(selfRef),
-                                  (dispatch_function_t)CFBridgingRelease);
+                                  ReleaseContext);
     }
 
     self.originatingQueues = nil;
@@ -325,7 +328,7 @@ static NSString *const kCacheTemporaryHostServiceKey = @"EDOTemporaryHostService
   for (dispatch_queue_t queue in originatingQueues) {
     [queues addObject:[[EDOWeakReference alloc] initWithObject:queue]];
     dispatch_queue_set_specific(queue, &kEDOOriginatingQueueKey, (void *)CFBridgingRetain(selfRef),
-                                (dispatch_function_t)CFBridgingRelease);
+                                ReleaseContext);
   }
   _originatingWeakQueues = [queues copy];
 }
