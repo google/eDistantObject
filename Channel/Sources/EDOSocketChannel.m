@@ -40,7 +40,7 @@
 @dynamic valid;
 
 + (instancetype)channelWithSocket:(EDOSocket *)socket {
-  return [[EDOSocketChannel alloc] initWithSocket:socket];
+  return [[self alloc] initWithDispatchIO:[socket releaseAsDispatchIO]];
 }
 
 - (instancetype)initWithDispatchIO:(dispatch_io_t)channel {
@@ -51,10 +51,6 @@
     _channel = channel;
   }
   return self;
-}
-
-- (instancetype)initWithSocket:(EDOSocket *)socket {
-  return [self initWithDispatchIO:[socket releaseAsDispatchIO]];
 }
 
 - (instancetype)init {
