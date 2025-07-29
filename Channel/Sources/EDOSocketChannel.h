@@ -43,6 +43,18 @@ NS_ASSUME_NONNULL_BEGIN
 + (nullable instancetype)channelWithSocket:(EDOSocket *)socket;
 
 /**
+ * Initializes a channel with the established socket and a handler queue.
+ *
+ * @param socket       The established socket from the @c EDOSocketConnectedBlock callback.
+ * @param handlerQueue The queue on which the channel handlers for sending and receiving data will
+ *                     be dispatched.
+ *
+ * @return An instance of @c EDOSocketChannel on success; @c nil if the @c socket is invalid.
+ */
++ (nullable instancetype)channelWithSocket:(EDOSocket *)socket
+                              handlerQueue:(dispatch_queue_t _Nullable)handlerQueue;
+
+/**
  * Initializes a channel with the given dispatch I/O channel.
  *
  * @param channel The established channel.

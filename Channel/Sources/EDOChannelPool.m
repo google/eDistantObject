@@ -60,6 +60,12 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 }
 
 - (id<EDOChannel>)channelWithPort:(EDOHostPort *)port error:(NSError **)error {
+  return [self channelWithPort:port connectionQueue:nil error:error];
+}
+
+- (id<EDOChannel>)channelWithPort:(EDOHostPort *)port
+                  connectionQueue:(dispatch_queue_t)queue
+                            error:(NSError **)error {
   dispatch_time_t now = dispatch_time(DISPATCH_TIME_NOW, 0);
   id<EDOChannel> channel = [[self channelsForPort:port] lastObjectWithTimeout:now];
   NSError *resultError;
@@ -81,7 +87,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
                                     userInfo:userInfo];
     }
   } else {
-    channel = [self edo_createChannelWithPort:port error:&resultError];
+    channel = [self edo_createChannelWithPort:port queue:queue error:&resultError];
   }
   if (error) {
     *error = resultError;
@@ -129,7 +135,9 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
 
 #pragma mark - Private
 
-- (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port error:(NSError **)error {
+- (id<EDOChannel>)edo_createChannelWithPort:(EDOHostPort *)port
+                                      queue:(dispatch_queue_t)queue
+                                      error:(NSError **)error {
   id<EDOChannel> channel;
   NSError *connectionError;
   if (port.connectsDevice) {
@@ -141,7 +149,7 @@ static const int64_t kChannelPoolTimeout = 10 * NSEC_PER_SEC;
       channel = [[EDOSocketChannel alloc] initWithDispatchIO:deviceChannel];
     }
   } else {
-    EDOSocket *socket = [EDOSocket socketWithTCPPort:port.port queue:nil error:&connectionError];
+    EDOSocket *socket = [EDOSocket socketWithTCPPort:port.port queue:queue error:&connectionError];
     if (socket) {
       channel = [EDOSocketChannel channelWithSocket:socket];
     }

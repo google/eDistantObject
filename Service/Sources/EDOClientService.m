@@ -262,7 +262,15 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   while (currentAttempt < maxAttempts) {
     NSError *connectionError;
     uint64_t connectionStartTime = mach_absolute_time();
+    dispatch_queue_t connectionQueue = nil;
+    dispatch_queue_t executionQueue = executor.executionQueue;
+    if (executionQueue) {
+      dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(
+          DISPATCH_QUEUE_SERIAL, dispatch_queue_get_qos_class(executionQueue, nil), 0);
+      connectionQueue = dispatch_queue_create("com.google.edo.connectChannel", queueAttributes);
+    }
     id<EDOChannel> channel = [EDOChannelPool.sharedChannelPool channelWithPort:port
+                                                               connectionQueue:connectionQueue
                                                                          error:&connectionError];
     [stats reportConnectionDuration:EDOGetMillisecondsSinceMachTime(connectionStartTime)];
 

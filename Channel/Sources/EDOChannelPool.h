@@ -54,6 +54,25 @@ NS_ASSUME_NONNULL_BEGIN
                                      error:(NSError *_Nullable *_Nullable)error;
 
 /**
+ * Fetches an already-connected channel from the pool, keyed by the host @c port, or create a new
+ * channel if one does not exist.
+ *
+ * @param port  The host port to connect to.
+ * @param queue The queue that new channels will be connected on.
+ * @param error The error to populate in case of failure.
+ *
+ * @return The channel that's ready to send and receive data, or @c nil if there is an error.
+ *
+ * @note If there is no channel for the host port, it will attempt to create one by connecting
+ *       to the host. In case of real devices, it waits for the remote to be connected because the
+ *       device cannot initiate the connection to the Mac host via usbmuxd. It will time out if
+ *       there is no connection set up and return @c nil.
+ */
+- (nullable id<EDOChannel>)channelWithPort:(EDOHostPort *)port
+                           connectionQueue:(dispatch_queue_t _Nullable)queue
+                                     error:(NSError *_Nullable *_Nullable)error;
+
+/**
  * Adds the @c channel to the pool.
  *
  * @param channel The channel being added to be reused.

@@ -40,26 +40,36 @@
 @dynamic valid;
 
 + (instancetype)channelWithSocket:(EDOSocket *)socket {
-  return [[self alloc] initWithDispatchIO:[socket releaseAsDispatchIO]];
+  return [self channelWithSocket:socket handlerQueue:nil];
+}
+
++ (instancetype)channelWithSocket:(EDOSocket *)socket handlerQueue:(dispatch_queue_t)handlerQueue {
+  return [[self alloc] initWithDispatchIO:[socket releaseAsDispatchIO] handlerQueue:handlerQueue];
 }
 
 - (instancetype)initWithDispatchIO:(dispatch_io_t)channel {
+  return [self initWithDispatchIO:channel handlerQueue:nil];
+}
+
+- (instancetype)initWithDispatchIO:(dispatch_io_t)channel
+                      handlerQueue:(dispatch_queue_t)handlerQueue {
   NSParameterAssert(channel != nil);
 
-  self = [self init];
+  self = [self initWithHandlerQueue:handlerQueue];
   if (self) {
     _channel = channel;
   }
   return self;
 }
 
-- (instancetype)init {
+- (instancetype)initWithHandlerQueue:(dispatch_queue_t)handlerQueue {
   self = [super init];
   if (self) {
     // For internal IO and event handlers, it is equivalent to creating it as a serial queue as they
     // are not reentrant and only one block will be scheduled by dispatch io and dispatch source.
     _handlerQueue =
-        dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_SERIAL);
+        handlerQueue
+            ?: dispatch_queue_create("com.google.edo.socketChannel.handler", DISPATCH_QUEUE_SERIAL);
   }
   return self;
 }
