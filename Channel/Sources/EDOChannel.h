@@ -95,6 +95,25 @@ typedef void (^EDOChannelSentHandler)(id<EDOChannel> channel, NSError *_Nullable
 - (void)receiveDataWithHandler:(EDOChannelReceiveHandler _Nullable)handler;
 
 /**
+ * Schedule the block for the next received data to process.
+ *
+ * When the new data is received, the handler will be dispatched on the given @c queue. If the data
+ * is received without scheduling any block, it is up to the implementation to ignore or buffer it
+ * locally, i.e. TCP socket may allow some system buffer to temporarily cache the data. For the
+ * request/response style communication, it is better to call this in the sentCompletion block to
+ * avoid race condition as the scheduled receive block may not be in the same order of the
+ * @c sendData:withCompletionHandler.
+ *
+ * @param queue   The dispatch queue on which the handler will be dispatched.
+ * @param handler The handler to be dispatched when the data is received.
+ * @remark Once it schedules the block to receive data, it will retain itself until the data is
+ *         received or it becomes invalid by calling @c invalidate or it detects the other end
+ *         closes the channel.
+ */
+- (void)receiveDataWithQueue:(dispatch_queue_t)queue
+                     handler:(EDOChannelReceiveHandler _Nullable)handler;
+
+/**
  * Invalidate this channel.
  *
  * After invalidation, no data will be sent or received. The channel is safely closed and it

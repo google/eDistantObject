@@ -262,13 +262,13 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   while (currentAttempt < maxAttempts) {
     NSError *connectionError;
     uint64_t connectionStartTime = mach_absolute_time();
-    dispatch_queue_t connectionQueue = nil;
     dispatch_queue_t executionQueue = executor.executionQueue;
-    if (executionQueue) {
-      dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(
-          DISPATCH_QUEUE_SERIAL, dispatch_queue_get_qos_class(executionQueue, nil), 0);
-      connectionQueue = dispatch_queue_create("com.google.edo.connectChannel", queueAttributes);
-    }
+    dispatch_qos_class_t qosClass =
+        executionQueue ? dispatch_queue_get_qos_class(executionQueue, nil) : qos_class_self();
+    dispatch_queue_attr_t queueAttributes =
+        dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, qosClass, 0);
+    dispatch_queue_t connectionQueue =
+        dispatch_queue_create("com.google.edo.connectChannel", queueAttributes);
     id<EDOChannel> channel = [EDOChannelPool.sharedChannelPool channelWithPort:port
                                                                connectionQueue:connectionQueue
                                                                          error:&connectionError];
@@ -427,7 +427,8 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
       };
 
   // Check ping response to make sure channel is healthy.
-  [channel receiveDataWithHandler:receiveHandler];
+  [channel receiveDataWithQueue:dispatch_get_global_queue(qos_class_self(), 0)
+                        handler:receiveHandler];
 
   dispatch_time_t timeoutInSeconds = dispatch_time(DISPATCH_TIME_NOW, kPingTimeoutSeconds);
   long result = dispatch_semaphore_wait(waitLock, timeoutInSeconds);

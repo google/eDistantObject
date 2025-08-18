@@ -111,7 +111,12 @@
 }
 
 - (void)receiveDataWithHandler:(EDOChannelReceiveHandler)handler {
-  dispatch_queue_t handlerQueue = self.handlerQueue;
+  [self receiveDataWithQueue:self.handlerQueue handler:handler];
+}
+
+- (void)receiveDataWithQueue:(dispatch_queue_t)queue
+                     handler:(EDOChannelReceiveHandler _Nullable)handler {
+  dispatch_queue_t handlerQueue = queue;
   dispatch_io_t channel = self.channel;
   if (!channel) {
     dispatch_async(handlerQueue, ^{
