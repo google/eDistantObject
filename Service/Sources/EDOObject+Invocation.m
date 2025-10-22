@@ -29,6 +29,7 @@
 #import "Service/Sources/EDOParameter.h"
 #import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/EDOServiceRequest.h"
 
 static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteException *remoteException,
                                                                EDOObject *target,
@@ -66,6 +67,46 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
                                  callStackSymbols:fullStackTraces];
 }
 
+// The cache of the instance method signatures.
+static NSCache<NSString *, NSMethodSignature *> *gEDOInstanceMethodSignatureCache;
+
+/**
+ * Builds the key for the instance method signature cache.
+ *
+ * @param selector The selector.
+ * @param className The class name.
+ * @return The key.
+ */
+static NSString *EDOCreateMethodSignatureCacheKey(SEL selector, NSString *className) {
+  return [NSString stringWithFormat:@"%@-%@", className, NSStringFromSelector(selector)];
+}
+
+/**
+ * Gets the instance method signature for the given selector and class name from the cache.
+ *
+ * @param selector The selector.
+ * @param className The class name.
+ * @return The instance method signature.
+ */
+static NSMethodSignature *EDOInstanceMethodSignatureForSelector(SEL selector, NSString *className) {
+  NSString *key = EDOCreateMethodSignatureCacheKey(selector, className);
+  NSMethodSignature *methodSignature = [gEDOInstanceMethodSignatureCache objectForKey:key];
+  return methodSignature;
+}
+
+/**
+ * Adds the instance method signature for the given selector and class name to the cache.
+ *
+ * @param methodSignature The method signature.
+ * @param selector The selector.
+ * @param className The class name.
+ */
+static void EDOAddInstanceMethodSignature(NSMethodSignature *methodSignature, SEL selector,
+                                          NSString *className) {
+  NSString *key = EDOCreateMethodSignatureCacheKey(selector, className);
+  [gEDOInstanceMethodSignatureCache setObject:methodSignature forKey:key];
+}
+
 /**
  * The extension of EDOObject to handle the message forwarding.
  *
@@ -81,6 +122,12 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
  */
 @implementation EDOObject (Invocation)
 
++ (void)initialize {
+  if (self == [EDOObject class]) {
+    gEDOInstanceMethodSignatureCache = [[NSCache alloc] init];
+  }
+}
+
 /**
  * Get an instance method signature for the @c EDOObject
  *
@@ -91,15 +138,23 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
  * @return         The instance method signature.
  */
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-  // TODO(haowoo): Cache the signature.
+  NSString *className = self.className;
+  NSMethodSignature *signature = EDOInstanceMethodSignatureForSelector(selector, className);
+  if (signature) {
+    return signature;
+  }
   EDOServiceRequest *request = [EDOMethodSignatureRequest requestWithObject:self.remoteAddress
                                                                        port:self.servicePort
                                                                    selector:selector];
   EDOMethodSignatureResponse *response = (EDOMethodSignatureResponse *)[EDOClientService
       sendSynchronousRequest:request
                       onPort:self.servicePort.hostPort];
-  NSString *signature = response.signature;
-  return signature ? [NSMethodSignature signatureWithObjCTypes:signature.UTF8String] : nil;
+  NSString *signatureString = response.signature;
+  if (signatureString) {
+    signature = [NSMethodSignature signatureWithObjCTypes:signatureString.UTF8String];
+    EDOAddInstanceMethodSignature(signature, selector, className);
+  }
+  return signature;
 }
 
 /** Forwards the invocation to the remote. */
