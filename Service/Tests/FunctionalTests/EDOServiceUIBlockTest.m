@@ -168,7 +168,7 @@
 - (void)testBlockByValueAndOutArgument {
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
 
-  NSArray *arrayReturn = [remoteDummy returnWithBlockObject:^id(EDOTestDummy *dummy) {
+  NSArray<NSNumber*> *arrayReturn = [remoteDummy returnWithBlockObject:^id(EDOTestDummy *dummy) {
     // Use NSClassFromString to fetch EDOObject to make it private here.
     XCTAssertEqual([dummy class], NSClassFromString(@"EDOObject"));
     XCTAssertEqual(dummy.value, 10);
