@@ -87,6 +87,9 @@ static NSString *const EDOServicePortCoderUUIDKey = @"uuid";
 }
 
 - (BOOL)match:(EDOServicePort *)otherPort {
+  if (!otherPort) {
+    return NO;
+  }
   // Ignore deviceSerial since it is not saved in the host side.
   BOOL isNameEqual = self.hostPort.name == otherPort.hostPort.name ||
                      [self.hostPort.name isEqualToString:otherPort.hostPort.name];
