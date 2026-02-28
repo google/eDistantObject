@@ -57,7 +57,7 @@ process, a few things are happening.
 In order to box the parameter, Client needs a service to manage the remote
 invocations where Host can callback Client on the boxed parameter; the way EDO
 is doing it now is to retrieve the bound service from the current running queue,
-thus if there is no service is associated with the current running queue, it
+thus if there no service is associated with the current running queue, it
 will panic. It is a good idea to create a service for the current queue before
 making any remote invocations[^only_one_service].
 
