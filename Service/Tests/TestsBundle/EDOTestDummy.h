@@ -123,8 +123,8 @@ typedef EDOTestDummy * (^EDOMultiTypesHandler)(EDOTestDummyStruct, int, id, EDOT
 - (BOOL)returnBoolWithError:(NSError **)errorOrNil;
 - (NSString *)returnClassNameWithObject:(id)object;
 - (NSInteger)returnCountWithArray:(NSArray *)value;
-- (NSInteger)returnSumWithArray:(NSArray *)value;
-- (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray *)value;
+- (NSInteger)returnSumWithArray:(NSArray<NSNumber*> *)value;
+- (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray<NSNumber*> *)value;
 - (int *)returnIntPointer;
 
 /**
