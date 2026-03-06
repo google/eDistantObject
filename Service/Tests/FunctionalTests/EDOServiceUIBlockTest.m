@@ -16,6 +16,8 @@
 
 #import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
+#include <pthread.h>
+
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/NSObject+EDOValueObject.h"
@@ -154,6 +156,7 @@
 
   // Sending block to remote process through background eDO host.
   dispatch_sync(backgroundQueue, ^{
+    pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0);
     remoteDummy.block = localBlock;
   });
 

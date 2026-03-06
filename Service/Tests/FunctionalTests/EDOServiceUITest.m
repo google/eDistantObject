@@ -17,6 +17,7 @@
 #import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
 #include <objc/runtime.h>
+#include <pthread.h>
 
 #import <CoreImage/CoreImage.h>
 
@@ -223,7 +224,10 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 - (void)testTemporaryServiceHandlesRecursiveCall {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:5];
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
-  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", DISPATCH_QUEUE_SERIAL);
+  // Align QoS with eDO internal threads to avoid priority inversion.
+  dispatch_queue_attr_t attr =
+      dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_DEFAULT, 0);
+  dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", attr);
 
   XCTestExpectation *expectation = [self expectationWithDescription:@"recursive call completes."];
   __block NSUInteger recursiveLayer = 5;
@@ -273,8 +277,10 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
 
 - (void)testDispatchAsyncManyTimes {
   [self launchApplicationWithPort:EDOTEST_APP_SERVICE_PORT initValue:8];
+  dispatch_queue_attr_t attr =
+      dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_DEFAULT, 0);
   NS_VALID_UNTIL_END_OF_SCOPE dispatch_queue_t backgroundQueue =
-      dispatch_queue_create("com.google.edo.uitest", DISPATCH_QUEUE_SERIAL);
+      dispatch_queue_create("com.google.edo.uitest", attr);
   EDOTestDummyInTest *rootDummy = [[EDOTestDummyInTest alloc] initWithValue:9];
   EDOHostService *service = [EDOHostService serviceWithPort:2234
                                                  rootObject:rootDummy
