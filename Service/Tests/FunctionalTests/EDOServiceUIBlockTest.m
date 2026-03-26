@@ -156,7 +156,7 @@
 
   // Sending block to remote process through background eDO host.
   dispatch_sync(backgroundQueue, ^{
-    pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0);
+    pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
     remoteDummy.block = localBlock;
   });
 

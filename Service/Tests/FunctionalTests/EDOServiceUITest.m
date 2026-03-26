@@ -226,7 +226,7 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   EDOTestDummy *remoteDummy = [EDOClientService rootObjectWithPort:EDOTEST_APP_SERVICE_PORT];
   // Align QoS with eDO internal threads to avoid priority inversion.
   dispatch_queue_attr_t attr =
-      dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_DEFAULT, 0);
+      dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
   dispatch_queue_t testQueue = dispatch_queue_create("com.google.edotest", attr);
 
   XCTestExpectation *expectation = [self expectationWithDescription:@"recursive call completes."];
