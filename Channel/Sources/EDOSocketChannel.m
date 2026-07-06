@@ -136,9 +136,9 @@
 
   // Accessing __block variable has to be atomic in order to prevent from data racing. Here because
   // ARC inserts release at the end of scope such that reads and writes can happen in different
-  // threads/queues, using handlerQueue as an isolation queue to ensure its atomicity. For detail,
-  // see b/171321939.
-  dispatch_async(handlerQueue, ^{
+  // threads/queues, using self.handlerQueue as an isolation queue to ensure its atomicity. For
+  // detail, see b/171321939.
+  dispatch_async(self.handlerQueue, ^{
     __block dispatch_data_t dataReceived;
     __block size_t remainingDataSize;
     dispatch_io_handler_t dataHandler = ^(bool done, dispatch_data_t data, int error) {
