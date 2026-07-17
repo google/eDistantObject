@@ -31,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
  * TODO(haowoo): This will be used to identify whether the host is on a real device or a machine
  *               later, to replace deviceSerialNumber.
  */
-@property(readonly, class) NSString *deviceIdentifier;
+@property(readonly, class, nonatomic) NSString *deviceIdentifier;
 
 /** The listen port number of the host. 0 if the host port is identified by name. */
 @property(readonly, nonatomic) UInt16 port;

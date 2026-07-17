@@ -31,10 +31,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOBlockingQueue<ObjectType> : NSObject
 
 /** Whether the queue has any objects. */
-@property(readonly, getter=isEmpty) BOOL empty;
+@property(atomic, readonly, getter=isEmpty) BOOL empty;
 
 /** The number of objects in the queue. */
-@property(readonly) NSUInteger count;
+@property(atomic, readonly) NSUInteger count;
 
 /** Appends the @c object to the end of the queue.
  *

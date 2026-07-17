@@ -45,7 +45,7 @@ typedef EDOServiceResponse *_Nonnull (^EDORequestHandler)(EDOServiceRequest *req
  * The sub classes should override this and provide its own handler. The default implementation
  * returns an EDOErrorRequestNotHandled response.
  */
-@property(readonly, class) EDORequestHandler requestHandler;
+@property(readonly, class, nonatomic) EDORequestHandler requestHandler;
 
 - (instancetype)initWithMessageID:(NSString *)messageID NS_UNAVAILABLE;
 

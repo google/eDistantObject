@@ -25,8 +25,6 @@
  * is called.
  */
 @property(nonatomic) EDODeviceChannel *channel;
-/** @c YES if the detector has already started to listen to broadcast. */
-@property(readonly) BOOL started;
 
 @end
 
@@ -37,7 +35,7 @@
   __block NSError *resultError;
   EDODeviceChannel *deviceChannel;
   @synchronized(self) {
-    if (!self.started) {
+    if (!self.channel) {
       deviceChannel = [EDODeviceChannel channelWithError:&resultError];
       self.channel = deviceChannel;
     } else {
@@ -91,10 +89,6 @@
   @synchronized(self) {
     self.channel = nil;
   }
-}
-
-- (BOOL)started {
-  return self.channel != nil;
 }
 
 #pragma mark - Private

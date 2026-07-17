@@ -32,16 +32,16 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOHostNamingService : NSObject
 
 /** The default port number 11237 which the naming service will be listening on. */
-@property(class, readonly) UInt16 namingServerPort;
+@property(nonatomic, class, readonly) UInt16 namingServerPort;
 
 /** Shared singleton instance. */
-@property(class, readonly) EDOHostNamingService *sharedService;
+@property(atomic, class, readonly) EDOHostNamingService *sharedService;
 
 /**
  * The port for service registration. Clients can connect to this port to register their
  * services by name.
  */
-@property(readonly) UInt16 serviceConnectionPort;
+@property(nonatomic, readonly) UInt16 serviceConnectionPort;
 
 - (instancetype)init NS_UNAVAILABLE;
 

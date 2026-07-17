@@ -40,9 +40,9 @@ extern NSString *const EDODeviceIDKey;
 @interface EDODeviceConnector : NSObject
 
 /** The serial numbers of connected devices. */
-@property(readonly) NSArray<NSString *> *connectedDevices;
+@property(nonatomic, readonly) NSArray<NSString *> *connectedDevices;
 /** Shared device connector. */
-@property(readonly, class) EDODeviceConnector *sharedConnector;
+@property(atomic, readonly, class) EDODeviceConnector *sharedConnector;
 
 - (instancetype)init NS_UNAVAILABLE;
 

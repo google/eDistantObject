@@ -39,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly, nonatomic) EDOHostPort *port;
 
 /** The number of channels that are set up with the forwarder and ready to connect. */
-@property(readonly) NSUInteger numberOfChannels;
+@property(readonly, nonatomic) NSUInteger numberOfChannels;
 
 /**
  * Starts the multiplexer on the given @c port.

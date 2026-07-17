@@ -32,13 +32,13 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDOChannelPool : NSObject
 
 /** The singleton of @c EDOChannelPool. */
-@property(class, readonly) EDOChannelPool *sharedChannelPool;
+@property(atomic, class, readonly) EDOChannelPool *sharedChannelPool;
 
 /**
  * A port for clients to accept connection, and receive host name to register as service. This port
  * will lazily create a listen socket when accessed.
  */
-@property(readonly) UInt16 serviceConnectionPort;
+@property(nonatomic, readonly) UInt16 serviceConnectionPort;
 
 /**
  * Fetches an already-connected channel from the pool, keyed by the host @c port.

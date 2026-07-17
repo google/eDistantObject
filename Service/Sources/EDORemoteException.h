@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EDORemoteException : NSException <NSSecureCoding>
 
 /** The merged call stack traces of both client process and host process. */
-@property(readonly, copy) NSArray<NSString *> *callStackSymbols;
+@property(atomic, readonly, copy) NSArray<NSString *> *callStackSymbols;
 
 /** EDORemoteException cannot be initialized with default data members. */
 - (instancetype)init NS_UNAVAILABLE;
