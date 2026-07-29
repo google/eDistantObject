@@ -16,6 +16,7 @@
 
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 
+#import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
@@ -97,7 +98,12 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
     }
 
     EDOMethodSignatureRequest *methodRequest = (EDOMethodSignatureRequest *)request;
-    id object = (__bridge Class)(void *)methodRequest.object;
+    id object = [service localObjectForAddress:methodRequest.object];
+    if (!object) {
+      // If the object is not found, we can't get method signature.
+      // Returning nil signature will eventually result in an exception at the client.
+      return [[EDOMethodSignatureResponse alloc] initWithSignature:nil forRequest:request];
+    }
     SEL sel = NSSelectorFromString(methodRequest.selectorName);
 
     NSMethodSignature *signature = EDOGetMethodSignature(object, sel);

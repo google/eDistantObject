@@ -23,6 +23,7 @@
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
+#import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOWeakObject.h"
 
 @interface EDODeallocationTracker ()
@@ -30,35 +31,36 @@
 /** The tracked object address (EDOWeakObject) that is stored in the weak object dictionary. */
 @property(readonly, nonatomic) EDOPointerType remoteObjectAddress;
 /** The host port where weak object dictionary holds the remote object. */
-@property(readonly, nonatomic) EDOHostPort *hostPort;
+@property(readonly, nonatomic) EDOServicePort *servicePort;
 @end
 
 @implementation EDODeallocationTracker
 
-+ (void)enableTrackingForObject:(EDOWeakObject *)trackedObject hostPort:(EDOHostPort *)hostPort {
++ (void)enableTrackingForObject:(EDOWeakObject *)trackedObject
+                    servicePort:(EDOServicePort *)servicePort {
   // This does not support multiple weak objects (e.g. from different services) that point to the
   // same underlying object, as only one single deallocation tracker is associated with the
   // underlying object. The host port is merely used to decide where the release request should be
-  // sent and only the first port associated with the underlying object is used.
+  // routed to.
   EDODeallocationTracker *tracker = objc_getAssociatedObject(trackedObject.weakObject, &_cmd);
   if (!tracker) {
-    tracker = [[self alloc] initWithTrackedObject:trackedObject hostPort:hostPort];
+    tracker = [[self alloc] initWithTrackedObject:trackedObject servicePort:servicePort];
     objc_setAssociatedObject(trackedObject.weakObject, &_cmd, tracker, OBJC_ASSOCIATION_RETAIN);
   } else {
     NSAssert(
-        [tracker.hostPort isEqual:hostPort],
+        [tracker.servicePort match:servicePort],
         @"Deallocation tracker does not support tracking the same object from multiple host ports."
         @"Existing port: %@\nNew port: %@",
-        tracker.hostPort, hostPort);
+        tracker.servicePort, servicePort);
   }
 }
 
 - (instancetype)initWithTrackedObject:(EDOWeakObject *)trackedObject
-                             hostPort:(EDOHostPort *)hostPort {
+                          servicePort:(EDOServicePort *)servicePort {
   self = [super init];
   if (self) {
     _remoteObjectAddress = (EDOPointerType)trackedObject;
-    _hostPort = hostPort;
+    _servicePort = servicePort;
   }
   return self;
 }
@@ -66,8 +68,9 @@
 - (void)dealloc {
   @try {
     EDOObjectReleaseRequest *request =
-        [EDOObjectReleaseRequest requestWithWeakRemoteAddress:self.remoteObjectAddress];
-    [EDOClientService sendSynchronousRequest:request onPort:self.hostPort];
+        [EDOObjectReleaseRequest requestWithWeakRemoteAddress:self.remoteObjectAddress
+                                                  servicePort:self.servicePort];
+    [EDOClientService sendSynchronousRequest:request onPort:self.servicePort.hostPort];
   } @catch (NSException *e) {
     // Safely ignore the exception because we don't care about the errors when we send the release
     // message. The service could be terminated, or the message can't be processed, but either way,

@@ -178,12 +178,14 @@
   @autoreleasepool {
     EDOTestDummy *testDummy = [[EDOTestDummy alloc] init];
     weakObject = [[EDOWeakObject alloc] initWithWeakObject:testDummy];
-    [EDODeallocationTracker enableTrackingForObject:weakObject hostPort:hostService.port.hostPort];
+    [EDODeallocationTracker enableTrackingForObject:weakObject servicePort:hostService.port];
     // Verify that release message is not sent if the object is in scope.
-    OCMVerify(never(), [releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
+    OCMVerify(never(), [releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject
+                                                     servicePort:hostService.port]);
   }
   // Verify that when object is out of scope, the release message is sent.
-  OCMVerify(times(1), [releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject]);
+  OCMVerify(times(1), [releaseMock requestWithWeakRemoteAddress:(EDOPointerType)weakObject
+                                                    servicePort:hostService.port]);
 
   [releaseMock stopMocking];
   [hostService invalidate];

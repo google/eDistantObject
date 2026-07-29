@@ -158,7 +158,8 @@ static BOOL IsFromSameProcess(id object1, id object2);
     [EDOClientService removeDistantObjectReference:self.remoteAddress];
     @try {
       EDOObjectReleaseRequest *request =
-          [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress];
+          [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress
+                                                servicePort:_servicePort];
       [EDOClientService sendSynchronousRequest:request onPort:_servicePort.hostPort];
     } @catch (NSException *e) {
       // There's an error with the service or most likely it's dead.

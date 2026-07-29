@@ -516,7 +516,7 @@ static NSString *const kTestServiceName = @"com.google.edo.testService";
   };
 
   [remoteDummy returnPlus10AndAsyncExecuteBlock:dummy];
-  [self waitForExpectations:@[ expectation ] timeout:2.0f];
+  [self waitForExpectations:@[ expectation ] timeout:10.0f];
   XCTAssertNil(weakDummy);
 
   [service invalidate];

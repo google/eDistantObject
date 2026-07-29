@@ -146,8 +146,15 @@ static EDORemoteException *CreateRemoteException(id localException) {
   }
   NSArray<NSString *> *exceptionStackTrace = [localException callStackSymbols];
   NSArray<NSString *> *currentStackTrace = [NSThread callStackSymbols];
-  NSArray<NSString *> *majorStackTrace = [exceptionStackTrace
-      subarrayWithRange:NSMakeRange(0, exceptionStackTrace.count - currentStackTrace.count + 1)];
+  NSArray<NSString *> *majorStackTrace = exceptionStackTrace;
+
+  if (exceptionStackTrace.count >= currentStackTrace.count) {
+    NSUInteger length = exceptionStackTrace.count - currentStackTrace.count + 1;
+    if (length <= exceptionStackTrace.count) {
+      majorStackTrace = [exceptionStackTrace subarrayWithRange:NSMakeRange(0, length)];
+    }
+  }
+
   return [[EDORemoteException alloc] initWithName:[localException name]
                                            reason:[localException reason]
                                  callStackSymbols:majorStackTrace];
@@ -341,7 +348,26 @@ static EDORemoteException *CreateRemoteException(id localException) {
     NSAssert([request isKindOfClass:[EDOInvocationRequest class]],
              @"EDOInvocationRequest is expected.");
     EDOHostPort *hostPort = request.hostPort;
-    id target = (__bridge id)(void *)request.target;
+    // The target address arrives off the wire as a raw 64-bit integer. It must NOT be cast to id
+    // until the service has confirmed it is an object it previously vended; otherwise an attacker
+    // can supply an arbitrary pointer and obtain a wild dereference / objc_msgSend on a fake isa.
+    id target = [service localObjectForAddress:request.target];
+    if (!target) {
+      NSString *reason = [NSString
+          stringWithFormat:@"The target address (%llx) is not tracked by this service (selector: "
+                           @"%@, servicePort: %u).",
+                           request.target, request.selectorName, service.port.hostPort.port];
+      EDORemoteException *remoteException =
+          [[EDORemoteException alloc] initWithName:EDOServiceGenericException
+                                            reason:reason
+                                  callStackSymbols:[NSThread callStackSymbols]];
+
+      return [EDOInvocationResponse responseWithReturnValue:nil
+                                                  exception:remoteException
+                                                  outValues:nil
+                                                 forRequest:request
+                                                targetClass:Nil];
+    }
     SEL sel = NSSelectorFromString(request.selectorName);
 
     EDOBoxedValueType *returnValue;

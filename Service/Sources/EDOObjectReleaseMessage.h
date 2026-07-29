@@ -33,16 +33,19 @@ NS_ASSUME_NONNULL_BEGIN
  *
  * @return An instance of EDOObjectReleaseRequest that removes the EDOObject from dictionary.
  */
-+ (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress;
++ (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress
+                             servicePort:(EDOServicePort *)servicePort;
 
 /**
  * Creates an EDOObjectReleaseRequest for weak EDOObjects.
  *
  * @param remoteAddress The remote address for the weak EDOObject that is going to be released.
+ * @param servicePort The service port of the service that vended the object.
  *
  * @return An instance of EDOObjectReleaseRequest that removes the weak EDOObject from dictionary.
  */
-+ (instancetype)requestWithWeakRemoteAddress:(EDOPointerType)remoteAddress;
++ (instancetype)requestWithWeakRemoteAddress:(EDOPointerType)remoteAddress
+                                 servicePort:(EDOServicePort *)servicePort;
 
 @end
 

@@ -435,6 +435,13 @@
   EDOTestDummy *dummyLocal = [[EDOTestDummy alloc] init];
   [self edo_createQueueAndServiceWithRootObject:dummyLocal
                                           block:^(EDOHostService *service) {
+                                            // Simulate the client asking for the class first to
+                                            // register it securely.
+                                            EDOServiceRequest *classRequest = [EDOClassRequest
+                                                requestWithClassName:@"EDOTestDummy"
+                                                            hostPort:service.port.hostPort];
+                                            EDOClassRequest.requestHandler(classRequest, service);
+
                                             EDOInvocationResponse *response = [self
                                                 edo_runInvocationWithService:service
                                                                       target:[dummyLocal class]
@@ -507,7 +514,7 @@
   void *remoteAddress = (__bridge void *)dummyLocal;
 
   EDOHostService *service = [EDOHostService serviceWithPort:0
-                                                 rootObject:self
+                                                 rootObject:dummyLocal
                                                       queue:dispatch_get_main_queue()];
 
   [EDOTestDummy enumerateSelector:^(SEL selector) {
