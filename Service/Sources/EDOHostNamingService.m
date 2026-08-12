@@ -22,6 +22,36 @@
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOServicePort.h"
 
+@interface EDOHostNamingServiceProxy : NSObject
+- (instancetype)initWithNamingService:(EDOHostNamingService *)namingService;
+@end
+
+@implementation EDOHostNamingServiceProxy {
+  __weak EDOHostNamingService *_namingService;
+}
+
++ (BOOL)accessInstanceVariablesDirectly {
+  return NO;
+}
+
+- (instancetype)initWithNamingService:(EDOHostNamingService *)namingService {
+  self = [super init];
+  if (self) {
+    _namingService = namingService;
+  }
+  return self;
+}
+
+- (UInt16)portForServiceWithName:(NSString *)name {
+  return [_namingService portForServiceWithName:name];
+}
+
+- (UInt16)serviceConnectionPort {
+  return _namingService.serviceConnectionPort;
+}
+
+@end
+
 @implementation EDOHostNamingService {
   // The mapping from service name to host service port.
   NSMutableDictionary<NSString *, EDOServicePort *> *_servicePortsInfo;
@@ -84,8 +114,10 @@
     if (self->_service) {
       return;
     }
+    EDOHostNamingServiceProxy *proxy =
+        [[EDOHostNamingServiceProxy alloc] initWithNamingService:self];
     self->_service = [EDOHostService serviceWithPort:EDOHostNamingService.namingServerPort
-                                          rootObject:self
+                                          rootObject:proxy
                                                queue:self->_namingServiceEventQueue];
     result = self->_service.port.hostPort.port != 0;
   });

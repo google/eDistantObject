@@ -55,6 +55,37 @@ static const UInt16 kDummyServicePort = 1234;
   XCTAssertEqual([namingService portForServiceWithName:kDummyServiceName], kDummyServicePort);
 }
 
+/** Verifies that remote invocation of private mutators throws an exception. */
+- (void)testRemoteInvocationOfPrivateMutatorThrowsException {
+  [EDOHostNamingService.sharedService start];
+  id remoteNamingService =
+      [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort];
+
+  // addServicePort: is a private mutator and should not be available remotely when using proxy.
+  EDOServicePort *dummyPort = [EDOServicePort servicePortWithPort:12345
+                                                      serviceName:@"com.google.poison"];
+  XCTAssertThrows([remoteNamingService addServicePort:dummyPort]);
+}
+
+/** Verifies that remote invocation of stop throws an exception. */
+- (void)testRemoteInvocationOfStopThrowsException {
+  [EDOHostNamingService.sharedService start];
+  id remoteNamingService =
+      [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort];
+
+  // stop is a lifecycle method and should not be available remotely when using proxy.
+  XCTAssertThrows([remoteNamingService stop]);
+}
+
+/** Verifies that remote invocation of serviceConnectionPort works. */
+- (void)testRemoteInvocationOfServiceConnectionPort {
+  [EDOHostNamingService.sharedService start];
+  id remoteNamingService =
+      [EDOClientService rootObjectWithPort:EDOHostNamingService.namingServerPort];
+
+  XCTAssertNotEqual([remoteNamingService serviceConnectionPort], 0);
+}
+
 /**
  * Tests sending object request to the naming service after stopping it, and verifies that
  * exception happens.
