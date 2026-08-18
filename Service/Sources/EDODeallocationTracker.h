@@ -18,16 +18,15 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class EDOHostPort;
+@class EDOServicePort;
 @class EDOWeakObject;
 
 /**
- * The EDODeallocationTracker is a tracker that manages local object's deallocation.
+ * The deallocation tracker to track the remote object lifecycle.
  *
- * The tracker is associated with the local object's life cycle. When the local object is wrapped,
- * the tracker is attached to the local object. When the local object is no longer in use and
- * deallocates, the EDODeallocationTracker will be deallocated as well. An EDOObjectReleaseRequest
- * is then sent to remove the remote weak reference from the weak object dictionary.
+ * It is associated with the underlying object of a weak object. When the underlying object is
+ * released, the tracker is deallocated and it will send a release message to remove the weak object
+ * entry from the dictionary in the host service.
  */
 @interface EDODeallocationTracker : NSObject
 
@@ -35,9 +34,10 @@ NS_ASSUME_NONNULL_BEGIN
  * Creates an instance of the tracker that is associated with the underlying object.
  *
  * @param trackedObject The remote object that is stored in the weak object dictionary.
- * @param hostPort      The host port where weak object dictionary holds the remote object.
+ * @param servicePort   The service port where weak object dictionary holds the remote object.
  */
-+ (void)enableTrackingForObject:(EDOWeakObject *)trackedObject hostPort:(EDOHostPort *)hostPort;
++ (void)enableTrackingForObject:(EDOWeakObject *)trackedObject
+                    servicePort:(EDOServicePort *)servicePort;
 
 - (instancetype)init NS_UNAVAILABLE;
 

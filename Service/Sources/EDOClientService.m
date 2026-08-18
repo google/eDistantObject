@@ -122,6 +122,52 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
         return resolvedInstance;
       }
     }
+    return object;
+  }
+
+  if ([objClass isSubclassOfClass:[NSArray class]]) {
+    BOOL modified = NO;
+    NSMutableArray<id> *newArray =
+        [NSMutableArray arrayWithCapacity:[((NSArray<id> *)object) count]];
+    for (id item in ((NSArray<id> *)object)) {
+      id unwrapped = [self unwrappedObjectFromObject:item];
+      if (unwrapped != item) {
+        modified = YES;
+      }
+      [newArray addObject:unwrapped ?: [NSNull null]];
+    }
+    return modified ? [newArray copy] : object;
+  }
+  if ([objClass isSubclassOfClass:[NSSet class]]) {
+    BOOL modified = NO;
+    NSMutableSet<id> *newSet = [NSMutableSet setWithCapacity:[((NSSet<id> *)object) count]];
+    for (id item in ((NSSet<id> *)object)) {
+      id unwrapped = [self unwrappedObjectFromObject:item];
+      if (unwrapped != item) {
+        modified = YES;
+      }
+      if (unwrapped) {
+        [newSet addObject:unwrapped];
+      }
+    }
+    return modified ? [newSet copy] : object;
+  }
+  if ([objClass isSubclassOfClass:[NSDictionary class]]) {
+    BOOL modified = NO;
+    NSMutableDictionary<id, id> *newDict =
+        [NSMutableDictionary dictionaryWithCapacity:[((NSDictionary<id, id> *)object) count]];
+    for (id key in ((NSDictionary<id, id> *)object)) {
+      id value = ((NSDictionary<id, id> *)object)[key];
+      id unwrappedKey = [self unwrappedObjectFromObject:key];
+      id unwrappedValue = [self unwrappedObjectFromObject:value];
+      if (unwrappedKey != key || unwrappedValue != value) {
+        modified = YES;
+      }
+      if (unwrappedKey && unwrappedValue) {
+        newDict[unwrappedKey] = unwrappedValue;
+      }
+    }
+    return modified ? [newDict copy] : object;
   }
 
   return object;
@@ -218,22 +264,75 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
       [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
-    id localObject = [self distantObjectReferenceForRemoteAddress:edoObject.remoteAddress];
-    EDOObject *localEDO = localObject;
-    if ([EDOBlockObject isBlock:localObject]) {
-      localEDO = [EDOBlockObject EDOBlockObjectFromBlock:localEDO];
-    }
-    // Verify the service in case the old address is overwritten by a new service.
-    if ([edoObject.servicePort match:localEDO.servicePort]) {
-      // Since we already have the EDOObject in the cache, the new decoded EDOObject is
-      // taken as a temporary local object, which does not send release message.
-      edoObject.local = YES;
-      return localObject;
-    } else {
-      // Track the new remote object.
-      [self addDistantObjectReference:object];
-    }
+    NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
+    __block id result = object;
+    __block id objectToRelease = nil;
+    dispatch_sync(self.edoSyncQueue, ^{
+      id localObject = [self.localDistantObjects objectForKey:edoKey];
+      EDOObject *localEDO = localObject;
+      if ([EDOBlockObject isBlock:localObject]) {
+        localEDO = [EDOBlockObject EDOBlockObjectFromBlock:localObject];
+      }
+      // Verify the service in case the old address is overwritten by a new service.
+      if (localObject && [edoObject.servicePort match:localEDO.servicePort]) {
+        result = localObject;
+      } else {
+        if (localObject) {
+          objectToRelease = localObject;
+        }
+        // Track the new remote object.
+        [self.localDistantObjects setObject:object forKey:edoKey];
+      }
+    });
+    objectToRelease = nil;
+    return result;
   }
+
+  if ([objClass isSubclassOfClass:[NSArray class]]) {
+    BOOL modified = NO;
+    NSMutableArray<id> *newArray =
+        [NSMutableArray arrayWithCapacity:[((NSArray<id> *)object) count]];
+    for (id item in ((NSArray<id> *)object)) {
+      id cached = [self cachedEDOFromObjectUpdateIfNeeded:item];
+      if (cached != item) {
+        modified = YES;
+      }
+      [newArray addObject:cached ?: [NSNull null]];
+    }
+    return modified ? [newArray copy] : object;
+  }
+  if ([objClass isSubclassOfClass:[NSSet class]]) {
+    BOOL modified = NO;
+    NSMutableSet<id> *newSet = [NSMutableSet setWithCapacity:[((NSSet<id> *)object) count]];
+    for (id item in ((NSSet<id> *)object)) {
+      id cached = [self cachedEDOFromObjectUpdateIfNeeded:item];
+      if (cached != item) {
+        modified = YES;
+      }
+      if (cached) {
+        [newSet addObject:cached];
+      }
+    }
+    return modified ? [newSet copy] : object;
+  }
+  if ([objClass isSubclassOfClass:[NSDictionary class]]) {
+    BOOL modified = NO;
+    NSMutableDictionary<id, id> *newDict =
+        [NSMutableDictionary dictionaryWithCapacity:[((NSDictionary<id, id> *)object) count]];
+    for (id key in ((NSDictionary<id, id> *)object)) {
+      id value = ((NSDictionary<id, id> *)object)[key];
+      id cachedKey = [self cachedEDOFromObjectUpdateIfNeeded:key];
+      id cachedValue = [self cachedEDOFromObjectUpdateIfNeeded:value];
+      if (cachedKey != key || cachedValue != value) {
+        modified = YES;
+      }
+      if (cachedKey && cachedValue) {
+        newDict[cachedKey] = cachedValue;
+      }
+    }
+    return modified ? [newDict copy] : object;
+  }
+
   return object;
 }
 

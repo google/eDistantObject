@@ -97,6 +97,11 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
  * the object.
  */
 @property(nonatomic, readonly) NSMutableDictionary<NSNumber *, id> *localObjects;
+/**
+ * The reference counts for the tracked objects in the service. The key is the address of a tracked
+ * object and the value is the reference count.
+ */
+@property(nonatomic, readonly) NSMutableDictionary<NSNumber *, NSNumber *> *localObjectsCounts;
 /** The queue to update local objects atomically. */
 @property(nonatomic, readonly) dispatch_queue_t localObjectsSyncQueue;
 /**
@@ -219,6 +224,7 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   if (self) {
     _registeredToDevice = NO;
     _localObjects = [[NSMutableDictionary alloc] init];
+    _localObjectsCounts = [[NSMutableDictionary alloc] init];
     _localObjectsSyncQueue =
         dispatch_queue_create("com.google.edo.service.localObjects", DISPATCH_QUEUE_SERIAL);
 
@@ -374,6 +380,10 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   NSNumber *objectKey = [NSNumber numberWithLongLong:(EDOPointerType)object];
   if (object != self.rootLocalObject) {
     dispatch_sync(_localObjectsSyncQueue, ^{
+      NSNumber *countObj = [self.localObjectsCounts objectForKey:objectKey];
+      long count = countObj ? [countObj longValue] : 0;
+      [self.localObjectsCounts setObject:[NSNumber numberWithLong:count + 1] forKey:objectKey];
+
       if (![self.localObjects objectForKey:objectKey]) {
         [self.localObjects setObject:object forKey:objectKey];
       }
@@ -388,6 +398,19 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   } else {
     return [EDOObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
   }
+}
+- (id)localObjectForAddress:(EDOPointerType)remoteAddress {
+  // ivar is used directly here to avoid the service lazily creating the listen port.
+  if (_rootLocalObject && (EDOPointerType)_rootLocalObject == remoteAddress) {
+    return _rootLocalObject;
+  }
+  NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  __block id object;
+  dispatch_sync(_localObjectsSyncQueue, ^{
+    object = self.localObjects[edoKey];
+  });
+
+  return object;
 }
 
 - (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress {
@@ -408,7 +431,19 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
 
   dispatch_sync(_localObjectsSyncQueue, ^{
-    [self.localObjects removeObjectForKey:edoKey];
+    NSNumber *countObj = [self.localObjectsCounts objectForKey:edoKey];
+    if (countObj) {
+      long count = [countObj longValue];
+      if (count > 1) {
+        [self.localObjectsCounts setObject:[NSNumber numberWithLong:count - 1] forKey:edoKey];
+      } else {
+        [self.localObjectsCounts removeObjectForKey:edoKey];
+        [self.localObjects removeObjectForKey:edoKey];
+      }
+    } else {
+      // Fallback for safety, though it should ideally be tracked.
+      [self.localObjects removeObjectForKey:edoKey];
+    }
   });
   return YES;
 }

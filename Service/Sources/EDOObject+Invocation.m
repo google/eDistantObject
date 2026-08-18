@@ -59,7 +59,8 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
   NSString *separationSymbol =
       [NSString stringWithFormat:@"|---- eDO invocation [%@ %@] ----|", classInfo, methodInfo];
 
-  NSMutableArray<NSString *> *fullStackTraces = [remoteException.callStackSymbols mutableCopy];
+  NSMutableArray<NSString *> *fullStackTraces =
+      [remoteException.callStackSymbols mutableCopy] ?: [[NSMutableArray alloc] init];
   [fullStackTraces addObject:separationSymbol];
   [fullStackTraces addObjectsFromArray:localOutputStackTraces];
   return [[EDORemoteException alloc] initWithName:remoteException.name

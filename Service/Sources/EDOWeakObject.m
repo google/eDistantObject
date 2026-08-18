@@ -68,7 +68,7 @@
                                 hostPort:(EDOHostPort *)hostPort {
   EDOParameter *parameter = [super edo_parameterForTarget:target service:service hostPort:hostPort];
   if ([[target class] isEqual:[EDOObject class]]) {
-    [EDODeallocationTracker enableTrackingForObject:self hostPort:target.servicePort.hostPort];
+    [EDODeallocationTracker enableTrackingForObject:self servicePort:target.servicePort];
   }
   return parameter;
 }
