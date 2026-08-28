@@ -31,7 +31,7 @@
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     handlers = [[NSMutableDictionary alloc] init];
-    NSArray *requestClasses = @[
+    NSArray<class> *requestClasses = @[
       [EDOClassRequest class],
       [EDOInvocationRequest class],
       [EDOMethodSignatureRequest class],

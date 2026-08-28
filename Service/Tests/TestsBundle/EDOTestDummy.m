@@ -326,7 +326,7 @@ static const NSInteger kLargeArraySize = 1000;
   return value.count;
 }
 
-- (NSInteger)returnSumWithArray:(NSArray *)value {
+- (NSInteger)returnSumWithArray:(NSArray<NSNumber*> *)value {
   NSInteger result = 0;
   for (NSNumber *number in value) {
     result += number.integerValue;
@@ -334,7 +334,7 @@ static const NSInteger kLargeArraySize = 1000;
   return result;
 }
 
-- (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray *)value {
+- (NSInteger)returnSumWithArrayAndProxyCheck:(NSArray<NSNumber*> *)value {
   NSAssert(!value.isProxy,
            @"This method is to test pass-by-value. The parameter should not be a proxy.");
   return [self returnSumWithArray:value];
