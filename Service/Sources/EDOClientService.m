@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOClientService.h"
 
 #include <objc/runtime.h>
+#import <stddef.h>
 
 #import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOChannelPool.h"
@@ -248,7 +249,7 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
                                         onPort:(EDOHostPort *)port
                                   withExecutor:(EDOExecutor *)executor {
-  return [self sendSynchronousRequest:request onPort:port withExecutor:executor error:NULL];
+  return [self sendSynchronousRequest:request onPort:port withExecutor:executor error:nullptr];
 }
 
 + (EDOServiceResponse *)sendSynchronousRequest:(EDOServiceRequest *)request
@@ -462,15 +463,10 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
  * classes to optimize the check.
  */
 BOOL EDOIsRemoteObject(id object) {
-  static Class remoteObjectClass;
-  static Class remoteBlockClass;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    remoteObjectClass = [EDOObject class];
-    remoteBlockClass = [EDOBlockObject class];
-  });
   Class objectClass = [object class];
-  return objectClass == remoteObjectClass || objectClass == remoteBlockClass;
+  const char *className = objectClass ? class_getName(objectClass) : nullptr;
+  return className &&
+         (strcmp(className, "EDOObject") == 0 || strcmp(className, "EDOBlockObject") == 0);
 }
 
 void EDOExportEDOClientError(NSError *error) { gEDOClientErrorHandler(error); }
