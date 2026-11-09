@@ -390,18 +390,24 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   }
 }
 
+- (id)localObjectForAddress:(EDOPointerType)remoteAddress {
+  if (_rootLocalObject && (EDOPointerType)_rootLocalObject == remoteAddress) {
+    return _rootLocalObject;
+  }
+  NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  __block id object;
+  dispatch_sync(_localObjectsSyncQueue, ^{
+    object = self.localObjects[edoKey];
+  });
+  return object;
+}
+
 - (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress {
+  // ivar is used directly here to avoid the service lazily creating listen port.
   if (![_port match:port]) {
     return NO;
   }
-  __block BOOL isAlive;
-  dispatch_sync(_localObjectsSyncQueue, ^{
-    NSNumber *EDOKey = [NSNumber numberWithLongLong:remoteAddress];
-    isAlive =
-        self.localObjects[EDOKey] != nil || ((EDOPointerType)self.rootLocalObject) == remoteAddress;
-  });
-  // ivar is used directly here to avoid the service lazily creating listen port.
-  return isAlive;
+  return [self localObjectForAddress:remoteAddress] != nil;
 }
 
 - (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {

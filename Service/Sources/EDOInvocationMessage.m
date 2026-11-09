@@ -341,7 +341,21 @@ static EDORemoteException *CreateRemoteException(id localException) {
     NSAssert([request isKindOfClass:[EDOInvocationRequest class]],
              @"EDOInvocationRequest is expected.");
     EDOHostPort *hostPort = request.hostPort;
-    id target = (__bridge id)(void *)request.target;
+    id target = [service localObjectForAddress:request.target];
+    if (!target) {
+      NSString *reason =
+          [NSString stringWithFormat:@"The target address (%llx) is not tracked by this service.",
+                                     request.target];
+      EDORemoteException *remoteException =
+          [[EDORemoteException alloc] initWithName:EDOServiceGenericException
+                                            reason:reason
+                                  callStackSymbols:@[]];
+      return [EDOInvocationResponse responseWithReturnValue:nil
+                                                  exception:remoteException
+                                                  outValues:nil
+                                                 forRequest:request
+                                                targetClass:Nil];
+    }
     SEL sel = NSSelectorFromString(request.selectorName);
 
     EDOBoxedValueType *returnValue;

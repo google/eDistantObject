@@ -30,6 +30,7 @@
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOParameter.h"  // IWYU pragma: keep
 #import "Service/Sources/EDORemoteException.h"
+#import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
@@ -435,6 +436,9 @@
   EDOTestDummy *dummyLocal = [[EDOTestDummy alloc] init];
   [self edo_createQueueAndServiceWithRootObject:dummyLocal
                                           block:^(EDOHostService *service) {
+                                            [service
+                                                distantObjectForLocalObject:[dummyLocal class]
+                                                                   hostPort:service.port.hostPort];
                                             EDOInvocationResponse *response = [self
                                                 edo_runInvocationWithService:service
                                                                       target:[dummyLocal class]
@@ -509,6 +513,7 @@
   EDOHostService *service = [EDOHostService serviceWithPort:0
                                                  rootObject:self
                                                       queue:dispatch_get_main_queue()];
+  [service distantObjectForLocalObject:dummyLocal hostPort:service.port.hostPort];
 
   [EDOTestDummy enumerateSelector:^(SEL selector) {
     EDOMethodSignatureRequest *request =
@@ -528,6 +533,76 @@
       (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(request, service);
   XCTAssertNil(response.signature, @"the non-exist signature should be nil.");
 
+  [service invalidate];
+}
+
+- (void)testUntrackedTargetInvocationHandlerReturnsException {
+  XCTestExpectation *blockExecuted = [self expectationWithDescription:@"Executed the test block."];
+  EDOTestDummy *dummyLocal = [[EDOTestDummy alloc] init];
+  [self edo_createQueueAndServiceWithRootObject:dummyLocal
+                                          block:^(EDOHostService *service) {
+                                            EDOPointerType bogusAddress =
+                                                (EDOPointerType)0x4141414141414140LL;
+                                            EDOInvocationRequest *request = [EDOInvocationRequest
+                                                requestWithTarget:bogusAddress
+                                                         selector:@selector(returnInt)
+                                                        arguments:@[]
+                                                         hostPort:service.port.hostPort
+                                                    returnByValue:NO];
+                                            EDOInvocationResponse *response =
+                                                (EDOInvocationResponse *)EDOInvocationRequest
+                                                    .requestHandler(request, service);
+                                            XCTAssertNil(response.returnValue);
+                                            XCTAssertEqualObjects(response.exception.name,
+                                                                  EDOServiceGenericException);
+                                            [blockExecuted fulfill];
+                                          }];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testReleasedTargetInvocationHandlerReturnsException {
+  XCTestExpectation *blockExecuted = [self expectationWithDescription:@"Executed the test block."];
+  EDOTestDummy *rootLocal = [[EDOTestDummy alloc] init];
+  [self edo_createQueueAndServiceWithRootObject:rootLocal
+                                          block:^(EDOHostService *service) {
+                                            EDOPointerType releasedAddress = 0;
+                                            @autoreleasepool {
+                                              EDOTestDummy *transient = [[EDOTestDummy alloc] init];
+                                              EDOObject *proxy =
+                                                  [service distantObjectForLocalObject:transient
+                                                                              hostPort:nil];
+                                              releasedAddress = proxy.remoteAddress;
+                                              [service removeObjectWithAddress:releasedAddress];
+                                            }
+                                            EDOInvocationRequest *request = [EDOInvocationRequest
+                                                requestWithTarget:releasedAddress
+                                                         selector:@selector(returnInt)
+                                                        arguments:@[]
+                                                         hostPort:service.port.hostPort
+                                                    returnByValue:NO];
+                                            EDOInvocationResponse *response =
+                                                (EDOInvocationResponse *)EDOInvocationRequest
+                                                    .requestHandler(request, service);
+                                            XCTAssertNil(response.returnValue);
+                                            XCTAssertEqualObjects(response.exception.name,
+                                                                  EDOServiceGenericException);
+                                            [blockExecuted fulfill];
+                                          }];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testUntrackedObjectMethodSignatureRequestHandlerReturnsNil {
+  EDOHostService *service = [EDOHostService serviceWithPort:0
+                                                 rootObject:self
+                                                      queue:dispatch_get_main_queue()];
+  EDOPointerType bogusAddress = (EDOPointerType)0x4141414141414140LL;
+  EDOMethodSignatureRequest *request =
+      [EDOMethodSignatureRequest requestWithObject:bogusAddress
+                                              port:service.port
+                                          selector:@selector(description)];
+  EDOMethodSignatureResponse *response =
+      (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(request, service);
+  XCTAssertNil(response.signature);
   [service invalidate];
 }
 
