@@ -24,6 +24,7 @@
 
 static NSString *const kEDOObjectReleaseCoderWeaklyReferencedKey = @"weaklyReferenced";
 static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress";
+static NSString *const kEDOObjectReleaseCoderCountedReleaseKey = @"countedRelease";
 
 @interface EDOObjectReleaseRequest ()
 
@@ -31,6 +32,8 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 
 /** Indicates whether the object to be released is a weakly referenced object. */
 @property(nonatomic, readonly, getter=isWeaklyReferenced) BOOL weaklyReferenced;
+/** Indicates whether this request decrements one counted vend rather than force-removing. */
+@property(nonatomic, readonly, getter=isCountedRelease) BOOL countedRelease;
 
 @end
 
@@ -41,21 +44,27 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
 }
 
 - (instancetype)initWithRemoteAddress:(EDOPointerType)remoteAddress
-                     weaklyReferenced:(BOOL)weaklyReferenced {
+                     weaklyReferenced:(BOOL)weaklyReferenced
+                       countedRelease:(BOOL)countedRelease {
   self = [super init];
   if (self) {
     _remoteAddress = remoteAddress;
     _weaklyReferenced = weaklyReferenced;
+    _countedRelease = countedRelease;
   }
   return self;
 }
 
 + (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress {
-  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:NO];
+  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:NO countedRelease:NO];
+}
+
++ (instancetype)requestWithCountedRemoteAddress:(EDOPointerType)remoteAddress {
+  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:NO countedRelease:YES];
 }
 
 + (instancetype)requestWithWeakRemoteAddress:(EDOPointerType)remoteAddress {
-  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:YES];
+  return [[self alloc] initWithRemoteAddress:remoteAddress weaklyReferenced:YES countedRelease:NO];
 }
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
@@ -63,6 +72,7 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
   if (self) {
     _remoteAddress = [aDecoder decodeInt64ForKey:kEDOObjectReleaseCoderRemoteAddressKey];
     _weaklyReferenced = [aDecoder decodeBoolForKey:kEDOObjectReleaseCoderWeaklyReferencedKey];
+    _countedRelease = [aDecoder decodeBoolForKey:kEDOObjectReleaseCoderCountedReleaseKey];
   }
   return self;
 }
@@ -71,6 +81,9 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
   [super encodeWithCoder:aCoder];
   [aCoder encodeInt64:self.remoteAddress forKey:kEDOObjectReleaseCoderRemoteAddressKey];
   [aCoder encodeBool:self.weaklyReferenced forKey:kEDOObjectReleaseCoderWeaklyReferencedKey];
+  if (self.countedRelease) {
+    [aCoder encodeBool:YES forKey:kEDOObjectReleaseCoderCountedReleaseKey];
+  }
 }
 
 + (EDORequestHandler)requestHandler {
@@ -79,6 +92,8 @@ static NSString *const kEDOObjectReleaseCoderRemoteAddressKey = @"remoteAddress"
     EDOPointerType edoRemoteAddress = releaseRequest.remoteAddress;
     if (releaseRequest.weaklyReferenced) {
       [service removeWeakObjectWithAddress:edoRemoteAddress];
+    } else if (releaseRequest.countedRelease) {
+      [service releaseObjectWithAddress:edoRemoteAddress];
     } else {
       [service removeObjectWithAddress:edoRemoteAddress];
     }
