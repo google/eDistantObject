@@ -154,8 +154,8 @@ static BOOL IsFromSameProcess(id object1, id object2);
 - (void)dealloc {
   // Send a release message only when the object is not from the same process.
   if (![self isLocal] && ![self isLocalEdo]) {
-    // Release the local edo manually to make sure the entry is removed from the cache.
-    [EDOClientService removeDistantObjectReference:self.remoteAddress];
+    // Evict the distant-object cache entry only if it still refers to self (or weak lookup is nil).
+    [EDOClientService removeDistantObjectReferenceForObject:self];
     @try {
       EDOObjectReleaseRequest *request =
           [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress];

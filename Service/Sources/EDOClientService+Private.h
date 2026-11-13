@@ -34,24 +34,36 @@ void EDOExportEDOClientError(NSError *error);
 /** The internal use for sending and receiving EDOObject. */
 @interface EDOClientService (Private)
 
-/** The EDOObjects created by all services that are mapped by the remote address. */
-@property(class, readonly) NSMapTable<NSNumber *, EDOObject *> *localDistantObjects;
+/** The EDOObjects or distant blocks created by all services, mapped by remote address. */
+@property(class, readonly) NSMapTable<NSNumber *, id> *localDistantObjects;
 /** The synchronization queue for accessing remote object references. */
 @property(class, readonly) dispatch_queue_t edoSyncQueue;
 /** The data of ping message for channel health check. */
 @property(class, readonly, nonatomic) NSData *pingMessageData;
 
-/** Get the reference of a distant object of the given @c remoteAddress. */
-+ (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress;
+/**
+ * Get the reference of a distant object of the given @c remoteAddress.
+ */
++ (nullable id)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress;
 
-/** Add reference of given distant object. It could be an EDOObject or dummy block object. */
-+ (void)addDistantObjectReference:(id)object;
-
-/** Remove the reference of a distant object of the given @c remoteAddress. */
+/**
+ * Remove the reference of a distant object of the given @c remoteAddress.
+ *
+ * @note Prefer @c +removeDistantObjectReferenceForObject:.
+ */
 + (void)removeDistantObjectReference:(EDOPointerType)remoteAddress;
 
+/**
+ * Removes @c edoObject from the distant-object cache only if it is the currently cached entry (or
+ * its weak lookup returns @c nil during deallocation).
+ *
+ * @note @c edoObject is @c __unsafe_unretained because @c -[EDOObject dealloc] invokes this method,
+ *       avoiding an ARC @c __strong parameter retain/release on a deallocating @c NSProxy.
+ */
++ (void)removeDistantObjectReferenceForObject:(EDOObject *__unsafe_unretained)edoObject;
+
 /** Try to get the object from local cache. Update the cache if @c object is not in it. */
-+ (id)cachedEDOFromObjectUpdateIfNeeded:(id)object;
++ (nullable id)cachedEDOFromObjectUpdateIfNeeded:(nullable id)object;
 
 /**
  * Synchronously sends the request and waits for the response with the executor to process

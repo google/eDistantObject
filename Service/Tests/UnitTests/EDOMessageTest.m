@@ -19,7 +19,9 @@
 #import <objc/runtime.h>
 
 #import "Channel/Sources/EDOHostPort.h"
+#import "Service/Sources/EDOBlockObject.h"
 #import "Service/Sources/EDOClassMessage.h"
+#import "Service/Sources/EDOClientService+Private.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOHostService.h"
@@ -31,8 +33,92 @@
 #import "Service/Sources/EDOParameter.h"  // IWYU pragma: keep
 #import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServicePort.h"
+#import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
+#import "Service/Sources/NSKeyedUnarchiver+EDOAdditions.h"
 
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
+
+static const char kDeallocSentinelKey = '\0';
+static const char kIsProxyHookKey = '\0';
+
+/** Helper that invokes a callback when its associated owner is deallocated. */
+@interface EDODeallocSentinel : NSObject
+- (instancetype)initWithBlock:(dispatch_block_t)block;
+@end
+
+@implementation EDODeallocSentinel {
+  dispatch_block_t _block;
+}
+
+- (instancetype)initWithBlock:(dispatch_block_t)block {
+  self = [super init];
+  if (self) {
+    _block = [block copy];
+  }
+  return self;
+}
+
+- (void)dealloc {
+  if (_block) {
+    _block();
+  }
+}
+
+@end
+
+/** Service port wrapper that runs a one-shot hook before delegating @c -match:. */
+@interface EDOHookedServicePort : EDOServicePort
+@property(nonatomic) EDOServicePort *backingPort;
+@property(nonatomic, copy, nullable) dispatch_block_t onMatch;
+@end
+
+@implementation EDOHookedServicePort
+
+// testAllEDOClassesSupportNSSecureCoding requires this on EDO-prefixed NSCoding classes.
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
+- (EDOHostPort *)hostPort {
+  return self.backingPort.hostPort;
+}
+
+- (UInt16)port {
+  return self.backingPort.port;
+}
+
+- (BOOL)match:(EDOServicePort *)otherPort {
+  dispatch_block_t hook = self.onMatch;
+  self.onMatch = nil;
+  if (hook) {
+    hook();
+  }
+  return [self.backingPort match:otherPort];
+}
+
+@end
+
+/** @c EDOObject subclass without added ivars used via @c object_setClass to hook @c -isProxy. */
+@interface EDOHookedObject : EDOObject
+@end
+
+@implementation EDOHookedObject
+
+// testAllEDOClassesSupportNSSecureCoding requires this on EDO-prefixed NSCoding classes.
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
+
+- (BOOL)isProxy {
+  dispatch_block_t hook = objc_getAssociatedObject(self, &kIsProxyHookKey);
+  if (hook) {
+    objc_setAssociatedObject(self, &kIsProxyHookKey, nil, OBJC_ASSOCIATION_COPY_NONATOMIC);
+    hook();
+  }
+  return [super isProxy];
+}
+
+@end
 
 @interface EDOMessageTest : XCTestCase
 
@@ -565,7 +651,504 @@
   [service invalidate];
 }
 
+/**
+ * Verifies that deallocating an uncached duplicate non-local object or block proxy preserves the
+ * cached proxy at the same address, and that deallocating the cached proxy evicts it.
+ */
+- (void)testOlderProxyDeallocPreservesNewerCachedProxy {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    NSData *archive = nil;
+    EDOPointerType address = [self edo_createArchivesForBlock:isBlock
+                                                     archiveA:&archive
+                                                     archiveB:NULL];
+
+    __block NSUInteger cachedCount = 0;
+    @autoreleasepool {
+      id cachedProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archive];
+      EDOObject *cachedEDO = [self edo_distantObjectFromProxy:cachedProxy isBlock:isBlock];
+      XCTAssertFalse(cachedEDO.isLocalEdo);
+      XCTAssertFalse(cachedEDO.isLocal);
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:cachedProxy], cachedProxy);
+      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:address],
+                     cachedProxy);
+
+      @autoreleasepool {
+        id duplicateProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archive];
+        EDOObject *duplicateEDO = [self edo_distantObjectFromProxy:duplicateProxy isBlock:isBlock];
+        XCTAssertNotEqual(duplicateProxy, cachedProxy);
+        XCTAssertNotEqual(duplicateEDO, cachedEDO);
+        XCTAssertFalse(duplicateEDO.isLocalEdo);
+        XCTAssertFalse(duplicateEDO.isLocal);
+      }
+
+      // Duplicate proxy's dealloc must leave the cached proxy intact.
+      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:address],
+                     cachedProxy);
+      dispatch_sync(EDOClientService.edoSyncQueue, ^{
+        cachedCount = EDOClientService.localDistantObjects.count;
+      });
+    }
+
+    // Dealloc of the cached proxy must evict the entry and decrement the table count.
+    XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:address]);
+    __block NSUInteger evictedCount = 0;
+    dispatch_sync(EDOClientService.edoSyncQueue, ^{
+      evictedCount = EDOClientService.localDistantObjects.count;
+    });
+    XCTAssertEqual(evictedCount, cachedCount - 1);
+  }
+}
+
+/**
+ * Verifies that a cache hit in @c cachedEDOFromObjectUpdateIfNeeded: marks only distinct duplicate
+ * proxies @c local so the host object stays alive until the cached proxy deallocates.
+ */
+- (void)testCachedEDOFromObjectUpdateIfNeededMarksDuplicateLocal {
+  XCTestExpectation *transientDeallocated =
+      [self expectationWithDescription:@"Host released transient object when cached proxy died."];
+  EDOHostService *service = [self edo_hostServiceWithName:@"com.google.edo.service.cacheDuplicate"];
+
+  NSData *archive = nil;
+  EDOPointerType address = 0;
+  @autoreleasepool {
+    EDOTestDummy *transient = [[EDOTestDummy alloc] initWithValue:42];
+    EDODeallocSentinel *sentinel = [[EDODeallocSentinel alloc] initWithBlock:^{
+      [transientDeallocated fulfill];
+    }];
+    objc_setAssociatedObject(transient, &kDeallocSentinelKey, sentinel,
+                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    EDOObject *vended = [service distantObjectForLocalObject:transient
+                                                    hostPort:service.port.hostPort];
+    address = vended.remoteAddress;
+    archive = [self edo_archiveProxy:vended withProcessUUID:@"com.google.edotest.remote"];
+  }
+
+  @autoreleasepool {
+    EDOObject *firstProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archive];
+    XCTAssertFalse(firstProxy.isLocalEdo);
+    XCTAssertFalse(firstProxy.isLocal);
+    XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:firstProxy], firstProxy);
+    XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:firstProxy], firstProxy);
+    XCTAssertFalse(firstProxy.isLocal);
+
+    @autoreleasepool {
+      EDOObject *duplicateProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archive];
+      XCTAssertFalse(duplicateProxy.isLocal);
+      id resolved = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:duplicateProxy];
+      XCTAssertEqual(resolved, firstProxy);
+      XCTAssertTrue(duplicateProxy.isLocal);
+    }
+
+    XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:address], firstProxy);
+    @autoreleasepool {
+      XCTAssertEqual([(EDOTestDummy *)firstProxy returnInt], 42);
+    }
+  }
+
+  XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:address]);
+  [self waitForExpectations:@[ transientDeallocated ] timeout:2.0];
+}
+
+/**
+ * Verifies cache hit unwrapping, port-mismatch replacement, and live identity-checked removal for
+ * both object and block proxies.
+ */
+- (void)testCachedProxyHitPortMismatchAndLiveRemoval {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    NSData *archiveA = nil;
+    NSData *archiveB = nil;
+    EDOPointerType sharedAddress = [self edo_createArchivesForBlock:isBlock
+                                                           archiveA:&archiveA
+                                                           archiveB:&archiveB];
+    @autoreleasepool {
+      id proxyA1 = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA];
+      id proxyA2 = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA];
+      id proxyB = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveB];
+      EDOObject *edoA1 = [self edo_distantObjectFromProxy:proxyA1 isBlock:isBlock];
+      EDOObject *edoA2 = [self edo_distantObjectFromProxy:proxyA2 isBlock:isBlock];
+      EDOObject *edoB = [self edo_distantObjectFromProxy:proxyB isBlock:isBlock];
+
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:proxyA1], proxyA1);
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:proxyA1], proxyA1);
+      XCTAssertFalse(edoA1.isLocal);
+
+      // Same-port duplicate hit must unwrap localEDO and mark duplicate local.
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:proxyA2], proxyA1);
+      XCTAssertTrue(edoA2.isLocal);
+
+      // Mismatched port must replace proxyA1 instead of keeping stale entry.
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:proxyB], proxyB);
+      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress],
+                     proxyB);
+      XCTAssertFalse(edoB.isLocal);
+
+      // Live identity-checked removal must unwrap cachedEDO and evict only proxyB.
+      [EDOClientService removeDistantObjectReferenceForObject:edoA1];
+      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress],
+                     proxyB);
+      [EDOClientService removeDistantObjectReferenceForObject:edoB];
+      XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
+    }
+    XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
+  }
+}
+
+/**
+ * Verifies that concurrent lookups in @c cachedEDOFromObjectUpdateIfNeeded: serialize to one
+ * non-local cached proxy.
+ */
+- (void)testCachedEDOFromObjectUpdateIfNeededSerializesConcurrentLookups {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    NSData *archiveA = nil;
+    EDOPointerType sharedAddress = [self edo_createArchivesForBlock:isBlock
+                                                           archiveA:&archiveA
+                                                           archiveB:NULL];
+    dispatch_queue_t concurrentQueue = dispatch_queue_create(
+        "com.google.edo.test.clientCacheConcurrent", DISPATCH_QUEUE_CONCURRENT);
+    const size_t workerCount = 4;
+    for (int round = 0; round < 25; ++round) {
+      @autoreleasepool {
+        NSMutableArray<id> *proxies = [NSMutableArray arrayWithCapacity:workerCount];
+        NSMutableArray<id> *results = [NSMutableArray arrayWithCapacity:workerCount];
+        for (size_t i = 0; i < workerCount; ++i) {
+          [proxies addObject:[NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA]];
+          [results addObject:[NSNull null]];
+        }
+        dispatch_apply(workerCount, concurrentQueue, ^(size_t idx) {
+          @autoreleasepool {
+            id resolved = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:proxies[idx]];
+            @synchronized(results) {
+              results[idx] = resolved;
+            }
+          }
+        });
+
+        id winner = results[0];
+        XCTAssertNotEqual(winner, (id)[NSNull null]);
+        XCTAssertFalse([self edo_distantObjectFromProxy:winner isBlock:isBlock].isLocal);
+        NSUInteger nonLocalCount = 0;
+        for (size_t i = 0; i < workerCount; ++i) {
+          XCTAssertEqual(results[i], winner);
+          if (![self edo_distantObjectFromProxy:proxies[i] isBlock:isBlock].isLocal) {
+            nonLocalCount += 1;
+          }
+        }
+        XCTAssertEqual(nonLocalCount, 1U);
+      }
+      XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
+    }
+  }
+}
+
+/**
+ * Verifies that @c cachedEDOFromObjectUpdateIfNeeded: checks port match on @c edoSyncQueue and
+ * releases a displaced @c EDOObject or @c EDOBlockObject outside @c edoSyncQueue when its final
+ * external strong reference drops mid-dispatch.
+ */
+- (void)testCachedEDOFromObjectUpdateIfNeededReleasesDisplacedEntryOutsideQueue {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    NSData *archiveA = nil;
+    NSData *archiveB = nil;
+    EDOPointerType sharedAddress = [self edo_createArchivesForBlock:isBlock
+                                                           archiveA:&archiveA
+                                                           archiveB:&archiveB];
+    __block BOOL proxyADeallocated = NO;
+    __block id externalProxyA = nil;
+    @autoreleasepool {
+      externalProxyA = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA];
+      EDOObject *edoA = [self edo_distantObjectFromProxy:externalProxyA isBlock:isBlock];
+      EDODeallocSentinel *sentinel = [[EDODeallocSentinel alloc] initWithBlock:^{
+        proxyADeallocated = YES;
+      }];
+      objc_setAssociatedObject(edoA, &kDeallocSentinelKey, sentinel,
+                               OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:externalProxyA],
+                     externalProxyA);
+    }
+    XCTAssertFalse(proxyADeallocated);
+
+    dispatch_semaphore_t enteredMatch = dispatch_semaphore_create(0);
+    dispatch_semaphore_t releasedExternalRef = dispatch_semaphore_create(0);
+    dispatch_semaphore_t postMatchQueueProbe = dispatch_semaphore_create(0);
+    dispatch_group_t releaseGroup = dispatch_group_create();
+    dispatch_group_async(releaseGroup, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+      XCTAssertEqual(
+          dispatch_semaphore_wait(enteredMatch, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)),
+          0);
+      externalProxyA = nil;
+      dispatch_semaphore_signal(releasedExternalRef);
+    });
+
+    @autoreleasepool {
+      id proxyB = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveB];
+      EDOObject *edoB = [self edo_distantObjectFromProxy:proxyB isBlock:isBlock];
+      // Swap readonly _servicePort via ivar to intercept -match: without changing production
+      // headers.
+      Ivar portIvar = class_getInstanceVariable([EDOObject class], "_servicePort");
+      XCTAssertTrue(portIvar != NULL);
+      EDOHookedServicePort *hookedPort = [[EDOHookedServicePort alloc] init];
+      hookedPort.backingPort = edoB.servicePort;
+      __block id cachedAfterMatchDispatch = nil;
+      hookedPort.onMatch = ^{
+        dispatch_assert_queue(EDOClientService.edoSyncQueue);
+        // Enqueue a FIFO probe while still holding edoSyncQueue so it runs immediately after the
+        // current dispatch_sync finishes and before any hypothetical second dispatch_sync insert.
+        dispatch_async(EDOClientService.edoSyncQueue, ^{
+          @autoreleasepool {
+            cachedAfterMatchDispatch =
+                [EDOClientService.localDistantObjects objectForKey:@(sharedAddress)];
+          }
+          dispatch_semaphore_signal(postMatchQueueProbe);
+        });
+        dispatch_semaphore_signal(enteredMatch);
+        XCTAssertEqual(dispatch_semaphore_wait(releasedExternalRef,
+                                               dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)),
+                       0);
+      };
+      object_setIvar(edoB, portIvar, hookedPort);
+
+      id resolved = [EDOClientService cachedEDOFromObjectUpdateIfNeeded:proxyB];
+      XCTAssertEqual(resolved, proxyB);
+      XCTAssertEqual(dispatch_semaphore_wait(postMatchQueueProbe,
+                                             dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)),
+                     0);
+      XCTAssertEqual(cachedAfterMatchDispatch, proxyB);
+      cachedAfterMatchDispatch = nil;
+      XCTAssertTrue(proxyADeallocated);
+      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress],
+                     proxyB);
+    }
+
+    XCTAssertEqual(
+        dispatch_group_wait(releaseGroup, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)), 0);
+    XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
+  }
+}
+
+/**
+ * Verifies legacy @c removeDistantObjectReference: eviction and that
+ * @c removeDistantObjectReferenceForObject: releases a loaded cached proxy outside
+ * @c edoSyncQueue when its external strong reference drops mid-dispatch.
+ */
+- (void)testRemoveDistantObjectReferenceSupportsLegacyRemovalAndOutsideQueueRelease {
+  NSData *archiveA = nil;
+  NSData *archiveB = nil;
+  EDOPointerType sharedAddress = [self edo_createArchivesForBlock:NO
+                                                         archiveA:&archiveA
+                                                         archiveB:&archiveB];
+  @autoreleasepool {
+    EDOObject *legacyProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA];
+    @try {
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:legacyProxy], legacyProxy);
+      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress],
+                     legacyProxy);
+      [EDOClientService removeDistantObjectReference:sharedAddress];
+      XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
+      [EDOClientService removeDistantObjectReference:sharedAddress];
+    } @finally {
+      // Mark manually evicted proxy local so -dealloc does not release host object for archiveB.
+      legacyProxy.local = YES;
+    }
+  }
+  __block BOOL proxyBDeallocated = NO;
+  __block EDOObject *externalProxyB = nil;
+  @autoreleasepool {
+    externalProxyB = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveB];
+    EDODeallocSentinel *sentinel = [[EDODeallocSentinel alloc] initWithBlock:^{
+      proxyBDeallocated = YES;
+    }];
+    objc_setAssociatedObject(externalProxyB, &kDeallocSentinelKey, sentinel,
+                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:externalProxyB],
+                   externalProxyB);
+  }
+  XCTAssertFalse(proxyBDeallocated);
+
+  dispatch_semaphore_t enteredIsProxy = dispatch_semaphore_create(0);
+  dispatch_semaphore_t releasedExternalRef = dispatch_semaphore_create(0);
+  dispatch_group_t releaseGroup = dispatch_group_create();
+  objc_setAssociatedObject(
+      externalProxyB, &kIsProxyHookKey,
+      ^{
+        dispatch_assert_queue(EDOClientService.edoSyncQueue);
+        dispatch_semaphore_signal(enteredIsProxy);
+        XCTAssertEqual(dispatch_semaphore_wait(releasedExternalRef,
+                                               dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)),
+                       0);
+      },
+      OBJC_ASSOCIATION_COPY_NONATOMIC);
+  object_setClass(externalProxyB, [EDOHookedObject class]);
+
+  dispatch_group_async(releaseGroup, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    XCTAssertEqual(
+        dispatch_semaphore_wait(enteredIsProxy, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)),
+        0);
+    externalProxyB = nil;
+    dispatch_semaphore_signal(releasedExternalRef);
+  });
+
+  @autoreleasepool {
+    EDOObject *proxyA = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA];
+    [EDOClientService removeDistantObjectReferenceForObject:proxyA];
+    XCTAssertTrue(proxyBDeallocated);
+  }
+
+  XCTAssertEqual(
+      dispatch_group_wait(releaseGroup, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC)), 0);
+  XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
+}
+
+/**
+ * Verifies pass-through for non-cached inputs (local block, non-eDO @c NSProxy, @c EDOObject
+ * subclass) and replacement when either the incoming or cached @c servicePort is @c nil.
+ */
+- (void)testCachedEDOFromObjectUpdateIfNeededHandlesEdgePartitionsAndNilPort {
+  XCTAssertNil([EDOClientService cachedEDOFromObjectUpdateIfNeeded:nil]);
+  int (^localBlock)(void) = ^{
+    return 1;
+  };
+  XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:localBlock], localBlock);
+
+  EDOHostService *service = [self edo_hostServiceWithName:@"com.google.edo.service.edgePartitions"];
+  id target = [self edo_testTargetForBlock:NO];
+  EDOPointerType address = 0;
+  @autoreleasepool {
+    EDOObject *rawValid = [service distantObjectForLocalObject:target
+                                                      hostPort:service.port.hostPort];
+    address = rawValid.remoteAddress;
+    NSData *validArchive = [self edo_archiveProxy:rawValid
+                                  withProcessUUID:@"com.google.edotest.validPort"];
+    EDOObject *rawNilPort = [service distantObjectForLocalObject:target
+                                                        hostPort:service.port.hostPort];
+    // Clear readonly _servicePort via ivar to test nil-port wire payloads without changing headers.
+    Ivar portIvar = class_getInstanceVariable([EDOObject class], "_servicePort");
+    XCTAssertTrue(portIvar != NULL);
+    object_setIvar(rawNilPort, portIvar, nil);
+    NSData *nilPortArchive = [self edo_archiveProxy:rawNilPort
+                                    withProcessUUID:@"com.google.edotest.nilPort"];
+
+    EDOObject *validProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:validArchive];
+    id nonEdoProxy = [validProxy returnByValue];
+    XCTAssertTrue([EDOClientService cachedEDOFromObjectUpdateIfNeeded:nonEdoProxy] == nonEdoProxy);
+
+    EDOObject *subclassProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:validArchive];
+    subclassProxy.local = YES;
+    object_setClass(subclassProxy, [EDOHookedObject class]);
+    XCTAssertTrue([EDOClientService cachedEDOFromObjectUpdateIfNeeded:subclassProxy] ==
+                  subclassProxy);
+    XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:address]);
+
+    EDOObject *nilPortProxyA = [NSKeyedUnarchiver edo_unarchiveObjectWithData:nilPortArchive];
+    EDOObject *nilPortProxyB = [NSKeyedUnarchiver edo_unarchiveObjectWithData:nilPortArchive];
+    @try {
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:validProxy], validProxy);
+      // Incoming nil servicePort must not match a valid cached port.
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:nilPortProxyA],
+                     nilPortProxyA);
+      XCTAssertFalse(nilPortProxyA.isLocal);
+      // Cached nil servicePort must not match an incoming nil servicePort.
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:nilPortProxyB],
+                     nilPortProxyB);
+      XCTAssertFalse(nilPortProxyB.isLocal);
+      // Incoming valid servicePort replaces cached nil servicePort.
+      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:validProxy], validProxy);
+    } @finally {
+      // Mark synthetic nil-port proxies local so -dealloc skips sending on nil hostPort.
+      nilPortProxyA.local = YES;
+      nilPortProxyB.local = YES;
+    }
+  }
+  XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:address]);
+}
+
 #pragma mark - Helper methods
+
+- (id)edo_testTargetForBlock:(BOOL)isBlock {
+  id target;
+  if (isBlock) {
+    EDOTestDummy *capturedDummy = [[EDOTestDummy alloc] initWithValue:99];
+    // Capture a heap object so -copy allocates a distinct __NSMallocBlock__ per call instead of
+    // reusing a singleton __NSGlobalBlock__.
+    target = (id)[^int {
+      return capturedDummy.value;
+    } copy];
+  } else {
+    target = [[EDOTestDummy alloc] initWithValue:17];
+  }
+  [self addTeardownBlock:^{
+    // Keep target alive until teardown so remoteAddress cannot be reused.
+    (void)target;
+  }];
+  return target;
+}
+
+- (EDOHostService *)edo_hostServiceWithName:(NSString *)name {
+  EDOTestDummy *root = [[EDOTestDummy alloc] init];
+  dispatch_queue_t queue = dispatch_queue_create(name.UTF8String, DISPATCH_QUEUE_SERIAL);
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:root queue:queue];
+  [self addTeardownBlock:^{
+    // Keep root and weak _executionQueue alive until teardown.
+    (void)queue;
+    (void)root;
+    [service invalidate];
+  }];
+  return service;
+}
+
+- (EDOPointerType)edo_createArchivesForBlock:(BOOL)isBlock
+                                    archiveA:(NSData **)archiveA
+                                    archiveB:(NSData *_Nullable *_Nullable)archiveB {
+  EDOHostService *serviceA = [self edo_hostServiceWithName:@"com.google.edo.service.cacheTestA"];
+  id target = [self edo_testTargetForBlock:isBlock];
+  NSData *resultA = nil;
+  NSData *resultB = nil;
+  EDOPointerType sharedAddress = 0;
+  @autoreleasepool {
+    EDOObject *vendedA = [serviceA distantObjectForLocalObject:target
+                                                      hostPort:serviceA.port.hostPort];
+    sharedAddress = vendedA.remoteAddress;
+    resultA = [self edo_archiveProxy:vendedA withProcessUUID:@"com.google.edotest.remoteA"];
+    if (archiveB != NULL) {
+      EDOHostService *serviceB =
+          [self edo_hostServiceWithName:@"com.google.edo.service.cacheTestB"];
+      EDOObject *vendedB = [serviceB distantObjectForLocalObject:target
+                                                        hostPort:serviceB.port.hostPort];
+      XCTAssertEqual(vendedA.remoteAddress, vendedB.remoteAddress);
+      resultB = [self edo_archiveProxy:vendedB withProcessUUID:@"com.google.edotest.remoteB"];
+    }
+  }
+  *archiveA = resultA;
+  if (archiveB != NULL) {
+    *archiveB = resultB;
+  }
+  return sharedAddress;
+}
+
+- (EDOObject *)edo_distantObjectFromProxy:(id)proxy isBlock:(BOOL)isBlock {
+  if (isBlock) {
+    EDOBlockObject *blockObject = [EDOBlockObject EDOBlockObjectFromBlock:proxy];
+    XCTAssertNotNil(blockObject);
+    return blockObject;
+  }
+  XCTAssertEqual(object_getClass(proxy), [EDOObject class]);
+  return proxy;
+}
+
+// Patches _processUUID before archiving to simulate cross-process proxies without adding test-only
+// mutators to production headers, then restores it so local vended objects stay local on dealloc.
+- (NSData *)edo_archiveProxy:(EDOObject *)proxy withProcessUUID:(NSString *)processUUID {
+  Ivar uuidIvar = class_getInstanceVariable([EDOObject class], "_processUUID");
+  XCTAssertTrue(uuidIvar != NULL);
+  id originalUUID = object_getIvar(proxy, uuidIvar);
+  object_setIvar(proxy, uuidIvar, processUUID);
+  NSData *archive = [NSKeyedArchiver edo_archivedDataWithObject:proxy];
+  object_setIvar(proxy, uuidIvar, originalUUID);
+  return archive;
+}
 
 - (dispatch_queue_t)edo_createQueueAndServiceWithRootObject:(id)obj
                                                       block:(void (^)(EDOHostService *))block {

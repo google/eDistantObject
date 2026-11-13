@@ -161,8 +161,8 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
 
 #pragma mark - Private Category
 
-+ (NSMapTable *)localDistantObjects {
-  static NSMapTable<NSNumber *, EDOObject *> *localDistantObjects;
++ (NSMapTable<NSNumber *, id> *)localDistantObjects {
+  static NSMapTable<NSNumber *, id> *localDistantObjects;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     localDistantObjects = [NSMapTable strongToWeakObjectsMapTable];
@@ -188,22 +188,13 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   return _pingMessageData;
 }
 
-+ (EDOObject *)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress {
++ (nullable id)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress {
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
-  __block EDOObject *result;
+  __block id result;
   dispatch_sync(self.edoSyncQueue, ^{
     result = [self.localDistantObjects objectForKey:edoKey];
   });
   return result;
-}
-
-+ (void)addDistantObjectReference:(id)object {
-  EDOObject *edoObject =
-      [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
-  NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
-  dispatch_sync(self.edoSyncQueue, ^{
-    [self.localDistantObjects setObject:object forKey:edoKey];
-  });
 }
 
 + (void)removeDistantObjectReference:(EDOPointerType)remoteAddress {
@@ -213,26 +204,72 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   });
 }
 
-+ (id)cachedEDOFromObjectUpdateIfNeeded:(id)object {
++ (void)removeDistantObjectReferenceForObject:(EDOObject *__unsafe_unretained)edoObject {
+  NSParameterAssert(edoObject);
+  if (!edoObject) {
+    return;
+  }
+  NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
+  __block id cachedObject = nil;
+  dispatch_sync(self.edoSyncQueue, ^{
+    EDOObject *__unsafe_unretained cachedEDO = nil;
+    // Drain NSMapTable weak-load and EDOBlockObjectFromBlock: autoreleases inside dispatch_sync
+    // while cachedObject holds a strong reference until after dispatch_sync returns.
+    @autoreleasepool {
+      cachedObject = [self.localDistantObjects objectForKey:edoKey];
+      cachedEDO = [EDOBlockObject isBlock:cachedObject]
+                      ? [EDOBlockObject EDOBlockObjectFromBlock:cachedObject]
+                      : cachedObject;
+    }
+    // Also evict keys whose weak lookup returns nil because the cached entry is already
+    // deallocating.
+    if (!cachedObject || cachedEDO == edoObject) {
+      [self.localDistantObjects removeObjectForKey:edoKey];
+    }
+  });
+  // Release cachedObject outside edoSyncQueue so a concurrent final release cannot trigger a
+  // re-entrant -[EDOObject dealloc] while edoSyncQueue is held.
+  cachedObject = nil;
+}
+
++ (nullable id)cachedEDOFromObjectUpdateIfNeeded:(nullable id)object {
   EDOObject *edoObject =
       [EDOBlockObject isBlock:object] ? [EDOBlockObject EDOBlockObjectFromBlock:object] : object;
   Class objClass = object_getClass(edoObject);
   if (objClass == [EDOObject class] || objClass == [EDOBlockObject class]) {
-    id localObject = [self distantObjectReferenceForRemoteAddress:edoObject.remoteAddress];
-    EDOObject *localEDO = localObject;
-    if ([EDOBlockObject isBlock:localObject]) {
-      localEDO = [EDOBlockObject EDOBlockObjectFromBlock:localEDO];
-    }
-    // Verify the service in case the old address is overwritten by a new service.
-    if ([edoObject.servicePort match:localEDO.servicePort]) {
-      // Since we already have the EDOObject in the cache, the new decoded EDOObject is
-      // taken as a temporary local object, which does not send release message.
-      edoObject.local = YES;
-      return localObject;
-    } else {
-      // Track the new remote object.
-      [self addDistantObjectReference:object];
-    }
+    NSNumber *edoKey = [NSNumber numberWithLongLong:edoObject.remoteAddress];
+    __block id resolvedObject = nil;
+    __block id localObject = nil;
+    dispatch_sync(self.edoSyncQueue, ^{
+      EDOObject *__unsafe_unretained localEDO = nil;
+      // Drain NSMapTable weak-load and EDOBlockObjectFromBlock: autoreleases inside dispatch_sync
+      // while localObject holds a strong reference until after dispatch_sync returns.
+      @autoreleasepool {
+        localObject = [self.localDistantObjects objectForKey:edoKey];
+        localEDO = [EDOBlockObject isBlock:localObject]
+                       ? [EDOBlockObject EDOBlockObjectFromBlock:localObject]
+                       : localObject;
+      }
+      if (localObject && localEDO == edoObject) {
+        // Re-normalizing the already-cached entry must not mark the sole cached proxy local.
+        resolvedObject = localObject;
+      } else if (localObject && [edoObject.servicePort match:localEDO.servicePort]) {
+        // Verify the service in case the old address is overwritten by a new service.
+        // Since we already have the EDOObject in the cache, the new decoded EDOObject is
+        // taken as a temporary local object, which does not send release message.
+        edoObject.local = YES;
+        resolvedObject = localObject;
+      } else {
+        // Track the new remote object.
+        [self.localDistantObjects setObject:object forKey:edoKey];
+        resolvedObject = object;
+      }
+    });
+    // Release localObject outside edoSyncQueue so a concurrent final release on the port-mismatch
+    // replacement branch cannot trigger a re-entrant -[EDOObject dealloc] while edoSyncQueue is
+    // held.
+    localObject = nil;
+    return resolvedObject;
   }
   return object;
 }
