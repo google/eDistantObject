@@ -16,12 +16,12 @@
 
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class EDOExecutor;
 @class EDOHostPort;
-@class EDOObject;
 @protocol EDOChannel;
 
 /** The internal use for sending and receiving EDOObject. */
