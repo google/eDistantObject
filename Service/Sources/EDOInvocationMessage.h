@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOServiceRequest.h"
 
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDORemoteException.h"
 
 NS_ASSUME_NONNULL_BEGIN

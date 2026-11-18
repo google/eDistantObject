@@ -17,8 +17,6 @@
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
 
-#import "Service/Sources/EDOObject.h"
-
 NS_ASSUME_NONNULL_BEGIN
 
 /** Check if the given C-string type is an Id type. */
