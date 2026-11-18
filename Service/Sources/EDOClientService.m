@@ -112,7 +112,10 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
     // Otherwise, we send EDOObjectAlive message to another service running in the same process.
     if ([service isObjectAliveWithPort:edoObject.servicePort
                          remoteAddress:edoObject.remoteAddress]) {
-      return (__bridge id)(void *)edoObject.remoteAddress;
+      id resolvedObject = [service localObjectForAddress:edoObject.remoteAddress];
+      if (resolvedObject) {
+        return resolvedObject;
+      }
     } else if (edoObject.isLocalEdo) {
       // If the underlying object is not a local object (but in the same process) then this could
       // return nil. For example, the service becomes invalide, or the remote object is already
