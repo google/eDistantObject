@@ -42,6 +42,8 @@ typedef int64_t EDOPointerType;
 @property(readonly) BOOL isLocalEdo;
 /** Whether the @c EDOObject is weakly referenced. */
 @property(readonly) BOOL weaklyReferenced;
+/** Whether this remote proxy represents a counted vend tracked on the host service. */
+@property(nonatomic, readonly, getter=isCountedByHost) BOOL countedByHost;
 
 /** Create an object with the given local target and port the session listens on. */
 + (instancetype)objectWithTarget:(id)target port:(EDOServicePort *)port;
@@ -54,6 +56,14 @@ typedef int64_t EDOPointerType;
 
 /** Create an EDOObject distant object based on an underlying object. */
 + (EDOObject *)edo_remoteProxyFromUnderlyingObject:(id)object withPort:(EDOServicePort *)port;
+
+/**
+ * Marks this local proxy as eligible to encode @c edoCountedByHost when archived.
+ *
+ * Host services call this on newly vended proxies for counted objects (non-root) so clients send
+ * a counted release rather than tearing down all outstanding vends.
+ */
+- (void)edo_enableHostCountedVend;
 
 /**
  * The method to forward invocation.

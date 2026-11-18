@@ -65,7 +65,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress;
 
 /**
- * Removes an EDOObject with the specified address in the host cache.
+ * Decrements the per-vend reference count for the object at @c remoteAddress and removes it from
+ * the host cache when the count reaches zero.
+ *
+ * @param remoteAddress The @c EDOPointerType containing the object address.
+ * @return @c YES if a tracked entry existed (and was decremented or removed); @c NO otherwise.
+ */
+- (BOOL)releaseObjectWithAddress:(EDOPointerType)remoteAddress;
+
+/**
+ * Unconditionally removes an EDOObject with the specified address in the host cache, clearing
+ * any outstanding per-vend reference count.
  *
  * @param remoteAddress The @c EDOPointerType containing the object address.
  * @return @c YES if an object was removed; @c NO otherwise.

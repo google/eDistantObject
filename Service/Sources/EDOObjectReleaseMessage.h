@@ -36,6 +36,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)requestWithRemoteAddress:(EDOPointerType)remoteAddress;
 
 /**
+ * Creates an object release request that decrements one counted vend on the host.
+ *
+ * @param remoteAddress The remote object address to decrement.
+ * @return An instance of @c EDOObjectReleaseRequest.
+ */
++ (instancetype)requestWithCountedRemoteAddress:(EDOPointerType)remoteAddress;
+
+/**
  * Creates an EDOObjectReleaseRequest for weak EDOObjects.
  *
  * @param remoteAddress The remote address for the weak EDOObject that is going to be released.

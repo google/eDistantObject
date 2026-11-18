@@ -34,6 +34,7 @@ static NSString *const kEDOObjectCoderRemoteAddressKey = @"edoRemoteAddress";
 static NSString *const kEDOObjectCoderRemoteClassKey = @"edoRemoteClass";
 static NSString *const kEDOObjectCoderClassNameKey = @"edoClassName";
 static NSString *const kEDOObjectCoderProcessUUIDKey = @"edoProcessUUID";
+static NSString *const kEDOObjectCoderCountedByHostKey = @"edoCountedByHost";
 
 /** Returns the boolean idicating if the two objects are from the same process. */
 static BOOL IsFromSameProcess(id object1, id object2);
@@ -49,6 +50,10 @@ static BOOL IsFromSameProcess(id object1, id object2);
 @property(nonatomic, readonly) NSString *className;
 /** The process unique identifier for the remote object. */
 @property(nonatomic, readonly) NSString *processUUID;
+/** Whether this remote proxy represents a counted vend tracked on the host service. */
+@property(nonatomic, readonly, getter=isCountedByHost) BOOL countedByHost;
+/** Whether this local proxy represents a fresh host vend eligible to encode @c edoCountedByHost. */
+@property(nonatomic) BOOL hostCountedVend;
 @end
 
 @implementation EDOObject
@@ -72,6 +77,8 @@ static BOOL IsFromSameProcess(id object1, id object2);
   _local = NO;
   _processUUID = [aDecoder decodeObjectOfClass:[NSString class]
                                         forKey:kEDOObjectCoderProcessUUIDKey];
+  _countedByHost = [aDecoder decodeBoolForKey:kEDOObjectCoderCountedByHostKey];
+  _hostCountedVend = NO;
   return self;
 }
 
@@ -117,7 +124,13 @@ static BOOL IsFromSameProcess(id object1, id object2);
   _className = NSStringFromClass(object_getClass(target));
   _processUUID = [EDOObject edo_processUUID];
   _local = YES;
+  _countedByHost = NO;
+  _hostCountedVend = NO;
   return self;
+}
+
+- (void)edo_enableHostCountedVend {
+  self.hostCountedVend = YES;
 }
 
 #pragma mark - Class method proxy
@@ -158,7 +171,8 @@ static BOOL IsFromSameProcess(id object1, id object2);
     [EDOClientService removeDistantObjectReferenceForObject:self];
     @try {
       EDOObjectReleaseRequest *request =
-          [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress];
+          _countedByHost ? [EDOObjectReleaseRequest requestWithCountedRemoteAddress:_remoteAddress]
+                         : [EDOObjectReleaseRequest requestWithRemoteAddress:_remoteAddress];
       [EDOClientService sendSynchronousRequest:request onPort:_servicePort.hostPort];
     } @catch (NSException *e) {
       // There's an error with the service or most likely it's dead.
@@ -179,6 +193,9 @@ static BOOL IsFromSameProcess(id object1, id object2);
   [aCoder encodeInt64:self.remoteClass forKey:kEDOObjectCoderRemoteClassKey];
   [aCoder encodeObject:self.className forKey:kEDOObjectCoderClassNameKey];
   [aCoder encodeObject:self.processUUID forKey:kEDOObjectCoderProcessUUIDKey];
+  if (self.hostCountedVend) {
+    [aCoder encodeBool:YES forKey:kEDOObjectCoderCountedByHostKey];
+  }
 }
 
 - (BOOL)isEqual:(id)object {

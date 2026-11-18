@@ -97,6 +97,11 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
  * the object.
  */
 @property(nonatomic, readonly) NSMutableDictionary<NSNumber *, id> *localObjects;
+/**
+ * Per-vend reference counts for tracked entries in @c localObjects.
+ * The key is the object address as an @c NSNumber and the value is the active vend count.
+ */
+@property(nonatomic, readonly) NSMutableDictionary<NSNumber *, NSNumber *> *localObjectsCounts;
 /** The queue to update local objects atomically. */
 @property(nonatomic, readonly) dispatch_queue_t localObjectsSyncQueue;
 /**
@@ -219,6 +224,7 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   if (self) {
     _registeredToDevice = NO;
     _localObjects = [[NSMutableDictionary alloc] init];
+    _localObjectsCounts = [[NSMutableDictionary alloc] init];
     _localObjectsSyncQueue =
         dispatch_queue_create("com.google.edo.service.localObjects", DISPATCH_QUEUE_SERIAL);
 
@@ -372,22 +378,30 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   }
 
   NSNumber *objectKey = [NSNumber numberWithLongLong:(EDOPointerType)object];
-  if (object != self.rootLocalObject) {
+  BOOL isCountedVend = (object != self.rootLocalObject);
+  if (isCountedVend) {
     dispatch_sync(_localObjectsSyncQueue, ^{
       if (![self.localObjects objectForKey:objectKey]) {
         [self.localObjects setObject:object forKey:objectKey];
       }
+      NSUInteger count = self.localObjectsCounts[objectKey].unsignedIntegerValue;
+      self.localObjectsCounts[objectKey] = @(count + 1);
     });
   }
 
   hostPort = hostPort ?: self.port.hostPort;
   EDOServicePort *port = [EDOServicePort servicePortWithPort:self.port hostPort:hostPort];
 
+  EDOObject *distantObject = nil;
   if (isObjectBlock) {
-    return [EDOBlockObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
+    distantObject = [EDOBlockObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
   } else {
-    return [EDOObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
+    distantObject = [EDOObject edo_remoteProxyFromUnderlyingObject:object withPort:port];
   }
+  if (isCountedVend) {
+    [distantObject edo_enableHostCountedVend];
+  }
+  return distantObject;
 }
 
 - (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress {
@@ -404,13 +418,48 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   return isAlive;
 }
 
-- (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {
+- (BOOL)releaseObjectWithAddress:(EDOPointerType)remoteAddress {
   NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  __block id removedObject = nil;
+  __block BOOL found = NO;
 
   dispatch_sync(_localObjectsSyncQueue, ^{
-    [self.localObjects removeObjectForKey:edoKey];
+    id trackedObject = self.localObjects[edoKey];
+    if (!trackedObject) {
+      return;
+    }
+    found = YES;
+    NSUInteger count = self.localObjectsCounts[edoKey].unsignedIntegerValue;
+    if (count > 1) {
+      self.localObjectsCounts[edoKey] = @(count - 1);
+    } else {
+      removedObject = trackedObject;
+      [self.localObjects removeObjectForKey:edoKey];
+      [self.localObjectsCounts removeObjectForKey:edoKey];
+    }
   });
-  return YES;
+  // Release outside the sync queue so object dealloc cannot re-enter localObjectsSyncQueue.
+  removedObject = nil;
+  return found;
+}
+
+- (BOOL)removeObjectWithAddress:(EDOPointerType)remoteAddress {
+  NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  __block id removedObject = nil;
+  __block BOOL found = NO;
+
+  dispatch_sync(_localObjectsSyncQueue, ^{
+    id trackedObject = self.localObjects[edoKey];
+    if (trackedObject) {
+      found = YES;
+      removedObject = trackedObject;
+      [self.localObjects removeObjectForKey:edoKey];
+    }
+    [self.localObjectsCounts removeObjectForKey:edoKey];
+  });
+  // Release outside the sync queue so object dealloc cannot re-enter localObjectsSyncQueue.
+  removedObject = nil;
+  return found;
 }
 
 - (BOOL)removeWeakObjectWithAddress:(EDOPointerType)remoteAddress {

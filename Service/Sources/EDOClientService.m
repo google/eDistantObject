@@ -255,9 +255,11 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
         resolvedObject = localObject;
       } else if (localObject && [edoObject.servicePort match:localEDO.servicePort]) {
         // Verify the service in case the old address is overwritten by a new service.
-        // Since we already have the EDOObject in the cache, the new decoded EDOObject is
-        // taken as a temporary local object, which does not send release message.
-        edoObject.local = YES;
+        // Only suppress release for legacy uncounted proxies; counted proxies must send a
+        // counted release on dealloc to balance the host's per-vend increment.
+        if (!edoObject.countedByHost) {
+          edoObject.local = YES;
+        }
         resolvedObject = localObject;
       } else {
         // Track the new remote object.
@@ -324,7 +326,9 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
                                        userInfo:userInfo];
       if (errorOut != NULL) {
         *errorOut = error;
-      } else {
+      } else if ([request class] != [EDOObjectReleaseRequest class]) {
+        // Release requests are best-effort cleanup (e.g. a temporary or stopped host service may
+        // already be gone), so do not invoke the global client error handler.
         gEDOClientErrorHandler(error);
       }
       return nil;
@@ -380,6 +384,10 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
         return response;
       } else {
         // Cleanup broken channels before retry.
+        // Retrying a request after attempt 1 already ran on the receiver is non-idempotent:
+        // (1) the host leaks one counted vend for any vended return object whose response was lost,
+        // and (2) invocation arguments were boxed once by the caller and re-decoded on retry,
+        // causing the receiver to emit two counted releases for one caller vend.
         [EDOChannelPool.sharedChannelPool removeChannelsWithPort:port];
         currentAttempt += 1;
       }

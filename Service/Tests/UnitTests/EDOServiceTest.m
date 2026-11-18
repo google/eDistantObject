@@ -25,6 +25,7 @@
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObject.h"
 #import "Service/Sources/EDOObjectMessage.h"
+#import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServiceError.h"
 #import "Service/Sources/EDOServicePort.h"
@@ -838,6 +839,23 @@ static NSString *const kTestServiceName = @"com.google.edotest.service";
   // The port 0 is reserved and should always fail to connect to it.
   [EDOClientService rootObjectWithPort:0];
   [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testObjectReleaseRequestDoesNotInvokeClientErrorHandler {
+  __block BOOL errorHandlerInvoked = NO;
+  EDOClientErrorHandler previousHandler = EDOSetClientErrorHandler(^(NSError *error) {
+    errorHandlerInvoked = YES;
+  });
+  @try {
+    // Port 0 always fails to connect; release requests are best-effort and must not trigger the
+    // global client error handler.
+    [EDOClientService
+        sendSynchronousRequest:[EDOObjectReleaseRequest requestWithCountedRemoteAddress:0x1234]
+                        onPort:[EDOHostPort hostPortWithLocalPort:0]];
+    XCTAssertFalse(errorHandlerInvoked);
+  } @finally {
+    EDOSetClientErrorHandler(previousHandler);
+  }
 }
 
 - (void)testServicePopulateExecutorHandlingError {
