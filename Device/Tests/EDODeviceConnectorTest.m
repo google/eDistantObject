@@ -34,7 +34,7 @@ static NSString *const kFakeSerialNumber = @"fake_serial";
 // Exposes the internal property for test purpose.
 @interface EDODeviceConnector ()
 @property(nonatomic) EDODeviceDetector *detector;
-@property(nonatomic) NSMutableDictionary *deviceInfo;
+@property(nonatomic) NSMutableDictionary<NSString*, NSNumber*> *deviceInfo;
 @end
 
 @interface EDODeviceConnectorTest : XCTestCase

@@ -102,7 +102,7 @@ static NSString *const kEDOParameterCoderTypeKey = @"type";
     // EDOParameter can carry any type of object as long as it's serializable, so it whitelists all
     // the types inheriting from NSObject. EDOObject and EDOBlockObject are NSProxy's and need to be
     // whitelisted as well.
-    NSSet *anyClasses =
+    NSSet<Class> *anyClasses =
         [NSSet setWithObjects:[EDOBlockObject class], [EDOObject class], [NSObject class], nil];
     _value = [aDecoder decodeObjectOfClasses:anyClasses forKey:kEDOParameterCoderValueKey];
     _valueObjCType = [aDecoder decodeObjectOfClass:[NSString class]

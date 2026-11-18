@@ -35,7 +35,7 @@ static const int64_t kDeviceDetectTime = 2;
 /** The detector to detect iOS device attachment/detachment events. */
 @property(nonatomic) EDODeviceDetector *detector;
 /** The connected device info of mappings from device serial strings to auto-assigned device IDs. */
-@property(nonatomic) NSMutableDictionary *deviceInfo;
+@property(nonatomic) NSMutableDictionary<NSString*, NSNumber*>  *deviceInfo;
 @end
 
 @implementation EDODeviceConnector {
@@ -69,7 +69,7 @@ static const int64_t kDeviceDetectTime = 2;
     // Wait for a short time to detect all connected devices when listening just starts.
     sleep(kDeviceDetectTime);
   }
-  __block NSArray *result;
+  __block NSArray<NSString*> *result;
   dispatch_sync(_syncQueue, ^{
     result = [self.deviceInfo.allKeys copy];
   });
@@ -153,7 +153,7 @@ static const int64_t kDeviceDetectTime = 2;
                                                       userInfo:userInfo];
   } else if ([messageType isEqualToString:kEDOMessageTypeDetachedKey]) {
     NSNumber *deviceID = packet[kEDOMessageDeviceIDKey];
-    NSMutableArray *keysToRemove = [[NSMutableArray alloc] init];
+    NSMutableArray<NSString*> *keysToRemove = [[NSMutableArray alloc] init];
     dispatch_sync(_syncQueue, ^{
       for (NSString *serialNumberString in self.deviceInfo) {
         if ([self.deviceInfo[serialNumberString] isEqualToNumber:deviceID]) {
