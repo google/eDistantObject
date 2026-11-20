@@ -14,5 +14,5 @@
 // limitations under the License.
 //
 
-#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
-#import "Service/Tests/TestsBundle/EDOTestDummy.h"
+#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"  // IWYU pragma: keep
+#import "Service/Tests/TestsBundle/EDOTestDummy.h"  // IWYU pragma: keep

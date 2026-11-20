@@ -14,9 +14,9 @@
 // limitations under the License.
 //
 
-#import "Channel/Sources/EDOHostPort.h"
-#import "Service/Sources/EDOClientService.h"
-#import "Service/Sources/EDOHostService.h"
-#import "Service/Sources/NSObject+EDOValueObject.h"
-#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"
-#import "Service/Tests/TestsBundle/EDOTestDummy.h"
+#import "Channel/Sources/EDOHostPort.h"  // IWYU pragma: keep
+#import "Service/Sources/EDOClientService.h"  // IWYU pragma: keep
+#import "Service/Sources/EDOHostService.h"  // IWYU pragma: keep
+#import "Service/Sources/NSObject+EDOValueObject.h"  // IWYU pragma: keep
+#import "Service/Tests/TestsBundle/EDOTestClassDummy.h"  // IWYU pragma: keep
+#import "Service/Tests/TestsBundle/EDOTestDummy.h"  // IWYU pragma: keep

@@ -16,9 +16,8 @@
 
 #import "Service/Tests/TestsBundle/EDOTestDummy.h"
 
-#import <CoreImage/CoreImage.h>
-
 #include <objc/runtime.h>
+#include <stddef.h>
 
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Tests/FunctionalTests/EDOTestDummyInTest.h"

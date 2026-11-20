@@ -17,6 +17,7 @@
 #import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
 #include <pthread.h>
+#include <stddef.h>
 
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService.h"

@@ -16,6 +16,9 @@
 
 #import <XCTest/XCTest.h>
 
+#include <stddef.h>
+#include <stdint.h>
+
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
 #import "Service/Sources/EDOHostService+Private.h"

@@ -16,10 +16,11 @@
 
 #import "Service/Tests/FunctionalTests/EDOServiceUIBaseTest.h"
 
+#import <CoreImage/CoreImage.h>
+
 #include <objc/runtime.h>
 #include <pthread.h>
-
-#import <CoreImage/CoreImage.h>
+#include <stddef.h>
 
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
