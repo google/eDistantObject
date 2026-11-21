@@ -47,13 +47,6 @@ void EDOExportEDOClientError(NSError *error);
 + (nullable id)distantObjectReferenceForRemoteAddress:(EDOPointerType)remoteAddress;
 
 /**
- * Remove the reference of a distant object of the given @c remoteAddress.
- *
- * @note Prefer @c +removeDistantObjectReferenceForObject:.
- */
-+ (void)removeDistantObjectReference:(EDOPointerType)remoteAddress;
-
-/**
  * Removes @c edoObject from the distant-object cache only if it is the currently cached entry (or
  * its weak lookup returns @c nil during deallocation).
  *

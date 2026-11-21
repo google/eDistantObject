@@ -197,13 +197,6 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
   return result;
 }
 
-+ (void)removeDistantObjectReference:(EDOPointerType)remoteAddress {
-  NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
-  dispatch_sync(self.edoSyncQueue, ^{
-    [self.localDistantObjects removeObjectForKey:edoKey];
-  });
-}
-
 + (void)removeDistantObjectReferenceForObject:(EDOObject *__unsafe_unretained)edoObject {
   NSParameterAssert(edoObject);
   if (!edoObject) {

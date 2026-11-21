@@ -980,30 +980,15 @@ static const char kIsProxyHookKey = '\0';
 }
 
 /**
- * Verifies legacy @c removeDistantObjectReference: eviction and that
- * @c removeDistantObjectReferenceForObject: releases a loaded cached proxy outside
+ * Verifies that @c removeDistantObjectReferenceForObject: releases a loaded cached proxy outside
  * @c edoSyncQueue when its external strong reference drops mid-dispatch.
  */
-- (void)testRemoveDistantObjectReferenceSupportsLegacyRemovalAndOutsideQueueRelease {
+- (void)testRemoveDistantObjectReferenceForObjectReleasesLoadedEntryOutsideQueue {
   NSData *archiveA = nil;
   NSData *archiveB = nil;
   EDOPointerType sharedAddress = [self edo_createArchivesForBlock:NO
                                                          archiveA:&archiveA
                                                          archiveB:&archiveB];
-  @autoreleasepool {
-    EDOObject *legacyProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archiveA];
-    @try {
-      XCTAssertEqual([EDOClientService cachedEDOFromObjectUpdateIfNeeded:legacyProxy], legacyProxy);
-      XCTAssertEqual([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress],
-                     legacyProxy);
-      [EDOClientService removeDistantObjectReference:sharedAddress];
-      XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
-      [EDOClientService removeDistantObjectReference:sharedAddress];
-    } @finally {
-      // Mark manually evicted proxy local so -dealloc does not release host object for archiveB.
-      legacyProxy.local = YES;
-    }
-  }
   __block BOOL proxyBDeallocated = NO;
   __block EDOObject *externalProxyB = nil;
   @autoreleasepool {
