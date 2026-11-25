@@ -18,6 +18,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #import "Channel/Sources/EDOHostPort.h"
 #import "Service/Sources/EDOClientService.h"
@@ -56,6 +57,12 @@ static const uint64_t kRemoteInvocationThresholdInNano = 25e6;
 
 // The number of times to execute the measured blocks.
 static const size_t kNumOfBenchmarkExecutions = 100;
+
+static int CompareUint64(const void *lhs, const void *rhs) {
+  const uint64_t left = *(const uint64_t *)lhs;
+  const uint64_t right = *(const uint64_t *)rhs;
+  return (left > right) - (left < right);
+}
 
 @interface EDOUITestAppPerfTests : XCTestCase
 @property(readonly) EDOTestDummy *remoteDummy;
@@ -193,24 +200,42 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 }
 
 - (void)testIteratingReturnByValueResultLotsTimes {
+  __block BOOL byValueValid = YES;
   uint64_t byValueResult = [self
       assertPerformBlockWithWeight:1
                         executions:10
                              block:^(EDOTestDummy *remoteDummy) {
                                NSArray *result = [[remoteDummy returnByValue] returnLargeArray];
+                               if (result.count != 1000) {
+                                 byValueValid = NO;
+                                 return;
+                               }
                                for (NSInteger i = 0; i < 1000; i++) {
-                                 XCTAssert(((NSNumber *)result[i]).integerValue == i);
+                                 if (((NSNumber *)result[i]).integerValue != i) {
+                                   byValueValid = NO;
+                                 }
                                }
                              }];
+  XCTAssertTrue(byValueValid);
+
+  __block BOOL byReferenceValid = YES;
   uint64_t byReferenceResult =
       [self assertPerformBlockWithWeight:1000
                               executions:10
                                    block:^(EDOTestDummy *remoteDummy) {
                                      NSArray *result = [remoteDummy returnLargeArray];
+                                     if (result.count != 1000) {
+                                       byReferenceValid = NO;
+                                       return;
+                                     }
                                      for (NSInteger i = 0; i < 1000; i++) {
-                                       XCTAssert(((NSNumber *)result[i]).integerValue == i);
+                                       if (((NSNumber *)result[i]).integerValue != i) {
+                                         byReferenceValid = NO;
+                                       }
                                      }
                                    }];
+  XCTAssertTrue(byReferenceValid);
+
   XCTAssertLessThan(byValueResult * 100, byReferenceResult);
 }
 
@@ -244,17 +269,42 @@ static const size_t kNumOfBenchmarkExecutions = 100;
 }
 
 /**
- * Assert the block is performed @excutions times within the @weight multiple of threshold.
+ * Assert the median execution time of @c block over @c executions runs is within the @c weight
+ * multiple of the threshold.
  */
 - (uint64_t)assertPerformBlockWithWeight:(uint64_t)weight
                               executions:(NSInteger)executions
                                    block:(void (^)(EDOTestDummy *))block {
+  XCTAssertGreaterThan(executions, 0);
+  if (executions <= 0) {
+    return 0;
+  }
+
   EDOTestDummy *remoteDummy = self.remoteDummy;
-  uint64_t result = dispatch_benchmark(executions, ^{
+  // Run one unmeasured warm-up iteration to prime method-signature caches, socket channels, and
+  // allocator state before taking timing samples.
+  @autoreleasepool {
     block(remoteDummy);
-  });
-  XCTAssertLessThanOrEqual(result, kRemoteInvocationThresholdInNano * weight);
-  return result;
+  }
+
+  NS_VALID_UNTIL_END_OF_SCOPE NSMutableData *samplesData =
+      [NSMutableData dataWithLength:(NSUInteger)executions * sizeof(uint64_t)];
+  uint64_t *samples = (uint64_t *)samplesData.mutableBytes;
+  for (NSInteger i = 0; i < executions; i++) {
+    samples[i] = dispatch_benchmark(1, ^{
+      @autoreleasepool {
+        block(remoteDummy);
+      }
+    });
+  }
+
+  qsort(samples, (size_t)executions, sizeof(uint64_t), CompareUint64);
+  NSInteger mid = executions / 2;
+  uint64_t medianResult = (executions % 2 == 1)
+                              ? samples[mid]
+                              : samples[mid - 1] + (samples[mid] - samples[mid - 1]) / 2;
+  XCTAssertLessThanOrEqual(medianResult, kRemoteInvocationThresholdInNano * weight);
+  return medianResult;
 }
 
 @end
