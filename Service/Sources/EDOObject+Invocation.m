@@ -33,7 +33,7 @@
 
 static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteException *remoteException,
                                                                EDOObject *target,
-                                                               NSInvocation *invocation) {
+                                                               SEL _Nullable selector) {
   NSArray<NSString *> *currentStackTraces = [NSThread callStackSymbols];
   NSUInteger eDOStackIndex = [currentStackTraces
       indexOfObjectPassingTest:^BOOL(NSString *item, NSUInteger idx, BOOL *stop) {
@@ -54,7 +54,7 @@ static EDORemoteException *RemoteExceptionWithLocalInformation(EDORemoteExceptio
     methodInfo = ((EDOBlockObject *)target).signature;
   } else {
     classInfo = target.className;
-    methodInfo = NSStringFromSelector(invocation.selector);
+    methodInfo = NSStringFromSelector(selector);
   }
   NSString *separationSymbol =
       [NSString stringWithFormat:@"|---- eDO invocation [%@ %@] ----|", classInfo, methodInfo];
@@ -149,6 +149,9 @@ static void EDOAddInstanceMethodSignature(NSMethodSignature *methodSignature, SE
   EDOMethodSignatureResponse *response = (EDOMethodSignatureResponse *)[EDOClientService
       sendSynchronousRequest:request
                       onPort:self.servicePort.hostPort];
+  if (response.exception) {
+    @throw RemoteExceptionWithLocalInformation(response.exception, self, selector);  // NOLINT
+  }
   NSString *signatureString = response.signature;
   if (signatureString) {
     signature = [NSMethodSignature signatureWithObjCTypes:signatureString.UTF8String];
@@ -202,7 +205,7 @@ static void EDOAddInstanceMethodSignature(NSMethodSignature *methodSignature, SE
     // Populate the exception.
     // Note: we throw here rather than -[raise] because we can't make an assumption of what user's
     //       code will throw.
-    @throw RemoteExceptionWithLocalInformation(response.exception, self, invocation);  // NOLINT
+    @throw RemoteExceptionWithLocalInformation(response.exception, self, selector);  // NOLINT
   }
 
   NSUInteger returnBufSize = invocation.methodSignature.methodReturnLength;

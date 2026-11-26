@@ -31,10 +31,12 @@
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
 #import "Service/Sources/EDOObject.h"
+#import "Service/Sources/EDOObjectAliveMessage.h"
 #import "Service/Sources/EDOObjectMessage.h"
 #import "Service/Sources/EDOObjectReleaseMessage.h"
 #import "Service/Sources/EDOParameter.h"  // IWYU pragma: keep
 #import "Service/Sources/EDORemoteException.h"
+#import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 #import "Service/Sources/NSKeyedArchiver+EDOAdditions.h"
@@ -56,6 +58,27 @@ static const char kIsProxyHookKey = '\0';
 @interface EDOObjectReleaseRequest (EDOTestRefCounting)
 @property(nonatomic, readonly, getter=isCountedRelease) BOOL countedRelease;
 @end
+
+/** Dedicated target class so its selectors are never pre-populated in the signature cache. */
+@interface EDOMethodSignatureUncachedTarget : NSObject
+- (int)uncachedValue;
+@end
+
+@implementation EDOMethodSignatureUncachedTarget
+
+- (int)uncachedValue {
+  return 42;
+}
+
+@end
+
+/** Struct larger than sizeof(SEL) to exercise block invocation selector handling. */
+typedef struct EDOTestLargeStruct {
+  double first;
+  double second;
+  double third;
+  double fourth;
+} EDOTestLargeStruct;
 
 /** Helper that invokes a callback when its associated owner is deallocated. */
 @interface EDODeallocSentinel : NSObject
@@ -537,6 +560,9 @@ static const char kIsProxyHookKey = '\0';
   EDOTestDummy *dummyLocal = [[EDOTestDummy alloc] init];
   [self edo_createQueueAndServiceWithRootObject:dummyLocal
                                           block:^(EDOHostService *service) {
+                                            [service
+                                                distantObjectForLocalObject:[dummyLocal class]
+                                                                   hostPort:service.port.hostPort];
                                             EDOInvocationResponse *response = [self
                                                 edo_runInvocationWithService:service
                                                                       target:[dummyLocal class]
@@ -611,6 +637,7 @@ static const char kIsProxyHookKey = '\0';
   EDOHostService *service = [EDOHostService serviceWithPort:0
                                                  rootObject:self
                                                       queue:dispatch_get_main_queue()];
+  [service distantObjectForLocalObject:dummyLocal hostPort:service.port.hostPort];
 
   [EDOTestDummy enumerateSelector:^(SEL selector) {
     EDOMethodSignatureRequest *request =
@@ -629,8 +656,468 @@ static const char kIsProxyHookKey = '\0';
   EDOMethodSignatureResponse *response =
       (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(request, service);
   XCTAssertNil(response.signature, @"the non-exist signature should be nil.");
+  XCTAssertNil(response.exception, @"an unrecognized selector on a tracked target should not set "
+                                   @"a remote exception.");
 
   [service invalidate];
+}
+
+- (void)testUntrackedTargetInvocationHandlerReturnsException {
+  XCTestExpectation *blockExecuted = [self expectationWithDescription:@"Executed the test block."];
+  EDOTestDummy *dummyLocal = [[EDOTestDummy alloc] init];
+  [self edo_createQueueAndServiceWithRootObject:dummyLocal
+                                          block:^(EDOHostService *service) {
+                                            for (NSNumber *addrNum in
+                                                 @[ @0, @((EDOPointerType)0x4141414141414140LL) ]) {
+                                              EDOPointerType address = addrNum.longLongValue;
+                                              EDOInvocationRequest *request = [EDOInvocationRequest
+                                                  requestWithTarget:address
+                                                           selector:@selector(returnInt)
+                                                          arguments:@[]
+                                                           hostPort:service.port.hostPort
+                                                      returnByValue:NO];
+                                              EDOInvocationResponse *response =
+                                                  (EDOInvocationResponse *)EDOInvocationRequest
+                                                      .requestHandler(request, service);
+                                              XCTAssertNil(response.returnValue);
+                                              XCTAssertNil(response.outValues);
+                                              XCTAssertEqualObjects(response.exception.name,
+                                                                    EDOServiceGenericException);
+                                              if (address != 0) {
+                                                XCTAssertTrue([response.exception.reason
+                                                    containsString:@"4141414141414140"]);
+                                              }
+                                            }
+                                            [blockExecuted fulfill];
+                                          }];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testReleasedTargetInvocationHandlerReturnsException {
+  XCTestExpectation *blockExecuted = [self expectationWithDescription:@"Executed the test block."];
+  EDOTestDummy *rootLocal = [[EDOTestDummy alloc] init];
+  [self edo_createQueueAndServiceWithRootObject:rootLocal
+                                          block:^(EDOHostService *service) {
+                                            __weak EDOTestDummy *weakTransient = nil;
+                                            EDOPointerType releasedAddress = 0;
+                                            @autoreleasepool {
+                                              EDOTestDummy *transient =
+                                                  [[EDOTestDummy alloc] initWithValue:42];
+                                              weakTransient = transient;
+                                              EDOObject *proxy =
+                                                  [service distantObjectForLocalObject:transient
+                                                                              hostPort:nil];
+                                              releasedAddress = proxy.remoteAddress;
+                                              XCTAssertEqual(
+                                                  [service
+                                                      localObjectForRemoteAddress:releasedAddress],
+                                                  transient);
+                                              XCTAssertTrue([service
+                                                  releaseObjectWithAddress:releasedAddress]);
+                                            }
+                                            XCTAssertNil(weakTransient);
+                                            EDOInvocationRequest *request = [EDOInvocationRequest
+                                                requestWithTarget:releasedAddress
+                                                         selector:@selector(returnInt)
+                                                        arguments:@[]
+                                                         hostPort:service.port.hostPort
+                                                    returnByValue:NO];
+                                            EDOInvocationResponse *response =
+                                                (EDOInvocationResponse *)EDOInvocationRequest
+                                                    .requestHandler(request, service);
+                                            XCTAssertNil(response.returnValue);
+                                            XCTAssertNil(response.outValues);
+                                            XCTAssertEqualObjects(response.exception.name,
+                                                                  EDOServiceGenericException);
+                                            [blockExecuted fulfill];
+                                          }];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testRemovedStillAliveTargetReturnsException {
+  EDOTestDummy *rootLocal = [[EDOTestDummy alloc] init];
+  dispatch_queue_t queue =
+      dispatch_queue_create("com.google.edo.service.removedStillAlive", DISPATCH_QUEUE_SERIAL);
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:rootLocal queue:queue];
+  EDOHostPort *hostPort = service.port.hostPort;
+  [self addTeardownBlock:^{
+    (void)queue;
+    (void)rootLocal;
+    [EDOChannelPool.sharedChannelPool removeChannelsWithPort:hostPort];
+    [service invalidate];
+  }];
+
+  // Keep strong references so both objects remain alive after removal from host tracking.
+  EDOTestDummy *aliveTarget = [[EDOTestDummy alloc] initWithValue:55];
+  EDOObject *proxy = [service distantObjectForLocalObject:aliveTarget hostPort:hostPort];
+  EDOPointerType removedAddress = proxy.remoteAddress;
+  XCTAssertEqual([service localObjectForRemoteAddress:removedAddress], aliveTarget);
+  XCTAssertTrue([service removeObjectWithAddress:removedAddress]);
+  XCTAssertNil([service localObjectForRemoteAddress:removedAddress]);
+
+  EDOInvocationRequest *invRequest = [EDOInvocationRequest requestWithTarget:removedAddress
+                                                                    selector:@selector(returnInt)
+                                                                   arguments:@[]
+                                                                    hostPort:hostPort
+                                                               returnByValue:NO];
+  EDOInvocationResponse *invResponse =
+      (EDOInvocationResponse *)EDOInvocationRequest.requestHandler(invRequest, service);
+  XCTAssertNil(invResponse.returnValue);
+  XCTAssertNil(invResponse.outValues);
+  XCTAssertEqualObjects(invResponse.exception.name, EDOServiceGenericException);
+
+  EDOMethodSignatureRequest *sigRequest =
+      [EDOMethodSignatureRequest requestWithObject:removedAddress
+                                              port:service.port
+                                          selector:@selector(returnInt)];
+  EDOMethodSignatureResponse *sigResponse =
+      (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(sigRequest, service);
+  XCTAssertNil(sigResponse.signature);
+  XCTAssertEqualObjects(sigResponse.exception.name, EDOServiceGenericException);
+
+  void (^assertRemovedRemoteException)(NSString *, NSString *, dispatch_block_t) =
+      ^(NSString *description, NSString *expectedFrame, dispatch_block_t block) {
+        @try {
+          block();
+          XCTFail(@"Expected %@ to throw EDORemoteException.", description);
+        } @catch (EDORemoteException *exception) {
+          XCTAssertEqualObjects(exception.name, EDOServiceGenericException);
+          XCTAssertTrue([exception.callStackSymbols containsObject:expectedFrame],
+                        @"Missing frame %@ in %@", expectedFrame, exception.callStackSymbols);
+        }
+      };
+
+  // Verify an uncached method signature lookup on an EDOObject proxy throws
+  // EDOServiceGenericException instead of EDOObjectCalledUnrecognizedSelectorException, and check
+  // local eDO stack-frame annotation across uncached, cached-signature, and block proxies.
+  EDOMethodSignatureUncachedTarget *uncachedTarget =
+      [[EDOMethodSignatureUncachedTarget alloc] init];
+  EDOObject *uncachedProxy = [service distantObjectForLocalObject:uncachedTarget hostPort:hostPort];
+  XCTAssertTrue([service removeObjectWithAddress:uncachedProxy.remoteAddress]);
+  NSString *uncachedFrame =
+      @"|---- eDO invocation [EDOMethodSignatureUncachedTarget uncachedValue] ----|";
+  assertRemovedRemoteException(@"uncached invocation on removed proxy", uncachedFrame, ^{
+    [(EDOMethodSignatureUncachedTarget *)uncachedProxy uncachedValue];
+  });
+  assertRemovedRemoteException(@"uncached methodSignatureForSelector:", uncachedFrame, ^{
+    [uncachedProxy methodSignatureForSelector:@selector(uncachedValue)];
+  });
+
+  // Warm a separate selector in the signature cache on a live proxy, then invoke a removed proxy.
+  EDOTestDummy *warmTarget = [[EDOTestDummy alloc] initWithValue:42];
+  EDOObject *warmProxy = [service distantObjectForLocalObject:warmTarget hostPort:hostPort];
+  XCTAssertEqual([(EDOTestDummy *)warmProxy returnInt], 42);
+  EDOTestDummy *cachedTarget = [[EDOTestDummy alloc] initWithValue:77];
+  EDOObject *cachedProxy = [service distantObjectForLocalObject:cachedTarget hostPort:hostPort];
+  XCTAssertTrue([service removeObjectWithAddress:cachedProxy.remoteAddress]);
+  XCTAssertNotNil([cachedProxy methodSignatureForSelector:@selector(returnInt)]);
+  assertRemovedRemoteException(@"cached-signature invocation on removed proxy",
+                               @"|---- eDO invocation [EDOTestDummy returnInt] ----|", ^{
+                                 [(EDOTestDummy *)cachedProxy returnInt];
+                               });
+
+  // Removed 0-arg and struct-arg remote block proxies must also attach local invocation frames
+  // without reading _cmd from block NSInvocations.
+  int (^zeroArgBlock)() = [^{
+    return aliveTarget.value - 13;
+  } copy];
+  EDOObject *zeroArgVended = [service distantObjectForLocalObject:zeroArgBlock hostPort:hostPort];
+  NSData *zeroArgArchive = [self edo_archiveProxy:zeroArgVended
+                                  withProcessUUID:@"com.google.edotest.remote"];
+  id zeroArgProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:zeroArgArchive];
+  EDOBlockObject *zeroArgEDO = [EDOBlockObject EDOBlockObjectFromBlock:zeroArgProxy];
+  XCTAssertNotNil(zeroArgEDO);
+  [self addTeardownBlock:^{
+    zeroArgEDO.local = YES;
+  }];
+  XCTAssertTrue([service removeObjectWithAddress:zeroArgVended.remoteAddress]);
+  NSString *zeroArgFrame = [NSString
+      stringWithFormat:@"|---- eDO invocation [__block_invoke %@] ----|", zeroArgEDO.signature];
+  assertRemovedRemoteException(@"removed 0-arg block proxy call", zeroArgFrame, ^{
+    ((int (^)())zeroArgProxy)();
+  });
+
+  int (^structArgBlock)(EDOTestLargeStruct) = [^(EDOTestLargeStruct value) {
+    return (int)(value.first + value.fourth) + aliveTarget.value - 55;
+  } copy];
+  EDOObject *structArgVended = [service distantObjectForLocalObject:structArgBlock
+                                                           hostPort:hostPort];
+  NSData *structArgArchive = [self edo_archiveProxy:structArgVended
+                                    withProcessUUID:@"com.google.edotest.remote"];
+  id structArgProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:structArgArchive];
+  EDOBlockObject *structArgEDO = [EDOBlockObject EDOBlockObjectFromBlock:structArgProxy];
+  XCTAssertNotNil(structArgEDO);
+  [self addTeardownBlock:^{
+    structArgEDO.local = YES;
+  }];
+  XCTAssertTrue([service removeObjectWithAddress:structArgVended.remoteAddress]);
+  NSString *structArgFrame = [NSString
+      stringWithFormat:@"|---- eDO invocation [__block_invoke %@] ----|", structArgEDO.signature];
+  assertRemovedRemoteException(@"removed struct-arg block proxy call", structArgFrame, ^{
+    EDOTestLargeStruct input = {1.0, 2.0, 3.0, 4.0};
+    ((int (^)(EDOTestLargeStruct))structArgProxy)(input);
+  });
+
+  // Keep strong references alive through assertions above.
+  XCTAssertEqual(aliveTarget.value, 55);
+  XCTAssertEqual([uncachedTarget uncachedValue], 42);
+  XCTAssertEqual(warmTarget.value, 42);
+  XCTAssertEqual(cachedTarget.value, 77);
+  XCTAssertEqual(zeroArgBlock(), 42);
+  EDOTestLargeStruct localInput = {1.0, 2.0, 3.0, 4.0};
+  XCTAssertEqual(structArgBlock(localInput), 5);
+}
+
+- (void)testUntrackedAndReleasedObjectMethodSignatureRequestHandlerReturnsException {
+  EDOHostService *service = [self edo_hostServiceWithName:@"com.google.edo.service.sigHandler"];
+  for (NSNumber *addrNum in @[ @0, @((EDOPointerType)0x4141414141414140LL) ]) {
+    EDOPointerType address = addrNum.longLongValue;
+    EDOMethodSignatureRequest *bogusRequest =
+        [EDOMethodSignatureRequest requestWithObject:address
+                                                port:service.port
+                                            selector:@selector(description)];
+    EDOMethodSignatureResponse *bogusResponse =
+        (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(bogusRequest,
+                                                                               service);
+    XCTAssertNil(bogusResponse.signature);
+    XCTAssertEqualObjects(bogusResponse.exception.name, EDOServiceGenericException);
+    if (address != 0) {
+      XCTAssertTrue([bogusResponse.exception.reason containsString:@"4141414141414140"]);
+    }
+
+    NSData *encoded = [NSKeyedArchiver edo_archivedDataWithObject:bogusResponse];
+    EDOMethodSignatureResponse *decoded = [NSKeyedUnarchiver edo_unarchiveObjectWithData:encoded];
+    XCTAssertNil(decoded.signature);
+    XCTAssertEqualObjects(decoded.exception.name, EDOServiceGenericException);
+    XCTAssertEqualObjects(decoded.exception.reason, bogusResponse.exception.reason);
+  }
+
+  __weak EDOTestDummy *weakTransient = nil;
+  EDOPointerType releasedAddress = 0;
+  @autoreleasepool {
+    EDOTestDummy *transient = [[EDOTestDummy alloc] initWithValue:13];
+    weakTransient = transient;
+    EDOObject *proxy = [service distantObjectForLocalObject:transient hostPort:nil];
+    releasedAddress = proxy.remoteAddress;
+    XCTAssertTrue([service releaseObjectWithAddress:releasedAddress]);
+  }
+  XCTAssertNil(weakTransient);
+  EDOMethodSignatureRequest *releasedRequest =
+      [EDOMethodSignatureRequest requestWithObject:releasedAddress
+                                              port:service.port
+                                          selector:@selector(returnInt)];
+  EDOMethodSignatureResponse *releasedResponse =
+      (EDOMethodSignatureResponse *)EDOMethodSignatureRequest.requestHandler(releasedRequest,
+                                                                             service);
+  XCTAssertNil(releasedResponse.signature);
+  XCTAssertEqualObjects(releasedResponse.exception.name, EDOServiceGenericException);
+}
+
+- (void)testRootObjectResolvesWithoutVending {
+  XCTestExpectation *blockExecuted = [self expectationWithDescription:@"Executed the test block."];
+  EDOTestDummy *rootLocal = [[EDOTestDummy alloc] initWithValue:77];
+  [self edo_createQueueAndServiceWithRootObject:rootLocal
+                                          block:^(EDOHostService *service) {
+                                            EDOPointerType rootAddress =
+                                                (EDOPointerType)(__bridge void *)rootLocal;
+                                            dispatch_sync(service.localObjectsSyncQueue, ^{
+                                              XCTAssertEqual(service.localObjects.count, 0U);
+                                            });
+                                            XCTAssertEqual(
+                                                [service localObjectForRemoteAddress:rootAddress],
+                                                rootLocal);
+                                            XCTAssertNil([service localObjectForRemoteAddress:0]);
+
+                                            EDOInvocationResponse *invResponse = [self
+                                                edo_runInvocationWithService:service
+                                                                      target:rootLocal
+                                                                    selector:@selector(returnInt)
+                                                                   arguments:@[]];
+                                            XCTAssertNil(invResponse.exception);
+                                            int returnValue = 0;
+                                            [invResponse.returnValue getValue:&returnValue];
+                                            XCTAssertEqual(returnValue, 77);
+
+                                            EDOMethodSignatureRequest *sigRequest =
+                                                [EDOMethodSignatureRequest
+                                                    requestWithObject:rootAddress
+                                                                 port:service.port
+                                                             selector:@selector(returnInt)];
+                                            EDOMethodSignatureResponse *sigResponse =
+                                                (EDOMethodSignatureResponse *)
+                                                    EDOMethodSignatureRequest.requestHandler(
+                                                        sigRequest, service);
+                                            XCTAssertNil(sigResponse.exception);
+                                            XCTAssertEqualObjects(
+                                                sigResponse.signature,
+                                                [self selectorSignature:@selector(returnInt)]);
+                                            [blockExecuted fulfill];
+                                          }];
+  [self waitForExpectationsWithTimeout:1 handler:nil];
+}
+
+- (void)testNilRootObjectListeningServiceRejectsZeroAddress {
+  dispatch_queue_t queue =
+      dispatch_queue_create("com.google.edo.service.nilRoot", DISPATCH_QUEUE_SERIAL);
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:nil queue:queue];
+  [self addTeardownBlock:^{
+    (void)queue;
+    [service invalidate];
+  }];
+
+  EDOServicePort *servicePort = [EDOServicePort servicePortWithPort:service.port
+                                                           hostPort:service.port.hostPort];
+  XCTAssertTrue(service.isValid);
+  XCTAssertNil(service.rootLocalObject);
+  XCTAssertNil([service localObjectForRemoteAddress:0]);
+  XCTAssertNil([service localObjectForRemoteAddress:0 port:servicePort]);
+
+  EDOTestDummy *dummy = [[EDOTestDummy alloc] initWithValue:19];
+  EDOObject *templateProxy = [EDOObject edo_remoteProxyFromUnderlyingObject:dummy
+                                                                   withPort:servicePort];
+  NSData *zeroArchive = [self edo_archiveProxy:templateProxy
+                                 remoteAddress:0
+                               withProcessUUID:@"com.google.edotest.remote"];
+  EDOObject *zeroProxy = [NSKeyedUnarchiver edo_unarchiveObjectWithData:zeroArchive];
+  @try {
+    EDOObjectAliveRequest *aliveRequest = [EDOObjectAliveRequest requestWithObject:zeroProxy];
+    EDOObjectAliveResponse *aliveResponse =
+        (EDOObjectAliveResponse *)EDOObjectAliveRequest.requestHandler(aliveRequest, service);
+    XCTAssertFalse(aliveResponse.alive);
+
+    dispatch_sync(queue, ^{
+      XCTAssertEqual([EDOClientService unwrappedObjectFromObject:zeroProxy], zeroProxy);
+    });
+  } @finally {
+    zeroProxy.local = YES;
+  }
+}
+
+- (void)testSameQueueUnwrapResolvesTrackedObject {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    NSString *queueName =
+        [NSString stringWithFormat:@"com.google.edo.service.sameQueueTracked.%d", isBlock];
+    [self
+        edo_runOnServiceQueueWithName:queueName
+                                block:^(EDOHostService *service) {
+                                  id trackedTarget = [self edo_testTargetForBlock:isBlock];
+                                  EDOObject *trackedVended =
+                                      [service distantObjectForLocalObject:trackedTarget
+                                                                  hostPort:service.port.hostPort];
+                                  [self
+                                      edo_verifySameQueueUnwrapForProxy:trackedVended
+                                                          remoteAddress:trackedVended.remoteAddress
+                                                                isBlock:isBlock
+                                                         expectedTarget:trackedTarget];
+                                }];
+  }
+}
+
+- (void)testSameQueueUnwrapSkipsMismatchedOrNilPort {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    Class proxyClass = isBlock ? [EDOBlockObject class] : [EDOObject class];
+    NSString *queueName =
+        [NSString stringWithFormat:@"com.google.edo.service.sameQueueMismatch.%d", isBlock];
+    [self
+        edo_runOnServiceQueueWithName:queueName
+                                block:^(EDOHostService *service) {
+                                  EDOServicePort *servicePort = service.port;
+                                  id trackedTarget = [self edo_testTargetForBlock:isBlock];
+                                  EDOObject *trackedVended =
+                                      [service distantObjectForLocalObject:trackedTarget
+                                                                  hostPort:servicePort.hostPort];
+                                  XCTAssertNil([service
+                                      localObjectForRemoteAddress:trackedVended.remoteAddress
+                                                             port:nil]);
+                                  EDOServicePort *mismatchedPort = [EDOServicePort
+                                      servicePortWithPort:servicePort.port
+                                              serviceName:@"com.google.edo.mismatch"];
+                                  EDOServicePort *mismatchedServicePort =
+                                      [EDOServicePort servicePortWithPort:mismatchedPort
+                                                                 hostPort:servicePort.hostPort];
+                                  EDOObject *mismatchedVended = [proxyClass
+                                      edo_remoteProxyFromUnderlyingObject:trackedTarget
+                                                                 withPort:mismatchedServicePort];
+                                  [self
+                                      edo_verifySameQueueUnwrapForProxy:mismatchedVended
+                                                          remoteAddress:trackedVended.remoteAddress
+                                                                isBlock:isBlock
+                                                         expectedTarget:nil];
+                                }];
+  }
+}
+
+- (void)testSameQueueUnwrapSkipsUntrackedAddress {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    Class proxyClass = isBlock ? [EDOBlockObject class] : [EDOObject class];
+    NSString *queueName =
+        [NSString stringWithFormat:@"com.google.edo.service.sameQueueUntracked.%d", isBlock];
+    [self
+        edo_runOnServiceQueueWithName:queueName
+                                block:^(EDOHostService *service) {
+                                  id target = [self edo_testTargetForBlock:isBlock];
+                                  EDOObject *bogusVended =
+                                      [proxyClass edo_remoteProxyFromUnderlyingObject:target
+                                                                             withPort:service.port];
+                                  [self edo_verifySameQueueUnwrapForProxy:bogusVended
+                                                            remoteAddress:
+                                                                (EDOPointerType)0x4141414141414140LL
+                                                                  isBlock:isBlock
+                                                           expectedTarget:nil];
+                                }];
+  }
+}
+
+- (void)testSameQueueUnwrapSkipsReleasedAddress {
+  for (NSNumber *isBlockValue in @[ @NO, @YES ]) {
+    BOOL isBlock = isBlockValue.boolValue;
+    NSString *queueName =
+        [NSString stringWithFormat:@"com.google.edo.service.sameQueueReleased.%d", isBlock];
+    [self edo_runOnServiceQueueWithName:queueName
+                                  block:^(EDOHostService *service) {
+                                    EDOServicePort *servicePort = service.port;
+                                    __weak id weakReleased = nil;
+                                    NSData *releasedArchive = nil;
+                                    @autoreleasepool {
+                                      id transient;
+                                      if (isBlock) {
+                                        EDOTestDummy *capturedDummy =
+                                            [[EDOTestDummy alloc] initWithValue:22];
+                                        transient = (id)[^int {
+                                          return capturedDummy.value;
+                                        } copy];
+                                      } else {
+                                        transient = [[EDOTestDummy alloc] initWithValue:22];
+                                      }
+                                      weakReleased = transient;
+                                      EDOObject *releasedVended = [service
+                                          distantObjectForLocalObject:transient
+                                                             hostPort:servicePort.hostPort];
+                                      releasedArchive =
+                                          [self edo_archiveProxy:releasedVended
+                                                   remoteAddress:releasedVended.remoteAddress
+                                                 withProcessUUID:@"com.google.edotest.remote"];
+                                      XCTAssertTrue([service
+                                          releaseObjectWithAddress:releasedVended.remoteAddress]);
+                                    }
+                                    XCTAssertNil(weakReleased);
+                                    [self edo_verifySameQueueUnwrapForArchive:releasedArchive
+                                                                      isBlock:isBlock
+                                                               expectedTarget:nil];
+                                  }];
+  }
+}
+
+- (void)testIdleServiceLocalObjectLookupDoesNotStartListening {
+  EDOHostService *idleService = [EDOHostService serviceWithPort:0 rootObject:nil queue:nil];
+  EDOServicePort *port = [EDOServicePort servicePortWithPort:0 serviceName:@"com.google.edo.idle"];
+  XCTAssertFalse(idleService.isValid);
+  XCTAssertNil([idleService localObjectForRemoteAddress:(EDOPointerType)0x1234 port:port]);
+  XCTAssertFalse(idleService.isValid);
+  [idleService invalidate];
 }
 
 - (void)testMethodSignatureForward {
@@ -884,8 +1371,11 @@ static const char kIsProxyHookKey = '\0';
           }
         }
         XCTAssertEqual(nonLocalCount, 1U);
-        // Suppress async release writes after asserting non-local winner selection.
-        [self edo_distantObjectFromProxy:winner isBlock:isBlock].local = YES;
+        // Evict the cached winner before suppressing async release writes so no zeroed weak
+        // tombstone remains in localDistantObjects.
+        EDOObject *winnerEDO = [self edo_distantObjectFromProxy:winner isBlock:isBlock];
+        [EDOClientService removeDistantObjectReferenceForObject:winnerEDO];
+        winnerEDO.local = YES;
       }
       XCTAssertNil([EDOClientService distantObjectReferenceForRemoteAddress:sharedAddress]);
     }
@@ -1789,16 +2279,69 @@ static const char kIsProxyHookKey = '\0';
   return proxy;
 }
 
-// Patches _processUUID before archiving to simulate cross-process proxies without adding test-only
-// mutators to production headers, then restores it so local vended objects stay local on dealloc.
 - (NSData *)edo_archiveProxy:(EDOObject *)proxy withProcessUUID:(NSString *)processUUID {
+  return [self edo_archiveProxy:proxy
+                  remoteAddress:proxy.remoteAddress
+                withProcessUUID:processUUID];
+}
+
+- (void)edo_runOnServiceQueueWithName:(NSString *)queueName
+                                block:(void (^)(EDOHostService *service))block {
+  EDOTestDummy *rootLocal = [[EDOTestDummy alloc] initWithValue:1];
+  dispatch_queue_t queue = dispatch_queue_create(queueName.UTF8String, DISPATCH_QUEUE_SERIAL);
+  EDOHostService *service = [EDOHostService serviceWithPort:0 rootObject:rootLocal queue:queue];
+  dispatch_sync(queue, ^{
+    block(service);
+  });
+  [service invalidate];
+}
+
+- (void)edo_verifySameQueueUnwrapForProxy:(EDOObject *)proxy
+                            remoteAddress:(EDOPointerType)remoteAddress
+                                  isBlock:(BOOL)isBlock
+                           expectedTarget:(nullable id)expectedTarget {
+  NSData *archive = [self edo_archiveProxy:proxy
+                             remoteAddress:remoteAddress
+                           withProcessUUID:@"com.google.edotest.remote"];
+  [self edo_verifySameQueueUnwrapForArchive:archive isBlock:isBlock expectedTarget:expectedTarget];
+}
+
+- (void)edo_verifySameQueueUnwrapForArchive:(NSData *)archive
+                                    isBlock:(BOOL)isBlock
+                             expectedTarget:(nullable id)expectedTarget {
+  id decoded = [NSKeyedUnarchiver edo_unarchiveObjectWithData:archive];
+  EDOObject *decodedObject = [self edo_distantObjectFromProxy:decoded isBlock:isBlock];
+  @try {
+    XCTAssertEqual([EDOClientService unwrappedObjectFromObject:decoded], expectedTarget ?: decoded);
+  } @finally {
+    decodedObject.local = YES;
+  }
+}
+
+// Patches _processUUID and _remoteAddress before archiving to simulate cross-process or forged
+// proxies without adding test-only mutators to production headers, then restores the original ivars
+// in @finally so local vended objects stay local on dealloc even if archiving throws.
+- (NSData *)edo_archiveProxy:(EDOObject *)proxy
+               remoteAddress:(EDOPointerType)remoteAddress
+             withProcessUUID:(NSString *)processUUID {
   Ivar uuidIvar = class_getInstanceVariable([EDOObject class], "_processUUID");
   XCTAssertTrue(uuidIvar != NULL);
   id originalUUID = object_getIvar(proxy, uuidIvar);
+
+  Ivar addressIvar = class_getInstanceVariable([EDOObject class], "_remoteAddress");
+  XCTAssertTrue(addressIvar != NULL);
+  EDOPointerType *addressPtr =
+      (EDOPointerType *)((char *)(__bridge void *)proxy + ivar_getOffset(addressIvar));
+  EDOPointerType originalAddress = *addressPtr;
+
   object_setIvar(proxy, uuidIvar, processUUID);
-  NSData *archive = [NSKeyedArchiver edo_archivedDataWithObject:proxy];
-  object_setIvar(proxy, uuidIvar, originalUUID);
-  return archive;
+  *addressPtr = remoteAddress;
+  @try {
+    return [NSKeyedArchiver edo_archivedDataWithObject:proxy];
+  } @finally {
+    *addressPtr = originalAddress;
+    object_setIvar(proxy, uuidIvar, originalUUID);
+  }
 }
 
 - (dispatch_queue_t)edo_createQueueAndServiceWithRootObject:(id)obj

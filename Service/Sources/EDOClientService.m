@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOClientService.h"
 
 #include <objc/runtime.h>
+#include <stddef.h>
 
 #import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOChannelPool.h"
@@ -110,9 +111,10 @@ EDOClientErrorHandler EDOSetClientErrorHandler(EDOClientErrorHandler errorHandle
     }
     // If there is a service for the current queue, we check if the object belongs to this queue.
     // Otherwise, we send EDOObjectAlive message to another service running in the same process.
-    if ([service isObjectAliveWithPort:edoObject.servicePort
-                         remoteAddress:edoObject.remoteAddress]) {
-      return (__bridge id)(void *)edoObject.remoteAddress;
+    id localObject = [service localObjectForRemoteAddress:edoObject.remoteAddress
+                                                     port:edoObject.servicePort];
+    if (localObject) {
+      return localObject;
     } else if (edoObject.isLocalEdo) {
       // If the underlying object is not a local object (but in the same process) then this could
       // return nil. For example, the service becomes invalide, or the remote object is already

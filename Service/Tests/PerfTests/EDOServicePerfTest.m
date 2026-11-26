@@ -96,12 +96,12 @@ static int CompareUint64(const void *lhs, const void *rhs) {
 
   _serviceBackgroundMock = OCMPartialMock(_serviceOnBackground);
   _serviceMainMock = OCMPartialMock(_serviceOnMain);
-  OCMStub([_serviceBackgroundMock isObjectAliveWithPort:OCMOCK_ANY remoteAddress:0])
+  OCMStub([_serviceBackgroundMock localObjectForRemoteAddress:0 port:OCMOCK_ANY])
       .ignoringNonObjectArgs()
-      .andReturn(NO);
-  OCMStub([_serviceMainMock isObjectAliveWithPort:OCMOCK_ANY remoteAddress:0])
+      .andReturn(nil);
+  OCMStub([_serviceMainMock localObjectForRemoteAddress:0 port:OCMOCK_ANY])
       .ignoringNonObjectArgs()
-      .andReturn(NO);
+      .andReturn(nil);
 }
 
 - (void)tearDown {

@@ -56,13 +56,28 @@ NS_ASSUME_NONNULL_BEGIN
 - (EDOObject *)distantObjectForLocalObject:(id)object hostPort:(nullable EDOHostPort *)hostPort;
 
 /**
- * Checks if the underlying object for the given address is still alive.
+ * Resolves the local object for the given address and service port if it belongs to this service.
  *
- * @param port          The port of the remote object.
  * @param remoteAddress The address of the remote object.
- * @return @c YES if the underlying object is still in the cache; @c NO otherwise.
+ * @param port          The port of the remote object.
+ * @return The tracked local object if @c port matches this service and @c remoteAddress is tracked;
+ *         @c nil otherwise.
  */
-- (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress;
+- (nullable id)localObjectForRemoteAddress:(EDOPointerType)remoteAddress
+                                      port:(nullable EDOServicePort *)port;
+
+/**
+ * Resolves the local object that this service has previously vended or holds as
+ * @c self.rootLocalObject for the given address.
+ *
+ * The address is treated purely as an opaque lookup key against @c self.rootLocalObject and the
+ * service's tracked-object table; it is never dereferenced.
+ *
+ * @param remoteAddress The address that was previously returned to the client in an @c EDOObject.
+ * @return The tracked local object (or @c self.rootLocalObject), or @c nil if @c remoteAddress is
+ *         not known to this service.
+ */
+- (nullable id)localObjectForRemoteAddress:(EDOPointerType)remoteAddress;
 
 /**
  * Decrements the per-vend reference count for the object at @c remoteAddress and removes it from

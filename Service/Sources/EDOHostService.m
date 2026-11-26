@@ -17,6 +17,7 @@
 #import "Service/Sources/EDOHostService.h"
 
 #include <objc/runtime.h>
+#include <stddef.h>
 
 #import "Channel/Sources/EDOChannel.h"
 #import "Channel/Sources/EDOHostPort.h"
@@ -404,18 +405,26 @@ static void ReleaseContext(void *context) { CFBridgingRelease(context); }
   return distantObject;
 }
 
-- (BOOL)isObjectAliveWithPort:(EDOServicePort *)port remoteAddress:(EDOPointerType)remoteAddress {
-  if (![_port match:port]) {
-    return NO;
-  }
-  __block BOOL isAlive;
-  dispatch_sync(_localObjectsSyncQueue, ^{
-    NSNumber *EDOKey = [NSNumber numberWithLongLong:remoteAddress];
-    isAlive =
-        self.localObjects[EDOKey] != nil || ((EDOPointerType)self.rootLocalObject) == remoteAddress;
-  });
+- (id)localObjectForRemoteAddress:(EDOPointerType)remoteAddress
+                             port:(nullable EDOServicePort *)port {
   // ivar is used directly here to avoid the service lazily creating listen port.
-  return isAlive;
+  if (!port || ![_port match:port]) {
+    return nil;
+  }
+  return [self localObjectForRemoteAddress:remoteAddress];
+}
+
+- (id)localObjectForRemoteAddress:(EDOPointerType)remoteAddress {
+  id rootObject = self.rootLocalObject;
+  if (rootObject && (EDOPointerType)rootObject == remoteAddress) {
+    return rootObject;
+  }
+  NSNumber *edoKey = [NSNumber numberWithLongLong:remoteAddress];
+  __block id object = nil;
+  dispatch_sync(_localObjectsSyncQueue, ^{
+    object = self.localObjects[edoKey];
+  });
+  return object;
 }
 
 - (BOOL)releaseObjectWithAddress:(EDOPointerType)remoteAddress {

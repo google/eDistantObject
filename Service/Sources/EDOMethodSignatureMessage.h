@@ -17,6 +17,7 @@
 #import <Foundation/Foundation.h>
 
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDOServiceRequest.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -45,6 +46,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** The Objective C type encoded signature for the selector. */
 @property(nonatomic, readonly, nullable) NSString *signature;
+
+/** The exception if thrown remotely (for example, when the target address is not tracked). */
+@property(nonatomic, readonly, nullable) EDORemoteException *exception;
 
 - (instancetype)init NS_UNAVAILABLE;
 

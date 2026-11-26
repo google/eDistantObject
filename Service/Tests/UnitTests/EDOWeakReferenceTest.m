@@ -278,12 +278,12 @@
   EDOHostService *service = [EDOHostService serviceWithPort:0
                                                  rootObject:[[EDOTestDummy alloc] init]
                                                       queue:queue];
-  // Disable the isObjectAlive: check so the object from the background queue will not be resolved
-  // to the underlying object but a remote object.
+  // Disable local unwrapping so the object from the background queue will not be resolved to the
+  // underlying object but a remote object.
   id serviceMock = OCMPartialMock(service);
-  OCMStub([serviceMock isObjectAliveWithPort:OCMOCK_ANY remoteAddress:0])
+  OCMStub([serviceMock localObjectForRemoteAddress:0 port:OCMOCK_ANY])
       .ignoringNonObjectArgs()
-      .andReturn(NO);
+      .andReturn(nil);
   return serviceMock;
 }
 

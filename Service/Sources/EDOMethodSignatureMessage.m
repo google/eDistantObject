@@ -16,10 +16,13 @@
 
 #import "Service/Sources/EDOMethodSignatureMessage.h"
 
+#import "Service/Sources/EDOHostService+Private.h"
 #import "Service/Sources/EDOHostService.h"
 #import "Service/Sources/EDOMessage.h"
 #import "Service/Sources/EDOObject+Private.h"
+#import "Service/Sources/EDORemoteException.h"
 #import "Service/Sources/EDORuntimeUtils.h"
+#import "Service/Sources/EDOServiceException.h"
 #import "Service/Sources/EDOServicePort.h"
 #import "Service/Sources/EDOServiceRequest.h"
 
@@ -28,6 +31,7 @@
 static NSString *const kEDOMethodSignatureCoderObjectKey = @"object";
 static NSString *const kEDOMethodSignatureCoderPortKey = @"port";
 static NSString *const kEDOMethodSignatureCoderSignatureKey = @"signature";
+static NSString *const kEDOMethodSignatureCoderExceptionKey = @"exception";
 static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 
 #pragma mark - EDOMethodSignatureResponse
@@ -38,10 +42,13 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
   return YES;
 }
 
-- (instancetype)initWithSignature:(NSString *)signature forRequest:(EDOServiceRequest *)request {
+- (instancetype)initWithSignature:(nullable NSString *)signature
+                        exception:(nullable EDORemoteException *)exception
+                       forRequest:(EDOServiceRequest *)request {
   self = [super initWithMessageID:request.messageID];
   if (self) {
     _signature = signature;
+    _exception = exception;
   }
   return self;
 }
@@ -51,6 +58,8 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
   if (self) {
     _signature = [aDecoder decodeObjectOfClass:[NSString class]
                                         forKey:kEDOMethodSignatureCoderSignatureKey];
+    _exception = [aDecoder decodeObjectOfClass:[EDORemoteException class]
+                                        forKey:kEDOMethodSignatureCoderExceptionKey];
   }
   return self;
 }
@@ -58,6 +67,7 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
 - (void)encodeWithCoder:(NSCoder *)aCoder {
   [super encodeWithCoder:aCoder];
   [aCoder encodeObject:self.signature forKey:kEDOMethodSignatureCoderSignatureKey];
+  [aCoder encodeObject:self.exception forKey:kEDOMethodSignatureCoderExceptionKey];
 }
 
 - (NSString *)description {
@@ -97,7 +107,21 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
     }
 
     EDOMethodSignatureRequest *methodRequest = (EDOMethodSignatureRequest *)request;
-    id object = (__bridge Class)(void *)methodRequest.object;
+    // Resolve the wire address against tracked objects before NSSelectorFromString to avoid
+    // interning untrusted selector names when the target address is not tracked.
+    id object = [service localObjectForRemoteAddress:methodRequest.object];
+    if (!object) {
+      NSString *reason =
+          [NSString stringWithFormat:@"The target address (%llx) is not tracked by this service.",
+                                     methodRequest.object];
+      EDORemoteException *remoteException =
+          [[EDORemoteException alloc] initWithName:EDOServiceGenericException
+                                            reason:reason
+                                  callStackSymbols:@[]];
+      return [[EDOMethodSignatureResponse alloc] initWithSignature:nil
+                                                         exception:remoteException
+                                                        forRequest:request];
+    }
     SEL sel = NSSelectorFromString(methodRequest.selectorName);
 
     NSMethodSignature *signature = EDOGetMethodSignature(object, sel);
@@ -106,7 +130,9 @@ static NSString *const kEDOMethodSignatureCoderSelectorKey = @"selector";
     for (NSUInteger i = 0; i < signature.numberOfArguments; ++i) {
       [encoding appendFormat:@"%s", [signature getArgumentTypeAtIndex:i]];
     }
-    return [[EDOMethodSignatureResponse alloc] initWithSignature:encoding forRequest:request];
+    return [[EDOMethodSignatureResponse alloc] initWithSignature:encoding
+                                                       exception:nil
+                                                      forRequest:request];
   };
 }
 

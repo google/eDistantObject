@@ -73,8 +73,8 @@ static NSString *const kEDOObjectAliveCoderIsAliveKey = @"isAlive";
 + (EDORequestHandler)requestHandler {
   return ^(EDOServiceRequest *request, EDOHostService *service) {
     EDOObjectAliveRequest *retainRequest = (EDOObjectAliveRequest *)request;
-    BOOL isAlive = [service isObjectAliveWithPort:retainRequest.servicePort
-                                    remoteAddress:retainRequest.remoteAddress];
+    BOOL isAlive = [service localObjectForRemoteAddress:retainRequest.remoteAddress
+                                                   port:retainRequest.servicePort] != nil;
     return [[EDOObjectAliveResponse alloc] initWithResult:isAlive forRequest:request];
   };
 }
