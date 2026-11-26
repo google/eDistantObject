@@ -18,6 +18,9 @@ notifications:
   email:
     recipients:
       - mobile-devx-github-bot+travis@google.com
+env:
+  - SCHEME=TravisTest_Shard_1
+  - SCHEME=TravisTest_Shard_2
 matrix:
   include:
   - name: "Xcode 12/iPhone 8/iOS 12"
@@ -33,7 +36,7 @@ matrix:
     osx_image: xcode12.5
     env: IOS_DESTINATION="platform=iOS Simulator,name=iPhone 11,OS=latest" SANITIZER_FLAGS="-enableAddressSanitizer YES"
 script:
-  - travis_retry xcodebuild -workspace eDistantObject.xcworkspace/  -scheme TravisTests -sdk iphonesimulator -destination "$IOS_DESTINATION" $SANITIZER_FLAGS test
+  - travis_retry xcodebuild -workspace eDistantObject.xcworkspace/  -scheme ${SCHEME} -sdk iphonesimulator -destination "$IOS_DESTINATION" $SANITIZER_FLAGS test
 branches:
   only:
     - master
